@@ -17,7 +17,7 @@ export default function SimuladorPage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-6xl px-4 pt-28 pb-12 sm:px-6 lg:px-8">
       <h1 className="mb-2 font-heading text-3xl font-bold">Simulador de color de cabello</h1>
       <p className="mb-8 text-sm text-muted-foreground">
         Sube tu foto, elige un tono y previsualiza el resultado antes de tu cita.

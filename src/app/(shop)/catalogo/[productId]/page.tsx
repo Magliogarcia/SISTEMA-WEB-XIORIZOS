@@ -29,7 +29,7 @@ export default function ProductDetailPage({ params }: { params: { productId: str
   const precioFinal = product.precio + (variante?.precioAdicional ?? 0);
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-7xl px-4 pt-28 pb-12 sm:px-6 lg:px-8">
       <div className="grid grid-cols-1 gap-10 md:grid-cols-2">
         <div className="relative aspect-square w-full overflow-hidden rounded-2xl bg-secondary">
           <Image src={product.imagenUrl} alt={product.nombre} fill className="object-cover" />

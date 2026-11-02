@@ -1,35 +1,78 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 30 40% 98%;
-    --foreground: 20 15% 15%;
+    --background: 38 35% 97%;
+    --foreground: 80 5% 11%;
     --card: 0 0% 100%;
-    --card-foreground: 20 15% 15%;
-    --primary: 340 65% 47%;
+    --card-foreground: 80 5% 11%;
+    --primary: 0 0% 0%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 30 30% 94%;
-    --secondary-foreground: 20 15% 15%;
-    --muted: 30 20% 92%;
-    --muted-foreground: 20 10% 45%;
-    --accent: 25 80% 60%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 72% 51%;
+    --secondary: 24 47% 35%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 36 15% 95%;
+    --muted-foreground: 195 3% 27%;
+    --accent: 23 94% 78%;
+    --accent-foreground: 24 51% 31%;
+    --destructive: 0 75% 42%;
     --destructive-foreground: 0 0% 100%;
-    --border: 30 20% 88%;
-    --input: 30 20% 88%;
-    --ring: 340 65% 47%;
-    --radius: 0.75rem;
+    --border: 180 3% 77%;
+    --input: 180 3% 77%;
+    --ring: 0 0% 0%;
+    --radius: 1rem;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    overscroll-behavior: none;
+    background-color: #fbf9f6;
+    color: #1b1c1a;
+  }
+
+  main > :first-child {
+    margin-top: 0 !important;
+  }
+
+  main > :last-child {
+    margin-bottom: 0 !important;
   }
 }
 
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
+/* Material Symbols font helper */
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+html, body {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
 }

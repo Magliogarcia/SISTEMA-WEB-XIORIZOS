@@ -31,7 +31,7 @@ export default function CheckoutPage() {
 
   if (items.length === 0) {
     return (
-      <div className="mx-auto max-w-md px-4 py-24 text-center">
+      <div className="mx-auto max-w-md px-4 pt-32 pb-24 text-center">
         <h1 className="font-heading text-2xl font-bold">Tu carrito está vacío</h1>
         <p className="mt-2 text-sm text-muted-foreground">Agrega productos antes de continuar al pago.</p>
         <Button className="mt-6" onClick={() => router.push("/catalogo")}>
@@ -42,7 +42,7 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-6xl px-4 pt-28 pb-12 sm:px-6 lg:px-8">
       <h1 className="mb-8 font-heading text-3xl font-bold">Checkout</h1>
 
       <div className="grid grid-cols-1 gap-10 lg:grid-cols-[1fr_380px]">

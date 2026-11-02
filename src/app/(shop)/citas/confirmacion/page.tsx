@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 
 export default function ConfirmacionCitaPage() {
   return (
-    <div className="mx-auto flex max-w-md flex-col items-center px-4 py-24 text-center">
+    <div className="mx-auto flex max-w-md flex-col items-center px-4 pt-32 pb-24 text-center">
       <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
         <CalendarCheck className="h-8 w-8 text-primary" />
       </div>

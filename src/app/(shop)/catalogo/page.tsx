@@ -31,13 +31,40 @@ export default function CatalogoPage() {
   }, [busqueda, categoria, marca]);
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-7xl px-4 pt-28 pb-16 sm:px-6 lg:px-8">
+      {/* Banner de Video Productos sin recortar */}
+      <div className="mb-10 bg-surface-container-low rounded-xl p-5 sm:p-7 border border-surface-container shadow-sm">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+          <div className="lg:col-span-7">
+            <span className="text-xs uppercase tracking-wider font-semibold text-secondary bg-secondary/10 px-3 py-1 rounded-full">
+              Línea Profesional para el Hogar
+            </span>
+            <h1 className="font-headline-lg text-2xl sm:text-4xl font-bold text-primary mt-3">
+              Catálogo de Productos para Rizos
+            </h1>
+            <p className="mt-2 text-sm sm:text-base text-on-surface-variant max-w-xl">
+              Fórmulas ricas en mantecas vegetales, aceites puros y agentes definidores sin sulfatos ni siliconas pesadas. Ideales para mantener el rizo hidratado y definido entre visitas al salón.
+            </p>
+          </div>
+          <div className="lg:col-span-5 flex items-center justify-center bg-black/5 rounded-xl overflow-hidden p-2">
+            <video
+              src="/videos/productos_para_los_rizos.mp4"
+              autoPlay
+              muted
+              loop
+              playsInline
+              controls={false}
+              disablePictureInPicture
+              className="w-full h-auto max-h-[280px] object-contain rounded-2xl"
+            />
+          </div>
+        </div>
+      </div>
+
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="font-heading text-3xl font-bold">Catálogo</h1>
-          <p className="text-sm text-muted-foreground">
-            {productosFiltrados.length} producto{productosFiltrados.length !== 1 && "s"} encontrado
-            {productosFiltrados.length !== 1 && "s"}
+          <p className="text-sm text-on-surface-variant">
+            {productosFiltrados.length} producto{productosFiltrados.length !== 1 && "s"} disponible{productosFiltrados.length !== 1 && "s"}
           </p>
         </div>
 
@@ -48,8 +75,8 @@ export default function CatalogoPage() {
 
           <Sheet open={filtrosOpen} onOpenChange={setFiltrosOpen}>
             <SheetTrigger asChild>
-              <Button variant="outline" className="lg:hidden">
-                <SlidersHorizontal className="h-4 w-4" />
+              <Button variant="outline" className="lg:hidden rounded-full">
+                <SlidersHorizontal className="h-4 w-4 mr-1.5" />
                 Filtros
               </Button>
             </SheetTrigger>
@@ -86,8 +113,8 @@ export default function CatalogoPage() {
 
         <div>
           {productosFiltrados.length === 0 ? (
-            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-20 text-center">
-              <p className="text-sm text-muted-foreground">
+            <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-surface-container py-20 text-center bg-surface-container-low">
+              <p className="text-sm text-on-surface-variant">
                 No encontramos productos con esos filtros.
               </p>
             </div>

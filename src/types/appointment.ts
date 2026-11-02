@@ -5,6 +5,8 @@ export interface Service {
   duracionMin: number;
   precio: number;
   categoria: string;
+  items?: string[];
+  nota?: string;
 }
 
 export interface Professional {
