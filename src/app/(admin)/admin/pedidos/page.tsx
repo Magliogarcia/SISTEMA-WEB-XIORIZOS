@@ -53,7 +53,10 @@ export default function AdminPedidosPage() {
     cargarPedidos();
   }, []);
 
-  async function cambiarEstado(id: string, nuevoEstado: "verificado" | "entregado" | "cancelado") {
+  async function cambiarEstado(
+    id: string,
+    nuevoEstado: "pendiente_verificacion" | "verificado" | "entregado" | "cancelado"
+  ) {
     try {
       const res = await fetch("/api/pedidos", {
         method: "PATCH",
@@ -67,6 +70,11 @@ export default function AdminPedidosPage() {
         );
         if (pedidoDetalle?.id === id) {
           setPedidoDetalle((prev) => (prev ? { ...prev, estado: nuevoEstado } : null));
+        }
+
+        // Sincronizar notificaciones de topbar en vivo
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("xiorizos-admin-update"));
         }
       }
     } catch (err) {
@@ -113,51 +121,51 @@ export default function AdminPedidosPage() {
               No hay pedidos registrados en el sistema aún.
             </div>
           ) : (
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse min-w-[950px]">
               <thead>
                 <tr className="border-b border-slate-200 bg-slate-50/60 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-                  <th className="py-3 px-4">Orden</th>
-                  <th className="py-3 px-4">Cliente</th>
-                  <th className="py-3 px-4">Método de Pago</th>
-                  <th className="py-3 px-4">Comprobante Pago Móvil</th>
-                  <th className="py-3 px-4">Total</th>
-                  <th className="py-3 px-4">Estado</th>
-                  <th className="py-3 px-4 text-right">Acciones</th>
+                  <th className="py-3 px-4 min-w-[130px] whitespace-nowrap">Orden</th>
+                  <th className="py-3 px-4 min-w-[210px] whitespace-nowrap">Cliente</th>
+                  <th className="py-3 px-4 min-w-[130px] whitespace-nowrap">Método de Pago</th>
+                  <th className="py-3 px-4 min-w-[190px] whitespace-nowrap">Comprobante Pago Móvil</th>
+                  <th className="py-3 px-4 min-w-[110px] whitespace-nowrap">Total</th>
+                  <th className="py-3 px-4 min-w-[170px] whitespace-nowrap">Estado (Editable)</th>
+                  <th className="py-3 px-4 min-w-[160px] whitespace-nowrap text-right">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-xs">
                 {pedidos.map((pedido) => (
                   <tr key={pedido.id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="py-3.5 px-4">
+                    <td className="py-3.5 px-4 whitespace-nowrap">
                       <p className="font-mono font-bold text-slate-900 text-xs">{pedido.id}</p>
                       <p className="text-[11px] text-slate-500">
                         {formatDate(new Date(pedido.creadoEn))}
                       </p>
                     </td>
 
-                    <td className="py-3.5 px-4">
+                    <td className="py-3.5 px-4 whitespace-nowrap">
                       <p className="font-semibold text-slate-900 text-sm">{pedido.clienteNombre}</p>
-                      <p className="flex items-center gap-1 text-slate-500 mt-0.5">
-                        <Phone className="h-3 w-3 text-slate-400" />
+                      <p className="flex items-center gap-1.5 text-slate-500 mt-0.5 font-mono text-xs">
+                        <Phone className="h-3 w-3 text-slate-400 shrink-0" />
                         <span>{pedido.clienteTelefono}</span>
                       </p>
                     </td>
 
-                    <td className="py-3.5 px-4">
+                    <td className="py-3.5 px-4 whitespace-nowrap">
                       {pedido.metodoPago === "pagomovil" ? (
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
-                          <Landmark className="h-3 w-3" />
+                          <Landmark className="h-3 w-3 shrink-0" />
                           <span>Pago Móvil</span>
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                          <Banknote className="h-3 w-3" />
+                          <Banknote className="h-3 w-3 shrink-0" />
                           <span>Efectivo</span>
                         </span>
                       )}
                     </td>
 
-                    <td className="py-3.5 px-4">
+                    <td className="py-3.5 px-4 whitespace-nowrap">
                       {pedido.metodoPago === "pagomovil" && pedido.pagoMovil ? (
                         <div className="space-y-0.5">
                           <p className="text-slate-600">
@@ -175,7 +183,7 @@ export default function AdminPedidosPage() {
                       )}
                     </td>
 
-                    <td className="py-3.5 px-4">
+                    <td className="py-3.5 px-4 whitespace-nowrap">
                       <p className="font-bold text-sm text-slate-900">
                         {formatCurrency(pedido.total)}
                       </p>
@@ -184,29 +192,45 @@ export default function AdminPedidosPage() {
                       </p>
                     </td>
 
-                    <td className="py-3.5 px-4">
-                      <span
-                        className={`inline-block text-[11px] font-semibold px-2 py-0.5 rounded ${
+                    <td className="py-3.5 px-4 whitespace-nowrap">
+                      {/* Selector de estado editable con posibilidad de revertir/deshacer cualquier acción */}
+                      <select
+                        value={pedido.estado}
+                        onChange={(e) =>
+                          cambiarEstado(
+                            pedido.id,
+                            e.target.value as
+                              | "pendiente_verificacion"
+                              | "verificado"
+                              | "entregado"
+                              | "cancelado"
+                          )
+                        }
+                        className={`text-[11px] font-semibold px-2 py-1 rounded border cursor-pointer focus:outline-none focus:ring-1 focus:ring-amber-500 ${
                           pedido.estado === "verificado"
-                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                            ? "bg-emerald-50 text-emerald-850 border-emerald-300"
                             : pedido.estado === "entregado"
-                            ? "bg-blue-50 text-blue-700 border border-blue-200"
+                            ? "bg-blue-50 text-blue-850 border-blue-300"
                             : pedido.estado === "cancelado"
-                            ? "bg-rose-50 text-rose-700 border border-rose-200"
-                            : "bg-amber-50 text-amber-700 border border-amber-200"
+                            ? "bg-rose-50 text-rose-850 border-rose-300"
+                            : "bg-amber-50 text-amber-850 border-amber-300"
                         }`}
+                        title="Puedes cambiar o deshacer el estado en cualquier momento"
                       >
-                        {estadoLabel[pedido.estado] || pedido.estado}
-                      </span>
+                        <option value="pendiente_verificacion">Por Verificar</option>
+                        <option value="verificado">Verificado</option>
+                        <option value="entregado">Entregado</option>
+                        <option value="cancelado">Cancelado</option>
+                      </select>
                     </td>
 
-                    <td className="py-3.5 px-4 text-right">
+                    <td className="py-3.5 px-4 text-right whitespace-nowrap">
                       <div className="flex items-center justify-end gap-1.5">
                         <button
                           type="button"
                           onClick={() => setPedidoDetalle(pedido)}
-                          className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold text-slate-700 hover:bg-slate-100 border border-slate-200 transition-colors cursor-pointer"
-                          title="Ver detalle de la orden"
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-semibold text-slate-700 hover:bg-slate-100 border border-slate-200 transition-colors cursor-pointer"
+                          title="Ver detalle completo de la orden"
                         >
                           <Eye className="h-3 w-3" />
                           <span>Detalle</span>
@@ -220,7 +244,29 @@ export default function AdminPedidosPage() {
                             title="Validar comprobante de Pago Móvil"
                           >
                             <CheckCircle2 className="h-3 w-3" />
-                            <span>Validar Pago</span>
+                            <span>Validar</span>
+                          </button>
+                        )}
+
+                        {pedido.estado === "verificado" && (
+                          <button
+                            type="button"
+                            onClick={() => cambiarEstado(pedido.id, "entregado")}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 transition-colors cursor-pointer"
+                            title="Marcar pedido como entregado"
+                          >
+                            <span>Entregar</span>
+                          </button>
+                        )}
+
+                        {pedido.estado === "cancelado" && (
+                          <button
+                            type="button"
+                            onClick={() => cambiarEstado(pedido.id, "pendiente_verificacion")}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 transition-colors cursor-pointer"
+                            title="Deshacer cancelación y reactivar orden"
+                          >
+                            <span>Reactivar</span>
                           </button>
                         )}
                       </div>
@@ -309,21 +355,41 @@ export default function AdminPedidosPage() {
                 </div>
               </div>
 
-              {/* Total y Botón de Validación */}
-              <div className="pt-2 border-t border-slate-200 flex items-center justify-between">
+              {/* Total y Botones de Acción / Reversibilidad */}
+              <div className="pt-2 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                   <p className="text-[11px] text-slate-500">Monto total:</p>
                   <p className="text-base font-bold text-slate-900">{formatCurrency(pedidoDetalle.total)}</p>
                 </div>
 
-                {pedidoDetalle.estado === "pendiente_verificacion" && (
-                  <Button
-                    onClick={() => cambiarEstado(pedidoDetalle.id, "verificado")}
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-md text-xs font-semibold"
-                  >
-                    Marcar Pago como Verificado
-                  </Button>
-                )}
+                <div className="flex items-center gap-2">
+                  {pedidoDetalle.estado === "pendiente_verificacion" && (
+                    <Button
+                      onClick={() => cambiarEstado(pedidoDetalle.id, "verificado")}
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-md text-xs font-semibold"
+                    >
+                      Marcar Pago Verificado
+                    </Button>
+                  )}
+                  {pedidoDetalle.estado === "verificado" && (
+                    <Button
+                      onClick={() => cambiarEstado(pedidoDetalle.id, "entregado")}
+                      className="bg-blue-600 hover:bg-blue-700 text-white rounded-md text-xs font-semibold"
+                    >
+                      Marcar como Entregado
+                    </Button>
+                  )}
+                  {pedidoDetalle.estado !== "pendiente_verificacion" && (
+                    <Button
+                      variant="outline"
+                      onClick={() => cambiarEstado(pedidoDetalle.id, "pendiente_verificacion")}
+                      className="border-slate-300 text-slate-700 hover:bg-slate-50 rounded-md text-xs"
+                      title="Deshacer y devolver a pendiente de verificación"
+                    >
+                      Revertir a Pendiente
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
           </DialogContent>

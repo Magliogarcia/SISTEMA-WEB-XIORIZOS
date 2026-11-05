@@ -17,15 +17,28 @@ export function ProfessionalSelector() {
       .then((res) => res.json())
       .then((data) => {
         if (data.success && Array.isArray(data.employees)) {
-          // Filtrar ESTRICTAMENTE los que están activos / operativos
+          // Filtrar ESTRICTAMENTE los estilistas activos y con servicios asignados
+          // (Excluye personal gerencial/administrativo como Germán Jácome)
           const activos = data.employees
-            .filter((e: any) => e.activo !== false)
+            .filter((e: any) => {
+              if (e.activo === false) return false;
+              const nombreLow = (e.nombre || "").toLowerCase();
+              const cargoLow = (e.cargo || "").toLowerCase();
+              if (
+                nombreLow.includes("germán") ||
+                nombreLow.includes("german") ||
+                cargoLow.includes("gerente")
+              ) {
+                return false;
+              }
+              return Array.isArray(e.serviciosIds) && e.serviciosIds.length > 0;
+            })
             .map((e: any) => ({
               id: e.id,
               nombre: e.nombre,
               especialidad: e.cargo || e.especialidad,
               avatarUrl: e.avatarUrl,
-              serviciosIds: e.serviciosIds || ["s1", "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9", "s10", "s11", "s12"],
+              serviciosIds: e.serviciosIds,
             }));
           if (activos.length > 0) {
             setProfesionales(activos);

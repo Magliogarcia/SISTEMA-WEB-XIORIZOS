@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import {
   Bell,
@@ -16,6 +16,8 @@ import {
   ArrowRight,
   X,
   CreditCard,
+  Check,
+  RotateCcw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -41,14 +43,17 @@ export function AdminTopbar() {
   const [citasPendientes, setCitasPendientes] = useState(0);
   const [pedidosPendientes, setPedidosPendientes] = useState(0);
   const [stockBajo, setStockBajo] = useState(0);
+  const [cargandoNotifs, setCargandoNotifs] = useState(false);
 
-  useEffect(() => {
-    // Cargar datos para notificaciones
-    Promise.all([
-      fetch("/api/citas").then((r) => r.json()).catch(() => ({ citas: [] })),
-      fetch("/api/pedidos").then((r) => r.json()).catch(() => ({ pedidos: [] })),
-      fetch("/api/productos").then((r) => r.json()).catch(() => ({ productos: [] })),
-    ]).then(([cData, pData, prData]) => {
+  const cargarNotificaciones = useCallback(async () => {
+    try {
+      setCargandoNotifs(true);
+      const [cData, pData, prData] = await Promise.all([
+        fetch("/api/citas").then((r) => r.json()).catch(() => ({ citas: [] })),
+        fetch("/api/pedidos").then((r) => r.json()).catch(() => ({ pedidos: [] })),
+        fetch("/api/productos").then((r) => r.json()).catch(() => ({ productos: [] })),
+      ]);
+
       if (cData.citas) {
         setCitasPendientes(cData.citas.filter((c: any) => c.estado === "pendiente").length);
       }
@@ -60,8 +65,32 @@ export function AdminTopbar() {
       if (prData.productos) {
         setStockBajo(prData.productos.filter((pr: any) => pr.stock <= 5).length);
       }
-    });
+    } catch (err) {
+      console.error("Error al actualizar notificaciones:", err);
+    } finally {
+      setCargandoNotifs(false);
+    }
   }, []);
+
+  useEffect(() => {
+    cargarNotificaciones();
+
+    // Escuchar eventos globales de cambios realizados por el admin
+    function handleUpdate() {
+      cargarNotificaciones();
+    }
+
+    window.addEventListener("xiorizos-admin-update", handleUpdate);
+    return () => window.removeEventListener("xiorizos-admin-update", handleUpdate);
+  }, [cargarNotificaciones]);
+
+  // Al abrir el dropdown, siempre re-consultar en vivo
+  function toggleNotifMenu() {
+    if (!notifOpen) {
+      cargarNotificaciones();
+    }
+    setNotifOpen(!notifOpen);
+  }
 
   // Cerrar dropdown al hacer clic afuera
   useEffect(() => {
@@ -86,7 +115,7 @@ export function AdminTopbar() {
       .toUpperCase() ?? "AD";
 
   return (
-    <header className="flex h-16 items-center justify-between border-b border-slate-200 bg-white px-4 md:px-6 sticky top-0 z-30">
+    <header className="flex h-16 items-center justify-between border-b border-slate-200 bg-white px-4 md:px-6 sticky top-0 z-30 font-sans">
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger asChild>
           <Button variant="ghost" size="icon" className="md:hidden">
@@ -127,14 +156,14 @@ export function AdminTopbar() {
         <div className="relative" ref={notifRef}>
           <button
             type="button"
-            onClick={() => setNotifOpen(!notifOpen)}
+            onClick={toggleNotifMenu}
             className="relative flex h-9 w-9 items-center justify-center rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 transition-colors cursor-pointer"
             aria-label="Abrir panel de notificaciones"
-            title="Notificaciones operativas"
+            title="Notificaciones operativas en tiempo real"
           >
             <Bell className="h-4 w-4" />
             {totalNotificaciones > 0 && (
-              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-600 text-[10px] font-bold text-white shadow-sm">
+              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-600 text-[10px] font-bold text-white shadow-sm animate-in zoom-in-50">
                 {totalNotificaciones}
               </span>
             )}
@@ -142,28 +171,39 @@ export function AdminTopbar() {
 
           {/* Menú de Notificaciones */}
           {notifOpen && (
-            <div className="absolute right-0 mt-2 w-80 sm:w-96 rounded-md border border-slate-200 bg-white p-3 shadow-xl z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+            <div className="absolute right-0 mt-2 w-80 sm:w-96 rounded-md border border-slate-200 bg-white p-3.5 shadow-xl z-50 animate-in fade-in slide-in-from-top-2 duration-150">
               <div className="flex items-center justify-between pb-2 border-b border-slate-100">
                 <div className="flex items-center gap-2">
                   <span className="font-semibold text-sm text-slate-900">Notificaciones</span>
-                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-bold text-slate-600">
-                    {totalNotificaciones}
+                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-bold text-slate-700">
+                    {totalNotificaciones} {totalNotificaciones === 1 ? "alerta" : "alertas"}
                   </span>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setNotifOpen(false)}
-                  className="text-slate-400 hover:text-slate-600 p-1"
-                >
-                  <X className="h-4 w-4" />
-                </button>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={cargarNotificaciones}
+                    className="text-[11px] font-medium text-slate-500 hover:text-slate-800 px-2 py-1 rounded hover:bg-slate-100"
+                    title="Actualizar notificaciones"
+                  >
+                    Actualizar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setNotifOpen(false)}
+                    className="text-slate-400 hover:text-slate-600 p-1 rounded hover:bg-slate-100"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
 
               <div className="divide-y divide-slate-100 py-1">
                 {totalNotificaciones === 0 ? (
-                  <p className="py-6 text-center text-xs text-slate-500">
-                    No tienes alertas ni notificaciones pendientes.
-                  </p>
+                  <div className="py-8 text-center">
+                    <p className="text-xs font-medium text-slate-600">Al día sin tareas pendientes</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">Todas las citas y pagos han sido atendidos.</p>
+                  </div>
                 ) : (
                   <>
                     {citasPendientes > 0 && (
@@ -176,11 +216,11 @@ export function AdminTopbar() {
                           <CalendarCheck className="h-4 w-4" />
                         </div>
                         <div className="flex-1">
-                          <p className="text-xs font-semibold text-slate-800 group-hover:text-blue-700">
+                          <p className="text-xs font-semibold text-slate-900 group-hover:text-blue-700">
                             {citasPendientes} cita(s) pendiente(s) de confirmación
                           </p>
                           <p className="text-[11px] text-slate-500">
-                            Clientes esperando aprobación de horario
+                            Haz clic para revisar y confirmar en la agenda
                           </p>
                         </div>
                         <ArrowRight className="h-3.5 w-3.5 text-slate-400 group-hover:translate-x-0.5 transition-transform mt-1" />
@@ -197,11 +237,11 @@ export function AdminTopbar() {
                           <CreditCard className="h-4 w-4" />
                         </div>
                         <div className="flex-1">
-                          <p className="text-xs font-semibold text-slate-800 group-hover:text-amber-700">
+                          <p className="text-xs font-semibold text-slate-900 group-hover:text-amber-700">
                             {pedidosPendientes} pago(s) móvil por verificar
                           </p>
                           <p className="text-[11px] text-slate-500">
-                            Comprueba las referencias bancarias de clientes
+                            Comprueba las referencias bancarias
                           </p>
                         </div>
                         <ArrowRight className="h-3.5 w-3.5 text-slate-400 group-hover:translate-x-0.5 transition-transform mt-1" />
@@ -218,11 +258,11 @@ export function AdminTopbar() {
                           <AlertCircle className="h-4 w-4" />
                         </div>
                         <div className="flex-1">
-                          <p className="text-xs font-semibold text-slate-800 group-hover:text-rose-700">
+                          <p className="text-xs font-semibold text-slate-900 group-hover:text-rose-700">
                             {stockBajo} producto(s) con inventario bajo
                           </p>
                           <p className="text-[11px] text-slate-500">
-                            Menos de 5 unidades en stock disponible
+                            Existencias críticas en almacén
                           </p>
                         </div>
                         <ArrowRight className="h-3.5 w-3.5 text-slate-400 group-hover:translate-x-0.5 transition-transform mt-1" />

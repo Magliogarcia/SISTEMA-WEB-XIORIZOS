@@ -1,7 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Check, X, CalendarCheck, Clock, User, Phone, RefreshCw, Scissors } from "lucide-react";
+import {
+  Check,
+  X,
+  CalendarCheck,
+  Clock,
+  Phone,
+  RefreshCw,
+  Scissors,
+  RotateCcw,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatDate, formatCurrency } from "@/lib/utils";
 import type { DBAppointment } from "@/lib/db";
@@ -29,7 +38,10 @@ export default function AdminCitasPage() {
     cargarCitas();
   }, []);
 
-  async function cambiarEstado(id: string, nuevoEstado: "confirmada" | "completada" | "cancelada") {
+  async function cambiarEstado(
+    id: string,
+    nuevoEstado: "pendiente" | "confirmada" | "completada" | "cancelada"
+  ) {
     try {
       const res = await fetch("/api/citas", {
         method: "PATCH",
@@ -41,6 +53,8 @@ export default function AdminCitasPage() {
         setCitas((prev) =>
           prev.map((c) => (c.id === id ? { ...c, estado: nuevoEstado } : c))
         );
+        // Notificar en vivo a la barra de notificaciones para que se actualice inmediatamente
+        window.dispatchEvent(new CustomEvent("xiorizos-admin-update"));
       }
     } catch (err) {
       console.error(err);
@@ -48,7 +62,7 @@ export default function AdminCitasPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-sans">
       {/* Encabezado */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-slate-200">
         <div>
@@ -70,7 +84,7 @@ export default function AdminCitasPage() {
         </Button>
       </div>
 
-      {/* Contenedor de Tabla con esquinas sutiles (rounded-md) y fondo blanco limpio */}
+      {/* Contenedor de Tabla con anchos fijos y sin saltos de línea antiestéticos */}
       <div className="rounded-md border border-slate-200 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)] overflow-hidden">
         <div className="p-4 border-b border-slate-200 flex items-center justify-between">
           <h2 className="text-sm font-bold text-slate-900">
@@ -86,96 +100,163 @@ export default function AdminCitasPage() {
               No hay citas registradas en el sistema aún.
             </div>
           ) : (
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse min-w-[900px]">
               <thead>
-                <tr className="border-b border-slate-200 bg-slate-50/60 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-                  <th className="py-3 px-4">Cliente & Contacto</th>
-                  <th className="py-3 px-4">Servicio</th>
-                  <th className="py-3 px-4">Especialista</th>
-                  <th className="py-3 px-4">Fecha & Hora</th>
-                  <th className="py-3 px-4">Notas</th>
-                  <th className="py-3 px-4">Estado</th>
-                  <th className="py-3 px-4 text-right">Acciones</th>
+                <tr className="border-b border-slate-200 bg-slate-50/70 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                  <th className="py-3 px-4 min-w-[200px] whitespace-nowrap">Cliente & Contacto</th>
+                  <th className="py-3 px-4 min-w-[180px]">Servicio</th>
+                  <th className="py-3 px-4 min-w-[150px] whitespace-nowrap">Especialista</th>
+                  <th className="py-3 px-4 min-w-[170px] whitespace-nowrap">Fecha & Hora</th>
+                  <th className="py-3 px-4 min-w-[150px]">Notas</th>
+                  <th className="py-3 px-4 min-w-[130px] whitespace-nowrap">Estado</th>
+                  <th className="py-3 px-4 min-w-[230px] text-right whitespace-nowrap">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-xs">
                 {citas.map((cita) => (
                   <tr key={cita.id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="py-3.5 px-4">
-                      <p className="font-semibold text-slate-900 text-sm">{cita.clienteNombre}</p>
-                      <p className="flex items-center gap-1 text-slate-500 mt-0.5">
-                        <Phone className="h-3 w-3 text-slate-400" />
+                    {/* Cliente y Teléfono sin saltos de línea cortados */}
+                    <td className="py-3.5 px-4 whitespace-nowrap">
+                      <p className="font-semibold text-slate-900 text-sm tracking-tight">{cita.clienteNombre}</p>
+                      <p className="flex items-center gap-1.5 text-slate-600 mt-0.5 text-xs font-mono font-medium">
+                        <Phone className="h-3.5 w-3.5 text-slate-400 shrink-0" />
                         <span>{cita.clienteTelefono}</span>
                       </p>
                     </td>
 
+                    {/* Servicio y Precio */}
                     <td className="py-3.5 px-4">
-                      <p className="font-semibold text-slate-800">{cita.servicioNombre}</p>
-                      <p className="text-slate-500">{formatCurrency(cita.servicioPrecio)}</p>
+                      <p className="font-semibold text-slate-800 text-xs sm:text-sm">{cita.servicioNombre}</p>
+                      <p className="text-slate-500 font-medium">{formatCurrency(cita.servicioPrecio)}</p>
                     </td>
 
-                    <td className="py-3.5 px-4 font-medium text-slate-800">
+                    {/* Especialista */}
+                    <td className="py-3.5 px-4 font-medium text-slate-800 whitespace-nowrap">
                       {cita.profesionalNombre}
                     </td>
 
-                    <td className="py-3.5 px-4">
-                      <p className="font-medium text-slate-700">{formatDate(new Date(cita.fecha))}</p>
-                      <p className="font-bold text-slate-900 flex items-center gap-1 mt-0.5">
+                    {/* Fecha y Hora en una sola línea armónica */}
+                    <td className="py-3.5 px-4 whitespace-nowrap">
+                      <p className="font-medium text-slate-800">
+                        {formatDate(new Date(cita.fecha))}
+                      </p>
+                      <p className="font-bold text-slate-900 flex items-center gap-1.5 mt-0.5 text-xs font-mono">
                         <Clock className="h-3 w-3 text-slate-400" />
                         <span>{cita.hora}</span>
                       </p>
                     </td>
 
-                    <td className="py-3.5 px-4 max-w-[200px] text-slate-500 truncate">
+                    {/* Notas */}
+                    <td className="py-3.5 px-4 max-w-[200px] text-slate-500 truncate" title={cita.notas}>
                       {cita.notas || "Sin notas"}
                     </td>
 
-                    <td className="py-3.5 px-4">
-                      <span
-                        className={`inline-block text-[11px] font-semibold px-2 py-0.5 rounded ${
+                    {/* Estado con Selector / Indicador */}
+                    <td className="py-3.5 px-4 whitespace-nowrap">
+                      <select
+                        value={cita.estado}
+                        onChange={(e) =>
+                          cambiarEstado(
+                            cita.id,
+                            e.target.value as "pendiente" | "confirmada" | "completada" | "cancelada"
+                          )
+                        }
+                        className={`text-xs font-semibold px-2 py-1 rounded border cursor-pointer focus:outline-none focus:ring-1 focus:ring-slate-400 ${
                           cita.estado === "confirmada"
-                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                            ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                             : cita.estado === "completada"
-                            ? "bg-blue-50 text-blue-700 border border-blue-200"
+                            ? "bg-blue-50 text-blue-700 border-blue-200"
                             : cita.estado === "cancelada"
-                            ? "bg-rose-50 text-rose-700 border border-rose-200"
-                            : "bg-amber-50 text-amber-700 border border-amber-200"
+                            ? "bg-rose-50 text-rose-700 border-rose-200"
+                            : "bg-amber-50 text-amber-700 border-amber-200"
                         }`}
                       >
-                        {cita.estado.charAt(0).toUpperCase() + cita.estado.slice(1)}
-                      </span>
+                        <option value="pendiente">Pendiente</option>
+                        <option value="confirmada">Confirmada</option>
+                        <option value="completada">Completada</option>
+                        <option value="cancelada">Cancelada</option>
+                      </select>
                     </td>
 
-                    <td className="py-3.5 px-4 text-right">
+                    {/* Acciones reversibles para cualquier estado */}
+                    <td className="py-3.5 px-4 text-right whitespace-nowrap">
                       <div className="flex items-center justify-end gap-1.5">
                         {cita.estado === "pendiente" && (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => cambiarEstado(cita.id, "confirmada")}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-colors cursor-pointer"
+                              title="Confirmar cita"
+                            >
+                              <Check className="h-3 w-3" />
+                              <span>Confirmar</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => cambiarEstado(cita.id, "cancelada")}
+                              className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold text-rose-700 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-colors cursor-pointer"
+                              title="Cancelar cita"
+                            >
+                              <X className="h-3 w-3" />
+                              <span>Cancelar</span>
+                            </button>
+                          </>
+                        )}
+
+                        {cita.estado === "confirmada" && (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => cambiarEstado(cita.id, "completada")}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 transition-colors cursor-pointer"
+                              title="Marcar como atendida/completada"
+                            >
+                              <CalendarCheck className="h-3 w-3" />
+                              <span>Completada</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => cambiarEstado(cita.id, "pendiente")}
+                              className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold text-amber-700 hover:bg-amber-50 border border-transparent hover:border-amber-200 transition-colors cursor-pointer"
+                              title="Revertir a Pendiente"
+                            >
+                              <RotateCcw className="h-3 w-3" />
+                              <span>Pendiente</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => cambiarEstado(cita.id, "cancelada")}
+                              className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold text-rose-700 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-colors cursor-pointer"
+                              title="Cancelar cita"
+                            >
+                              <X className="h-3 w-3" />
+                              <span>Cancelar</span>
+                            </button>
+                          </>
+                        )}
+
+                        {cita.estado === "cancelada" && (
                           <button
                             type="button"
                             onClick={() => cambiarEstado(cita.id, "confirmada")}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-colors cursor-pointer"
+                            className="inline-flex items-center gap-1.5 px-3 py-1 rounded text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-colors cursor-pointer"
+                            title="Deshacer cancelación y reactivar la cita"
                           >
-                            <Check className="h-3 w-3" />
-                            <span>Confirmar</span>
+                            <RotateCcw className="h-3 w-3" />
+                            <span>Reactivar cita</span>
                           </button>
                         )}
-                        {cita.estado === "confirmada" && (
+
+                        {cita.estado === "completada" && (
                           <button
                             type="button"
-                            onClick={() => cambiarEstado(cita.id, "completada")}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 transition-colors cursor-pointer"
+                            onClick={() => cambiarEstado(cita.id, "confirmada")}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold text-slate-700 hover:bg-slate-100 border border-slate-200 transition-colors cursor-pointer"
+                            title="Reabrir cita"
                           >
-                            <CalendarCheck className="h-3 w-3" />
-                            <span>Completada</span>
-                          </button>
-                        )}
-                        {cita.estado !== "cancelada" && (
-                          <button
-                            type="button"
-                            onClick={() => cambiarEstado(cita.id, "cancelada")}
-                            className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold text-rose-700 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-colors cursor-pointer"
-                          >
-                            <X className="h-3 w-3" />
-                            <span>Cancelar</span>
+                            <RotateCcw className="h-3 w-3" />
+                            <span>Reabrir</span>
                           </button>
                         )}
                       </div>

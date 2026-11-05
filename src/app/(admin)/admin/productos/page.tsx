@@ -46,6 +46,7 @@ export default function AdminProductosPage() {
   // Dialogs
   const [modalAbierto, setModalAbierto] = useState(false);
   const [modoEdicion, setModoEdicion] = useState(false);
+  const [imagenPopup, setImagenPopup] = useState<{ url: string; nombre: string; precio: number; categoria: string } | null>(null);
 
   // Form states
   const [idSeleccionado, setIdSeleccionado] = useState("");
@@ -277,9 +278,26 @@ export default function AdminProductosPage() {
                   <tr key={p.id} className="hover:bg-slate-50/80 transition-colors">
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-3">
-                        <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-md bg-slate-100 border border-slate-200">
-                          <Image src={p.imagenUrl} alt={p.nombre} fill className="object-cover" />
-                        </div>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setImagenPopup({
+                              url: p.imagenUrl,
+                              nombre: p.nombre,
+                              precio: p.precio,
+                              categoria: p.categoria,
+                            })
+                          }
+                          className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md bg-slate-100 border border-slate-200 hover:opacity-85 hover:ring-2 hover:ring-amber-500 transition-all cursor-zoom-in group shadow-xs"
+                          title="Clic para ampliar foto"
+                        >
+                          <Image
+                            src={p.imagenUrl}
+                            alt={p.nombre}
+                            fill
+                            className="object-cover group-hover:scale-105 transition-transform"
+                          />
+                        </button>
                         <div>
                           <p className="font-semibold text-slate-900 text-sm">{p.nombre}</p>
                           <p className="text-slate-500 line-clamp-1 max-w-xs">{p.descripcion}</p>
@@ -508,6 +526,36 @@ export default function AdminProductosPage() {
           </form>
         </DialogContent>
       </Dialog>
+      {/* Modal Lightbox de Foto de Producto */}
+      {imagenPopup && (
+        <Dialog open={!!imagenPopup} onOpenChange={() => setImagenPopup(null)}>
+          <DialogContent className="max-w-sm sm:max-w-md p-5 rounded-md">
+            <DialogHeader className="pb-2 border-b border-slate-200">
+              <DialogTitle className="text-sm font-bold text-slate-900 truncate">
+                {imagenPopup.nombre}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-3 pt-2">
+              <div className="relative w-full aspect-square rounded-md overflow-hidden bg-slate-50 border border-slate-200">
+                <Image
+                  src={imagenPopup.url}
+                  alt={imagenPopup.nombre}
+                  fill
+                  className="object-contain p-2"
+                />
+              </div>
+              <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-100">
+                <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-medium capitalize">
+                  {imagenPopup.categoria}
+                </span>
+                <span className="text-sm font-bold text-slate-900">
+                  {formatCurrency(imagenPopup.precio)}
+                </span>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }

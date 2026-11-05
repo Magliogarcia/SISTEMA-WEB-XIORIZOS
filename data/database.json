@@ -31,7 +31,7 @@
       "fecha": "2026-11-06T04:00:00.000Z",
       "hora": "09:00",
       "notas": "",
-      "estado": "pendiente",
+      "estado": "cancelada",
       "creadoEn": "2026-11-05T19:59:37.570Z"
     },
     {
@@ -57,7 +57,7 @@
       "fecha": "2026-11-07T19:58:59.442Z",
       "hora": "14:30",
       "notas": "Interesada en tonos cobrizos.",
-      "estado": "pendiente",
+      "estado": "completada",
       "creadoEn": "2026-11-05T19:58:59.442Z"
     }
   ],
