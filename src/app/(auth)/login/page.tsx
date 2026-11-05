@@ -14,7 +14,7 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirect") || "/";
 
-  const login = useAuthStore((state) => state.login);
+  const { login, logout, user, isAuthenticated } = useAuthStore();
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [cargando, setCargando] = useState(false);
@@ -79,7 +79,53 @@ function LoginForm() {
         </div>
       )}
 
+      {isAuthenticated && user && (
+        <div className="rounded-2xl border border-secondary/30 bg-secondary/10 p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-full bg-primary text-white flex items-center justify-center font-bold text-xs shadow-sm">
+                {user.nombre?.charAt(0)?.toUpperCase() || "U"}
+              </div>
+              <div>
+                <p className="text-xs font-bold text-primary">{user.nombre}</p>
+                <p className="text-[11px] text-muted-foreground">{user.email || user.id}</p>
+              </div>
+            </div>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-secondary/20 text-secondary uppercase tracking-wider">
+              {user.rol}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2 pt-2 border-t border-secondary/20">
+            {user.rol === "admin" && (
+              <Button
+                type="button"
+                size="sm"
+                className="flex-1 text-xs font-semibold bg-secondary hover:bg-secondary/90 text-white"
+                onClick={() => router.push("/admin")}
+              >
+                Panel Administrador
+              </Button>
+            )}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="flex-1 text-xs hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30"
+              onClick={() => logout()}
+            >
+              Cerrar sesión
+            </Button>
+          </div>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-4">
+        {isAuthenticated && (
+          <p className="text-xs font-medium text-muted-foreground">
+            O ingresa con otra cuenta:
+          </p>
+        )}
         <div className="space-y-1.5">
           <Label htmlFor="identifier" className="text-xs font-semibold">
             Usuario o Correo electrónico

@@ -1,0 +1,216 @@
+{
+  "users": [
+    {
+      "id": "admin-root",
+      "username": "admin",
+      "nombre": "Administrador Xiorizos",
+      "email": "admin@xiorizos.com",
+      "password": "123",
+      "rol": "admin",
+      "creadoEn": "2026-11-05T19:58:59.442Z"
+    },
+    {
+      "id": "u-cliente-demo",
+      "username": "maria",
+      "nombre": "María González",
+      "email": "maria@ejemplo.com",
+      "password": "123",
+      "rol": "cliente",
+      "telefono": "0412 1234567",
+      "creadoEn": "2026-11-05T19:58:59.442Z"
+    }
+  ],
+  "appointments": [
+    {
+      "id": "cita-1793908777570",
+      "clienteNombre": "Maglio Garcia",
+      "clienteTelefono": "0414 581 2979",
+      "servicioNombre": "FULL CURL PREMIUM",
+      "servicioPrecio": 45,
+      "profesionalNombre": "Yolennis Yélamo",
+      "fecha": "2026-11-06T04:00:00.000Z",
+      "hora": "09:00",
+      "notas": "",
+      "estado": "pendiente",
+      "creadoEn": "2026-11-05T19:59:37.570Z"
+    },
+    {
+      "id": "cita-101",
+      "clienteNombre": "María González",
+      "clienteTelefono": "0412 1234567",
+      "servicioNombre": "Xiorizos Full Curl",
+      "servicioPrecio": 35,
+      "profesionalNombre": "Xioilin Guzmán",
+      "fecha": "2026-11-06T19:58:59.442Z",
+      "hora": "10:00",
+      "notas": "Primera vez en el salón, cabello ondulado 2C.",
+      "estado": "confirmada",
+      "creadoEn": "2026-11-05T19:58:59.442Z"
+    },
+    {
+      "id": "cita-102",
+      "clienteNombre": "Valeria Mendoza",
+      "clienteTelefono": "0414 7654321",
+      "servicioNombre": "Color & Iluminación Curly",
+      "servicioPrecio": 50,
+      "profesionalNombre": "Axel Alvarado",
+      "fecha": "2026-11-07T19:58:59.442Z",
+      "hora": "14:30",
+      "notas": "Interesada en tonos cobrizos.",
+      "estado": "pendiente",
+      "creadoEn": "2026-11-05T19:58:59.442Z"
+    }
+  ],
+  "products": [
+    {
+      "id": "p1",
+      "nombre": "Curl Butter Mascarilla",
+      "descripcion": "Nutrición intensa para rizos y ondas con lípidos naturales.",
+      "precio": 34,
+      "imagenUrl": "/images/mascarilla_nutritiva.webp",
+      "categoria": "Tratamientos",
+      "marca": "Xiorizos Care",
+      "stock": 15,
+      "rating": 4.9,
+      "reseñasCount": 48
+    },
+    {
+      "id": "p2",
+      "nombre": "Óleo Argán & Cacao",
+      "descripcion": "Gotas de brillo y control de frizz sin sensación pesada.",
+      "precio": 28,
+      "imagenUrl": "/images/oleo_capilar.webp",
+      "categoria": "Aceites",
+      "marca": "Xiorizos Care",
+      "stock": 24,
+      "rating": 5,
+      "reseñasCount": 62
+    },
+    {
+      "id": "p3",
+      "nombre": "Shampoo Hidratante",
+      "descripcion": "Limpieza suave sin sulfatos para mantener la hidratación natural.",
+      "precio": 26,
+      "imagenUrl": "/images/shampoo_hidratante.webp",
+      "categoria": "Shampoo",
+      "marca": "Xiorizos Care",
+      "stock": 30,
+      "rating": 4.8,
+      "reseñasCount": 39
+    },
+    {
+      "id": "p4",
+      "nombre": "Gel Definidor Rizos & Ondas",
+      "descripcion": "Fijación flexible y duradera que no reseca el rizo.",
+      "precio": 22,
+      "imagenUrl": "/images/gel_definidor.webp",
+      "categoria": "Definidores",
+      "marca": "Xiorizos Care",
+      "stock": 20,
+      "rating": 4.9,
+      "reseñasCount": 51
+    },
+    {
+      "id": "p5",
+      "nombre": "Crema de Peinar Etniker",
+      "descripcion": "Definición profunda y suavidad para ondas y rizos pronunciados.",
+      "precio": 25,
+      "imagenUrl": "/images/crema_de_peinar_etniker.webp",
+      "categoria": "Cremas",
+      "marca": "Etniker",
+      "stock": 18,
+      "rating": 4.9,
+      "reseñasCount": 42
+    },
+    {
+      "id": "p6",
+      "nombre": "Tratamiento Profundo Reparador",
+      "descripcion": "Recupera la elasticidad y fuerza de las hebras castigadas.",
+      "precio": 38,
+      "imagenUrl": "/images/tratamiento_profundo.webp",
+      "categoria": "Tratamientos",
+      "marca": "Xiorizos Care",
+      "stock": 12,
+      "rating": 5,
+      "reseñasCount": 33
+    },
+    {
+      "id": "p7",
+      "nombre": "Crema de Peinar Ibella",
+      "descripcion": "Control de volumen y definición duradera con extractos botánicos.",
+      "precio": 24,
+      "imagenUrl": "/images/crema_de_peinar_ibella.webp",
+      "categoria": "Cremas",
+      "marca": "Ibella",
+      "stock": 16,
+      "rating": 4.8,
+      "reseñasCount": 29
+    },
+    {
+      "id": "p8",
+      "nombre": "Gel Capilar Hidratante",
+      "descripcion": "Brillo extremo y fijación ligera para definir ondas y rizos.",
+      "precio": 19,
+      "imagenUrl": "/images/gel_capilar.webp",
+      "categoria": "Definidores",
+      "marca": "Xiorizos Care",
+      "stock": 22,
+      "rating": 4.7,
+      "reseñasCount": 21
+    }
+  ],
+  "orders": [
+    {
+      "id": "#ORD-9102",
+      "clienteNombre": "Valeria Mendoza",
+      "clienteTelefono": "0414 7654321",
+      "clienteEmail": "valeria@correo.com",
+      "direccion": "Urb. La Viña, Calle Los Mangos, Valencia",
+      "items": [
+        {
+          "productId": "p1",
+          "nombre": "Crema de Peinar Etniker",
+          "precio": 25,
+          "cantidad": 1,
+          "imagenUrl": "/images/crema_de_peinar_etniker.webp"
+        },
+        {
+          "productId": "p2",
+          "nombre": "Gel Definidor",
+          "precio": 18,
+          "cantidad": 1,
+          "imagenUrl": "/images/gel_definidor.webp"
+        }
+      ],
+      "total": 43,
+      "metodoPago": "pagomovil",
+      "pagoMovil": {
+        "banco": "Banesco",
+        "referencia": "0948271",
+        "telefonoEmisor": "0414 7654321"
+      },
+      "estado": "pendiente_verificacion",
+      "creadoEn": "2026-11-05T19:58:59.442Z"
+    },
+    {
+      "id": "#ORD-9101",
+      "clienteNombre": "Carlos Rojas",
+      "clienteTelefono": "0412 8887766",
+      "clienteEmail": "carlos@correo.com",
+      "direccion": "Av. Bolívar Norte, Valencia",
+      "items": [
+        {
+          "productId": "p3",
+          "nombre": "Shampoo Hidratante",
+          "precio": 15,
+          "cantidad": 2,
+          "imagenUrl": "/images/shampoo_hidratante.webp"
+        }
+      ],
+      "total": 30,
+      "metodoPago": "efectivo",
+      "estado": "verificado",
+      "creadoEn": "2026-11-04T19:58:59.442Z"
+    }
+  ]
+}

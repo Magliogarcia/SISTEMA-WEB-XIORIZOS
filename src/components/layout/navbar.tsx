@@ -36,6 +36,7 @@ export function Navbar() {
     try {
       router.prefetch("/citas");
       router.prefetch("/catalogo");
+      router.prefetch("/login");
     } catch {
       // Ignorar
     }
@@ -124,26 +125,32 @@ export function Navbar() {
               Cita Online
             </Link>
 
-            {/* Cuenta / Perfil / Acceso Admin */}
-            {user?.rol === "admin" ? (
+            {/* Acceso directo a Panel Admin si es administrador */}
+            {user?.rol === "admin" && (
               <Link
                 href="/admin"
-                className="inline-flex items-center gap-1 px-3 py-2 rounded-full bg-secondary text-white text-xs font-bold shadow-md hover:scale-105 transition-all"
+                className="hidden sm:inline-flex items-center gap-1 px-3 py-2 rounded-full bg-secondary text-white text-xs font-bold shadow-md hover:scale-105 transition-all"
                 title="Ir al Panel de Administración"
               >
                 <span>Admin</span>
               </Link>
-            ) : (
-              <Link
-                href={isAuthenticated ? "/perfil" : "/login"}
-                prefetch={true}
-                className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-on-primary hover:scale-105 transition-transform"
-                aria-label="Mi Cuenta"
-                title={isAuthenticated ? `Hola, ${user?.nombre}` : "Iniciar sesión"}
-              >
-                <span className="material-symbols-outlined text-[18px]">person</span>
-              </Link>
             )}
+
+            {/* Botón de Perfil / Iniciar Sesión: abre siempre /login al darle clic */}
+            <Link
+              href="/login"
+              prefetch={true}
+              onMouseEnter={() => {
+                try {
+                  router.prefetch("/login");
+                } catch {}
+              }}
+              className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-on-primary hover:scale-105 active:scale-95 transition-transform shadow-sm"
+              aria-label="Perfil y Login"
+              title={isAuthenticated ? `Mi Perfil (${user?.nombre}) - Iniciar sesión / Gestionar cuenta` : "Iniciar sesión"}
+            >
+              <span className="material-symbols-outlined text-[20px]">person</span>
+            </Link>
 
             {/* Menú de Hamburguesa en Móvil y pantallas medianas */}
             <button
@@ -196,6 +203,30 @@ export function Navbar() {
               })}
 
               <div className="pt-3 mt-1 border-t border-surface-container flex flex-col gap-2">
+                <Link
+                  href="/login"
+                  prefetch={true}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center justify-between px-4 py-2.5 rounded-2xl bg-surface-container-low text-primary font-semibold text-sm hover:bg-surface-container"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[18px]">person</span>
+                    <span>{isAuthenticated ? `Mi Perfil (${user?.nombre})` : "Iniciar sesión / Perfil"}</span>
+                  </div>
+                  <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+                </Link>
+
+                {user?.rol === "admin" && (
+                  <Link
+                    href="/admin"
+                    prefetch={true}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="w-full text-center bg-secondary text-white font-label-md py-2.5 rounded-full shadow-md text-sm font-bold"
+                  >
+                    Panel de Administración
+                  </Link>
+                )}
+
                 <Link
                   href="/citas"
                   prefetch={true}
