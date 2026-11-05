@@ -24,7 +24,7 @@ export default function RegistroPage() {
   const [password, setPassword] = useState("");
   const [passwordError, setPasswordError] = useState<string | null>(null);
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
     let hasErrors = false;
@@ -56,15 +56,32 @@ export default function RegistroPage() {
 
     setCargando(true);
 
-    setTimeout(() => {
-      login({
-        id: "u-demo",
-        nombre: rNombre.formatted || nombre,
-        email: rEmail.formatted || email,
-        rol: "cliente",
+    try {
+      const res = await fetch("/api/auth/registro", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nombre: rNombre.formatted || nombre,
+          email: rEmail.formatted || email,
+          password,
+        }),
       });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        setEmailError(data.error || "No se pudo registrar la cuenta.");
+        setCargando(false);
+        return;
+      }
+
+      login(data.user);
       router.push("/");
-    }, 800);
+    } catch (err) {
+      console.error(err);
+      setEmailError("Error de conexión al registrar cuenta.");
+      setCargando(false);
+    }
   }
 
   return (

@@ -95,8 +95,10 @@ export function BookingSummaryForm() {
     }
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+
+    if (!servicio || !profesional || !fecha || !hora) return;
 
     const nombreRes = validateFullName(nombre);
     const telefonoRes = validatePhone(telefono);
@@ -122,10 +124,28 @@ export function BookingSummaryForm() {
     if (hasErrors) return;
 
     setEnviando(true);
-    setTimeout(() => {
+    try {
+      await fetch("/api/citas", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          clienteNombre: nombreRes.formatted || nombre,
+          clienteTelefono: telefonoRes.formatted || telefono,
+          servicioNombre: servicio.nombre,
+          servicioPrecio: servicio.precio,
+          profesionalNombre: profesional.nombre,
+          fecha,
+          hora,
+          notas: notas.trim(),
+        }),
+      });
       reset();
       router.push("/citas/confirmacion");
-    }, 1000);
+    } catch (err) {
+      console.error("Error al guardar cita:", err);
+      reset();
+      router.push("/citas/confirmacion");
+    }
   }
 
   return (

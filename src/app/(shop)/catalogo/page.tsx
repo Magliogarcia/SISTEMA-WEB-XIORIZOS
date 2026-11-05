@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { SlidersHorizontal } from "lucide-react";
 import { OptimizedVideo } from "@/components/ui/optimized-video";
 import { SearchBar } from "@/components/shop/search-bar";
@@ -11,46 +11,59 @@ import { Button } from "@/components/ui/button";
 import { mockProducts } from "@/lib/mock-data";
 
 export default function CatalogoPage() {
+  const [productos, setProductos] = useState(mockProducts);
   const [busqueda, setBusqueda] = useState("");
   const [categoria, setCategoria] = useState<string | null>(null);
   const [marca, setMarca] = useState<string | null>(null);
   const [filtrosOpen, setFiltrosOpen] = useState(false);
 
+  useEffect(() => {
+    fetch("/api/productos")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.success && d.productos && d.productos.length > 0) {
+          setProductos(d.productos);
+        }
+      })
+      .catch((err) => console.error("Error loading live products:", err));
+  }, []);
+
   const categorias = useMemo(
-    () => Array.from(new Set(mockProducts.map((p) => p.categoria))),
-    []
+    () => Array.from(new Set(productos.map((p) => p.categoria))),
+    [productos]
   );
-  const marcas = useMemo(() => Array.from(new Set(mockProducts.map((p) => p.marca))), []);
+  const marcas = useMemo(() => Array.from(new Set(productos.map((p) => p.marca))), [productos]);
 
   const productosFiltrados = useMemo(() => {
-    return mockProducts.filter((p) => {
+    return productos.filter((p) => {
       const coincideBusqueda = p.nombre.toLowerCase().includes(busqueda.toLowerCase());
       const coincideCategoria = !categoria || p.categoria === categoria;
       const coincideMarca = !marca || p.marca === marca;
       return coincideBusqueda && coincideCategoria && coincideMarca;
     });
-  }, [busqueda, categoria, marca]);
+  }, [productos, busqueda, categoria, marca]);
 
   return (
     <div className="mx-auto max-w-7xl px-4 pt-28 pb-16 sm:px-6 lg:px-8">
-      {/* Banner de Video Productos sin recuadros grises, pegado al texto como la imagen de referencia */}
-      <div className="flex justify-center w-full mb-10">
-        <div className="w-full max-w-5xl rounded-2xl overflow-hidden bg-surface-container-low border border-surface-container shadow-sm flex flex-col md:flex-row items-stretch">
+      {/* Banner de Video Productos idéntico en estructura al de inicio (recorrido) sin márgenes grises */}
+      <div className="flex justify-center w-full mb-12">
+        <div className="max-w-fit mx-auto rounded-3xl overflow-hidden bg-surface-container-low border border-surface-container shadow-sm flex flex-col md:flex-row items-stretch">
           {/* Video: grande, completo, vertical y pegado al contenedor sin márgenes grises */}
-          <div className="flex-shrink-0 flex items-center justify-center overflow-hidden bg-black/5">
+          <div className="flex-shrink-0 flex items-center justify-center bg-black/5 overflow-hidden">
             <OptimizedVideo
               src="/videos/productos_para_los_rizos.mp4"
               poster="/images/crema_de_peinar_etniker.webp"
-              className="h-[360px] sm:h-[420px] md:h-[460px] w-auto max-w-full block"
+              className="h-[360px] sm:h-[440px] md:h-[480px] w-auto max-w-full block"
             />
           </div>
 
-          {/* Información y detalles pegados al video */}
-          <div className="flex-1 p-6 sm:p-8 lg:p-10 flex flex-col justify-center">
+          {/* Información y detalles con ancho fijado para envolver exactamente el contenido */}
+          <div className="w-full md:w-[400px] lg:w-[480px] p-6 sm:p-8 lg:p-10 flex flex-col justify-center">
             <div className="inline-flex items-center gap-2 bg-secondary/10 text-secondary px-3 py-1 rounded-full text-xs font-semibold mb-3 w-fit">
+              <span className="material-symbols-outlined text-[16px]">verified</span>
               <span>Línea Profesional para el Hogar</span>
             </div>
-            <h1 className="font-headline-lg text-2xl sm:text-3xl font-bold text-primary mb-3">
+            <h1 className="font-headline-md text-2xl sm:text-3xl font-bold text-primary mb-3 leading-snug">
               Catálogo de Productos para Rizos
             </h1>
             <p className="font-body-md text-on-surface-variant mb-5 text-sm sm:text-base leading-relaxed">
@@ -59,15 +72,15 @@ export default function CatalogoPage() {
             <div className="space-y-2.5 pt-1 text-xs sm:text-sm text-on-surface">
               <div className="flex items-center gap-2.5">
                 <span className="material-symbols-outlined text-secondary text-[18px]">verified</span>
-                <span>Marcas internacionales y nacionales aprobadas (Etniker, Skala, Cantu)</span>
+                <span>Marcas aprobadas (Etniker, Skala, Cantu, Kerafrit)</span>
               </div>
               <div className="flex items-center gap-2.5">
                 <span className="material-symbols-outlined text-secondary text-[18px]">verified</span>
-                <span>Fórmulas limpias aptas para el Método Curly Girl</span>
+                <span>Fórmulas limpias aptas para el Método Curly</span>
               </div>
               <div className="flex items-center gap-2.5">
                 <span className="material-symbols-outlined text-secondary text-[18px]">verified</span>
-                <span>Disponibles en el salón y con envíos a toda Venezuela</span>
+                <span>Disponibles para entrega en Naguanagua o envíos</span>
               </div>
             </div>
           </div>

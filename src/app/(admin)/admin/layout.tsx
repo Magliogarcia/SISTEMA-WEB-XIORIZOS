@@ -1,7 +1,43 @@
+"use client";
+
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { AdminSidebar } from "@/components/layout/admin-sidebar";
 import { AdminTopbar } from "@/components/layout/admin-topbar";
+import { useAuthStore } from "@/store/auth-store";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const { user, isAuthenticated } = useAuthStore();
+  const [checked, setChecked] = useState(false);
+
+  useEffect(() => {
+    if (pathname === "/admin/login") {
+      setChecked(true);
+      return;
+    }
+
+    if (!isAuthenticated || user?.rol !== "admin") {
+      router.replace("/admin/login");
+    } else {
+      setChecked(true);
+    }
+  }, [pathname, isAuthenticated, user, router]);
+
+  // Si estamos en /admin/login, renderizar solo la pantalla limpia de login
+  if (pathname === "/admin/login") {
+    return <>{children}</>;
+  }
+
+  if (!checked) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#1F140E] text-white">
+        <p className="text-sm animate-pulse">Verificando permisos de administración...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen bg-secondary/20">
       <AdminSidebar />

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   Package,
@@ -10,6 +10,7 @@ import {
   Users,
   Scissors,
   LogOut,
+  ExternalLink,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/auth-store";
@@ -24,7 +25,13 @@ const menuItems = [
 
 export function AdminSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const logout = useAuthStore((state) => state.logout);
+
+  function handleLogout() {
+    logout();
+    router.push("/admin/login");
+  }
 
   return (
     <aside className="hidden w-64 shrink-0 border-r border-border bg-background md:flex md:flex-col">
@@ -46,8 +53,8 @@ export function AdminSidebar() {
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                 isActive
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                  ? "bg-primary text-primary-foreground font-semibold shadow-sm"
+                  : "text-muted-foreground hover:bg-secondary/15 hover:text-foreground"
               )}
             >
               <Icon className="h-4 w-4" />
@@ -55,15 +62,26 @@ export function AdminSidebar() {
             </Link>
           );
         })}
+
+        <div className="pt-4 border-t border-border mt-4">
+          <Link
+            href="/"
+            target="_blank"
+            className="flex items-center gap-3 rounded-lg px-3 py-2 text-xs text-muted-foreground hover:text-primary transition-colors"
+          >
+            <ExternalLink className="h-4 w-4" />
+            <span>Ver sitio web público</span>
+          </Link>
+        </div>
       </nav>
 
       <div className="border-t border-border p-3">
         <button
-          onClick={logout}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+          onClick={handleLogout}
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive cursor-pointer"
         >
           <LogOut className="h-4 w-4" />
-          Cerrar sesión
+          <span>Cerrar sesión</span>
         </button>
       </div>
     </aside>

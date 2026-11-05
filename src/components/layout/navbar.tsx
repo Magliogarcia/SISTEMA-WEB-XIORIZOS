@@ -21,7 +21,7 @@ export function Navbar() {
   const router = useRouter();
   const itemsCount = useCartStore((state) => state.getItemsCount());
   const openCart = useCartStore((state) => state.openCart);
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Pre-cargar todas las rutas en la caché del navegador al montar el componente
@@ -124,15 +124,26 @@ export function Navbar() {
               Cita Online
             </Link>
 
-            {/* Cuenta / Perfil */}
-            <Link
-              href={isAuthenticated ? "/perfil" : "/login"}
-              prefetch={true}
-              className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-on-primary hover:scale-105 transition-transform"
-              aria-label="Mi Cuenta"
-            >
-              <span className="material-symbols-outlined text-[18px]">person</span>
-            </Link>
+            {/* Cuenta / Perfil / Acceso Admin */}
+            {user?.rol === "admin" ? (
+              <Link
+                href="/admin"
+                className="inline-flex items-center gap-1 px-3 py-2 rounded-full bg-secondary text-white text-xs font-bold shadow-md hover:scale-105 transition-all"
+                title="Ir al Panel de Administración"
+              >
+                <span>Admin</span>
+              </Link>
+            ) : (
+              <Link
+                href={isAuthenticated ? "/perfil" : "/login"}
+                prefetch={true}
+                className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-on-primary hover:scale-105 transition-transform"
+                aria-label="Mi Cuenta"
+                title={isAuthenticated ? `Hola, ${user?.nombre}` : "Iniciar sesión"}
+              >
+                <span className="material-symbols-outlined text-[18px]">person</span>
+              </Link>
+            )}
 
             {/* Menú de Hamburguesa en Móvil y pantallas medianas */}
             <button

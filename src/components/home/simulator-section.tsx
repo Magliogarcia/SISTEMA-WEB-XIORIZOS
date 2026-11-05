@@ -3,6 +3,9 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Lock, ArrowRight } from "lucide-react";
+import { useAuthStore } from "@/store/auth-store";
 
 interface Swatch {
   name: string;
@@ -29,6 +32,9 @@ const swatches: Swatch[] = [
 ];
 
 export function SimulatorSection() {
+  const router = useRouter();
+  const { isAuthenticated } = useAuthStore();
+
   const [sliderPosition, setSliderPosition] = useState(50);
   // Default to Rojo so the preview shows the contrast against the castaño
   const [activeSwatch, setActiveSwatch] = useState(swatches[2]);
@@ -48,11 +54,19 @@ export function SimulatorSection() {
 
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
+    if (!isAuthenticated) {
+      router.push("/login?redirect=/#simulador");
+      return;
+    }
     isDraggingRef.current = true;
     handleMove(e.clientX);
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
+    if (!isAuthenticated) {
+      router.push("/login?redirect=/#simulador");
+      return;
+    }
     isDraggingRef.current = true;
     if (e.touches[0]) handleMove(e.touches[0].clientX);
   };
@@ -88,6 +102,10 @@ export function SimulatorSection() {
   }, [handleMove]);
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!isAuthenticated) {
+      router.push("/login?redirect=/#simulador");
+      return;
+    }
     const file = e.target.files?.[0];
     if (file) {
       const url = URL.createObjectURL(file);
@@ -158,13 +176,13 @@ export function SimulatorSection() {
                   </div>
                 </div>
 
-                {/* Draggable Divider Line */}
+                {/* Draggable Divider Line centrado perfectamente */}
                 <div
-                  className="absolute top-0 bottom-0 w-1 bg-surface-container-lowest flex items-center justify-center pointer-events-none"
+                  className="absolute top-0 bottom-0 w-0.5 bg-white pointer-events-none -translate-x-1/2"
                   style={{ left: `${sliderPosition}%` }}
                 >
-                  <div className="w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center shadow-lg -ml-4 pointer-events-none">
-                    <span className="material-symbols-outlined text-[18px]">sync_alt</span>
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center shadow-2xl border-2 border-white pointer-events-none">
+                    <span className="material-symbols-outlined text-[20px] text-white">sync_alt</span>
                   </div>
                 </div>
 
@@ -175,6 +193,28 @@ export function SimulatorSection() {
                 <span className="absolute bottom-4 right-4 bg-secondary/90 backdrop-blur-md text-on-secondary font-label-sm text-label-sm px-3.5 py-1 rounded-full pointer-events-none shadow font-medium">
                   Después
                 </span>
+
+                {/* Overlay de protección si no ha iniciado sesión */}
+                {!isAuthenticated && (
+                  <div className="absolute inset-0 z-30 bg-black/60 backdrop-blur-[3px] flex flex-col items-center justify-center p-6 text-center text-white">
+                    <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center mb-3">
+                      <Lock className="w-6 h-6 text-white" />
+                    </div>
+                    <h3 className="font-heading text-lg font-bold text-white">
+                      Inicia sesión para usar el simulador
+                    </h3>
+                    <p className="text-xs text-white/80 max-w-xs mt-1 mb-4 leading-relaxed">
+                      Debes tener una cuenta activa para interactuar con la colorimetría virtual y probar tonos en tu foto.
+                    </p>
+                    <Link
+                      href="/login?redirect=/#simulador"
+                      className="inline-flex items-center gap-2 bg-white text-primary px-5 py-2.5 rounded-full text-xs font-bold shadow-lg hover:bg-[#FAF6F0] transition-all"
+                    >
+                      <span>Iniciar sesión ahora</span>
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </Link>
+                  </div>
+                )}
               </div>
 
               {/* Upload Photo Trigger */}

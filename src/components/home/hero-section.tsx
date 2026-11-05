@@ -62,15 +62,15 @@ export function HeroSection() {
           </Link>
         </div>
 
-        {/* Floating Live Swatches Indicator on Dark Overlay */}
+        {/* Floating Trust Indicator on Dark Overlay */}
         <div className="flex flex-wrap items-center gap-3 pt-space-xs bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border border-white/10">
           <div className="flex -space-x-2">
-            <span className="w-7 h-7 rounded-full bg-[#E5C158] ring-2 ring-black/50 shadow-sm" title="Miel Dorado" />
-            <span className="w-7 h-7 rounded-full bg-[#8C5835] ring-2 ring-black/50 shadow-sm" title="Chocolate Cálido" />
-            <span className="w-7 h-7 rounded-full bg-[#C86432] ring-2 ring-black/50 shadow-sm" title="Cobre Intenso" />
+            <span className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center text-white text-[11px] font-bold ring-2 ring-black/50 shadow-sm">✓</span>
+            <span className="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-white text-[11px] font-bold ring-2 ring-black/50 shadow-sm">★</span>
+            <span className="w-7 h-7 rounded-full bg-amber-600 flex items-center justify-center text-white text-[11px] font-bold ring-2 ring-black/50 shadow-sm">♥</span>
           </div>
           <span className="font-label-sm text-label-sm text-white/90 font-medium">
-            +45 tonos formulados para rizos y ondas
+            +1.500 rizos transformados con amor y ciencia
           </span>
         </div>
       </div>
