@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useCallback } from "react";
+import { useRef } from "react";
 import Image from "next/image";
 
 const testimonials = [
@@ -68,50 +68,28 @@ const testimonials = [
 
 export function TestimonialsSection() {
   const trackRef = useRef<HTMLDivElement>(null);
-  const isHoveredRef = useRef(false);
 
-  // Duplicated 6 times for seamless infinite scroll
-  const loopCount = 6;
-  const loopedItems = Array.from({ length: loopCount }, () => testimonials).flat();
-
-  useEffect(() => {
+  const handleScroll = (direction: "left" | "right") => {
     const track = trackRef.current;
     if (!track) return;
 
-    // Disable auto movement on mobile devices
-    const isMobile = window.innerWidth < 768;
-    if (isMobile) {
-      return;
-    }
+    const scrollAmount = 340;
+    const { scrollLeft, scrollWidth, clientWidth } = track;
 
-    const singleSegmentWidth = track.scrollWidth / loopCount;
-    track.scrollLeft = singleSegmentWidth * 2;
-
-    let animationFrameId: number;
-    const speed = 0.65; // gentle continuous glide
-
-    const step = () => {
-      if (track && !isHoveredRef.current) {
-        track.scrollLeft += speed;
-        const segWidth = track.scrollWidth / loopCount;
-        if (track.scrollLeft >= segWidth * 4) {
-          track.scrollLeft -= segWidth;
-        }
+    if (direction === "left") {
+      if (scrollLeft <= 10) {
+        track.scrollTo({ left: scrollWidth, behavior: "smooth" });
+      } else {
+        track.scrollBy({ left: -scrollAmount, behavior: "smooth" });
       }
-      animationFrameId = requestAnimationFrame(step);
-    };
-
-    animationFrameId = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(animationFrameId);
-  }, [loopCount]);
-
-  // Clicking side arrow buttons moves track WITHOUT stopping auto-play
-  const handleNavClick = useCallback((direction: "left" | "right") => {
-    const track = trackRef.current;
-    if (!track) return;
-    const offset = direction === "left" ? -340 : 340;
-    track.scrollBy({ left: offset, behavior: "smooth" });
-  }, []);
+    } else {
+      if (scrollLeft + clientWidth >= scrollWidth - 10) {
+        track.scrollTo({ left: 0, behavior: "smooth" });
+      } else {
+        track.scrollBy({ left: scrollAmount, behavior: "smooth" });
+      }
+    }
+  };
 
   return (
     <section className="w-full py-space-xl bg-background overflow-hidden" id="testimonios">
@@ -129,20 +107,20 @@ export function TestimonialsSection() {
             </p>
           </div>
 
-          {/* Navigation Arrows (No status text labels) */}
+          {/* Flechas de Navegación Manual */}
           <div className="flex items-center gap-2">
             <button
-              onClick={() => handleNavClick("left")}
+              onClick={() => handleScroll("left")}
               aria-label="Ver testimonios anteriores"
-              className="w-11 h-11 rounded-full bg-surface-container-lowest hover:bg-surface-container text-primary flex items-center justify-center shadow-sm border border-surface-container transition-transform active:scale-90"
+              className="w-11 h-11 rounded-full bg-surface-container-lowest hover:bg-surface-container text-primary flex items-center justify-center shadow-sm border border-surface-container transition-all active:scale-90 hover:scale-105"
               type="button"
             >
               <span className="material-symbols-outlined text-[20px]">arrow_back</span>
             </button>
             <button
-              onClick={() => handleNavClick("right")}
+              onClick={() => handleScroll("right")}
               aria-label="Ver siguientes testimonios"
-              className="w-11 h-11 rounded-full bg-primary hover:bg-primary/90 text-on-primary flex items-center justify-center shadow-sm transition-transform active:scale-90"
+              className="w-11 h-11 rounded-full bg-primary hover:bg-primary/90 text-on-primary flex items-center justify-center shadow-sm transition-all active:scale-90 hover:scale-105"
               type="button"
             >
               <span className="material-symbols-outlined text-[20px]">arrow_forward</span>
@@ -150,24 +128,18 @@ export function TestimonialsSection() {
           </div>
         </div>
 
-        {/* Carousel Track */}
+        {/* Carrusel Deslizable Nativo y Fluido (Snap) */}
         <div
           ref={trackRef}
-          onMouseEnter={() => {
-            isHoveredRef.current = true;
-          }}
-          onMouseLeave={() => {
-            isHoveredRef.current = false;
-          }}
-          className="flex gap-space-md overflow-x-auto md:overflow-x-hidden pb-6 pt-1 select-none scrollbar-none scroll-smooth cursor-grab active:cursor-grabbing"
+          className="flex gap-space-md overflow-x-auto pb-6 pt-1 select-none scrollbar-none scroll-smooth snap-x snap-mandatory"
         >
-          {loopedItems.map((t, idx) => (
+          {testimonials.map((t, idx) => (
             <div
-              key={`${t.name}-${idx}`}
-              className="flex-shrink-0 w-[300px] md:w-[340px] bg-surface-container-lowest rounded-3xl p-6 shadow-sm flex flex-col justify-between border border-surface-container hover:shadow-lg hover:border-primary/30 transition-all"
+              key={idx}
+              className="snap-start flex-shrink-0 w-[290px] sm:w-[330px] bg-surface-container-lowest rounded-3xl p-6 shadow-sm flex flex-col justify-between border border-surface-container hover:shadow-lg hover:border-primary/30 transition-all"
             >
               <div>
-                {/* 5 Stars */}
+                {/* 5 Estrellas */}
                 <div className="flex text-secondary gap-0.5 mb-3">
                   {[...Array(5)].map((_, i) => (
                     <span
