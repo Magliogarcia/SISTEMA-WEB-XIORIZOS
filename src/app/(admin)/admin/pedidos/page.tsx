@@ -123,76 +123,83 @@ export default function AdminPedidosPage() {
           ) : (
             <table className="w-full text-left border-collapse min-w-[950px]">
               <thead>
-                <tr className="border-b border-slate-200 bg-slate-50/60 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-                  <th className="py-3 px-4 min-w-[130px] whitespace-nowrap">Orden</th>
-                  <th className="py-3 px-4 min-w-[210px] whitespace-nowrap">Cliente</th>
-                  <th className="py-3 px-4 min-w-[130px] whitespace-nowrap">Método de Pago</th>
-                  <th className="py-3 px-4 min-w-[190px] whitespace-nowrap">Comprobante Pago Móvil</th>
-                  <th className="py-3 px-4 min-w-[110px] whitespace-nowrap">Total</th>
-                  <th className="py-3 px-4 min-w-[170px] whitespace-nowrap">Estado (Editable)</th>
-                  <th className="py-3 px-4 min-w-[160px] whitespace-nowrap text-right">Acciones</th>
+                <tr className="border-b border-slate-200 bg-slate-100/80 text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  <th className="py-3.5 px-4 min-w-[200px] whitespace-nowrap">Orden & Fecha</th>
+                  <th className="py-3.5 px-4 min-w-[240px] whitespace-nowrap">Cliente & Contacto</th>
+                  <th className="py-3.5 px-4 min-w-[140px] whitespace-nowrap">Método de Pago</th>
+                  <th className="py-3.5 px-4 min-w-[220px] whitespace-nowrap">Comprobante Pago Móvil</th>
+                  <th className="py-3.5 px-4 min-w-[150px] whitespace-nowrap">Total & Items</th>
+                  <th className="py-3.5 px-4 min-w-[160px] whitespace-nowrap">Estado</th>
+                  <th className="py-3.5 px-4 min-w-[170px] whitespace-nowrap text-right">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-xs">
                 {pedidos.map((pedido) => (
-                  <tr key={pedido.id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="py-3.5 px-4 whitespace-nowrap">
-                      <p className="font-mono font-bold text-slate-900 text-xs">{pedido.id}</p>
-                      <p className="text-[11px] text-slate-500">
-                        {formatDate(new Date(pedido.creadoEn))}
-                      </p>
+                  <tr key={pedido.id} className="hover:bg-slate-50/90 transition-colors">
+                    <td className="py-4 px-4 whitespace-nowrap">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono font-black text-slate-900 text-xs bg-slate-100 border border-slate-200 px-2 py-0.5 rounded">
+                          {pedido.id}
+                        </span>
+                        <span className="font-bold text-slate-700 text-xs">
+                          {formatDate(new Date(pedido.creadoEn))}
+                        </span>
+                      </div>
                     </td>
 
-                    <td className="py-3.5 px-4 whitespace-nowrap">
-                      <p className="font-semibold text-slate-900 text-sm">{pedido.clienteNombre}</p>
-                      <p className="flex items-center gap-1.5 text-slate-500 mt-0.5 font-mono text-xs">
-                        <Phone className="h-3 w-3 text-slate-400 shrink-0" />
-                        <span>{pedido.clienteTelefono}</span>
-                      </p>
+                    <td className="py-4 px-4 whitespace-nowrap">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-slate-900 text-sm">
+                          {pedido.clienteNombre}
+                        </span>
+                        <span className="inline-flex items-center gap-1 font-mono font-bold text-xs text-slate-800 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                          <Phone className="h-3 w-3 text-slate-500 shrink-0" />
+                          <span>{pedido.clienteTelefono}</span>
+                        </span>
+                      </div>
                     </td>
 
-                    <td className="py-3.5 px-4 whitespace-nowrap">
+                    <td className="py-4 px-4 whitespace-nowrap">
                       {pedido.metodoPago === "pagomovil" ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
-                          <Landmark className="h-3 w-3 shrink-0" />
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-blue-50 text-blue-800 border border-blue-200">
+                          <Landmark className="h-3.5 w-3.5 shrink-0 text-blue-700" />
                           <span>Pago Móvil</span>
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                          <Banknote className="h-3 w-3 shrink-0" />
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                          <Banknote className="h-3.5 w-3.5 shrink-0 text-emerald-700" />
                           <span>Efectivo</span>
                         </span>
                       )}
                     </td>
 
-                    <td className="py-3.5 px-4 whitespace-nowrap">
+                    <td className="py-4 px-4 whitespace-nowrap">
                       {pedido.metodoPago === "pagomovil" && pedido.pagoMovil ? (
-                        <div className="space-y-0.5">
-                          <p className="text-slate-600">
-                            <strong>Banco:</strong> {pedido.pagoMovil.banco}
-                          </p>
-                          <p className="text-slate-600">
-                            <strong>Ref:</strong>{" "}
-                            <span className="font-mono font-bold text-slate-900 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">
-                              {pedido.pagoMovil.referencia}
-                            </span>
-                          </p>
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-slate-900 text-xs">
+                            {pedido.pagoMovil.banco}
+                          </span>
+                          <span className="font-mono font-black text-blue-950 bg-blue-100/80 px-2 py-0.5 rounded border border-blue-300 text-xs">
+                            Ref: {pedido.pagoMovil.referencia}
+                          </span>
                         </div>
                       ) : (
-                        <span className="text-slate-400">Pago en efectivo al retirar</span>
+                        <span className="text-slate-500 font-semibold italic">Pago en efectivo al retirar</span>
                       )}
                     </td>
 
-                    <td className="py-3.5 px-4 whitespace-nowrap">
-                      <p className="font-bold text-sm text-slate-900">
-                        {formatCurrency(pedido.total)}
-                      </p>
-                      <p className="text-[11px] text-slate-500">
-                        {pedido.items.length} producto{pedido.items.length !== 1 && "s"}
-                      </p>
+                    <td className="py-4 px-4 whitespace-nowrap">
+                      <div className="flex items-center gap-2">
+                        <span className="font-black text-sm text-slate-900">
+                          {formatCurrency(pedido.total)}
+                        </span>
+                        <span className="font-bold text-xs text-slate-600 bg-slate-100 px-2 py-0.5 rounded">
+                          ({pedido.items.length} prod.)
+                        </span>
+                      </div>
                     </td>
 
-                    <td className="py-3.5 px-4 whitespace-nowrap">
+                    <td className="py-4 px-4 whitespace-nowrap">
                       {/* Selector de estado editable con posibilidad de revertir/deshacer cualquier acción */}
                       <select
                         value={pedido.estado}
@@ -206,7 +213,7 @@ export default function AdminPedidosPage() {
                               | "cancelado"
                           )
                         }
-                        className={`text-[11px] font-semibold px-2 py-1 rounded border cursor-pointer focus:outline-none focus:ring-1 focus:ring-amber-500 ${
+                        className={`text-xs font-black px-2.5 py-1 rounded-md border cursor-pointer focus:outline-none focus:ring-2 focus:ring-slate-400 shadow-xs ${
                           pedido.estado === "verificado"
                             ? "bg-emerald-50 text-emerald-850 border-emerald-300"
                             : pedido.estado === "entregado"
@@ -224,15 +231,15 @@ export default function AdminPedidosPage() {
                       </select>
                     </td>
 
-                    <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                    <td className="py-4 px-4 text-right whitespace-nowrap">
                       <div className="flex items-center justify-end gap-1.5">
                         <button
                           type="button"
                           onClick={() => setPedidoDetalle(pedido)}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-semibold text-slate-700 hover:bg-slate-100 border border-slate-200 transition-colors cursor-pointer"
+                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-bold text-slate-800 bg-slate-100 hover:bg-slate-200 border border-slate-300 transition-colors cursor-pointer"
                           title="Ver detalle completo de la orden"
                         >
-                          <Eye className="h-3 w-3" />
+                          <Eye className="h-3.5 w-3.5" />
                           <span>Detalle</span>
                         </button>
 
@@ -240,10 +247,10 @@ export default function AdminPedidosPage() {
                           <button
                             type="button"
                             onClick={() => cambiarEstado(pedido.id, "verificado")}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-colors cursor-pointer"
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 transition-colors cursor-pointer"
                             title="Validar comprobante de Pago Móvil"
                           >
-                            <CheckCircle2 className="h-3 w-3" />
+                            <CheckCircle2 className="h-3.5 w-3.5" />
                             <span>Validar</span>
                           </button>
                         )}
@@ -252,7 +259,7 @@ export default function AdminPedidosPage() {
                           <button
                             type="button"
                             onClick={() => cambiarEstado(pedido.id, "entregado")}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 transition-colors cursor-pointer"
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-bold text-blue-800 bg-blue-50 hover:bg-blue-100 border border-blue-300 transition-colors cursor-pointer"
                             title="Marcar pedido como entregado"
                           >
                             <span>Entregar</span>
@@ -263,7 +270,7 @@ export default function AdminPedidosPage() {
                           <button
                             type="button"
                             onClick={() => cambiarEstado(pedido.id, "pendiente_verificacion")}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 transition-colors cursor-pointer"
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-300 transition-colors cursor-pointer shadow-xs"
                             title="Deshacer cancelación y reactivar orden"
                           >
                             <span>Reactivar</span>
