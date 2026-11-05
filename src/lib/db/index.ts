@@ -65,11 +65,25 @@ export interface DBOrder {
   creadoEn: string;
 }
 
+export interface DBEmployee {
+  id: string;
+  nombre: string;
+  telefono: string;
+  cargo: string;
+  especialidad: string;
+  avatarUrl?: string;
+  serviciosIds: string[];
+  activo: boolean; // true = Operativo (en agenda), false = Inoperativo (enfermedad, reposo, vacaciones)
+  motivoInoperativo?: string;
+  creadoEn: string;
+}
+
 export interface DatabaseSchema {
   users: DBUser[];
   appointments: DBAppointment[];
   products: DBProduct[];
   orders: DBOrder[];
+  employees: DBEmployee[];
 }
 
 const DATA_DIR = path.join(process.cwd(), "data");
@@ -192,6 +206,63 @@ function getInitialData(): DatabaseSchema {
         creadoEn: new Date(Date.now() - 86400000).toISOString(),
       },
     ],
+    employees: [
+      {
+        id: "emp-1",
+        nombre: "Xioilin Guzmán",
+        telefono: "0412 8493021",
+        cargo: "Fundadora & Master Curly",
+        especialidad: "Diagnóstico capilar y asesoría integral",
+        avatarUrl: "/images/fundadora_xioilin_guzman.webp",
+        serviciosIds: ["s1", "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9", "s10", "s11"],
+        activo: true,
+        creadoEn: new Date().toISOString(),
+      },
+      {
+        id: "emp-2",
+        nombre: "Axel Alvarado",
+        telefono: "0414 4321980",
+        cargo: "Estilista Colorista",
+        especialidad: "Balayage e iluminaciones botánicas",
+        avatarUrl: "/images/especialista_en_color_y_curvaturas_Axel_Alvarado.webp",
+        serviciosIds: ["s3", "s9"],
+        activo: true,
+        creadoEn: new Date().toISOString(),
+      },
+      {
+        id: "emp-3",
+        nombre: "Yolennis Yélamo",
+        telefono: "0424 5543210",
+        cargo: "Estilista de Corte",
+        especialidad: "Técnicas en seco y definición profunda",
+        avatarUrl: "/images/especialista_en_rizos_Yolennis_Yelamo.webp",
+        serviciosIds: ["s1", "s2", "s4", "s5", "s6", "s11"],
+        activo: true,
+        creadoEn: new Date().toISOString(),
+      },
+      {
+        id: "emp-4",
+        nombre: "Yakeline Daboin",
+        telefono: "0416 9988776",
+        cargo: "Nail Artist",
+        especialidad: "Manicura rusa y pedicura spa",
+        avatarUrl: "/images/especialista_unas_yakeline_daboin.webp",
+        serviciosIds: ["s12"],
+        activo: true,
+        creadoEn: new Date().toISOString(),
+      },
+      {
+        id: "emp-5",
+        nombre: "Germán Jácome",
+        telefono: "0412 1122334",
+        cargo: "Gerente General",
+        especialidad: "Operaciones y calidad de experiencia",
+        avatarUrl: "/images/Gerente_general_German_Jacome.webp",
+        serviciosIds: [],
+        activo: true,
+        creadoEn: new Date().toISOString(),
+      },
+    ],
   };
 }
 
@@ -209,7 +280,15 @@ export function readDB(): DatabaseSchema {
     }
 
     const content = fs.readFileSync(DB_FILE, "utf-8");
-    return JSON.parse(content) as DatabaseSchema;
+    const parsed = JSON.parse(content) as DatabaseSchema;
+    
+    // Asegurar que existan todos los arreglos por si el archivo JSON previo no los tenía
+    if (!parsed.employees || parsed.employees.length === 0) {
+      parsed.employees = getInitialData().employees;
+      writeDB(parsed);
+    }
+
+    return parsed;
   } catch (error) {
     console.error("Error reading database file:", error);
     return getInitialData();

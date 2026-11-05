@@ -74,11 +74,11 @@ export default function AdminCitasPage() {
         </Button>
       </div>
 
-      <Card className="rounded-2xl shadow-sm border-border">
-        <CardHeader className="flex flex-row items-center justify-between pb-3">
-          <CardTitle className="text-lg">Citas registradas ({citas.length})</CardTitle>
+      <Card className="rounded-lg shadow-sm border-border">
+        <CardHeader className="flex flex-row items-center justify-between pb-3 border-b border-border">
+          <CardTitle className="text-base font-bold text-primary">Citas registradas ({citas.length})</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           {cargando ? (
             <div className="py-12 text-center text-sm text-muted-foreground">Cargando citas...</div>
           ) : citas.length === 0 ? (

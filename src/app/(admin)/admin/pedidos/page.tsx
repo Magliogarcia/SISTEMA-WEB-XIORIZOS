@@ -89,11 +89,11 @@ export default function AdminPedidosPage() {
         </Button>
       </div>
 
-      <Card className="rounded-2xl shadow-sm border-border">
-        <CardHeader className="flex flex-row items-center justify-between pb-3">
-          <CardTitle className="text-lg">Registro de Pedidos ({pedidos.length})</CardTitle>
+      <Card className="rounded-lg shadow-sm border-border">
+        <CardHeader className="flex flex-row items-center justify-between pb-3 border-b border-border">
+          <CardTitle className="text-base font-bold text-primary">Registro de Pedidos ({pedidos.length})</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           {cargando ? (
             <div className="py-12 text-center text-sm text-muted-foreground">Cargando pedidos...</div>
           ) : pedidos.length === 0 ? (
@@ -228,7 +228,7 @@ export default function AdminPedidosPage() {
       {/* Modal de Detalle de Pedido */}
       {pedidoDetalle && (
         <Dialog open={!!pedidoDetalle} onOpenChange={() => setPedidoDetalle(null)}>
-          <DialogContent className="max-w-md rounded-2xl">
+          <DialogContent className="max-w-md rounded-lg max-h-[85vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="flex items-center justify-between">
                 <span>Detalle de Orden {pedidoDetalle.id}</span>
@@ -239,7 +239,7 @@ export default function AdminPedidosPage() {
             </DialogHeader>
 
             <div className="space-y-4 text-xs pt-2">
-              <div className="p-3 bg-muted/50 rounded-xl space-y-1.5">
+              <div className="p-3 bg-muted/50 rounded-lg space-y-1.5">
                 <p className="font-semibold text-foreground text-sm">{pedidoDetalle.clienteNombre}</p>
                 <p className="flex items-center gap-1.5 text-muted-foreground">
                   <Phone className="h-3.5 w-3.5" />
@@ -256,7 +256,7 @@ export default function AdminPedidosPage() {
               </div>
 
               {pedidoDetalle.metodoPago === "pagomovil" && pedidoDetalle.pagoMovil && (
-                <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl text-blue-900 space-y-1">
+                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-blue-900 space-y-1">
                   <p className="font-bold flex items-center gap-1">
                     <Landmark className="h-4 w-4" />
                     <span>Datos de Pago Móvil:</span>

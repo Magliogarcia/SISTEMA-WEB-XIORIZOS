@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
@@ -8,7 +9,7 @@ import {
   CalendarCheck,
   ShoppingCart,
   Users,
-  Scissors,
+  UserCheck,
   LogOut,
   ExternalLink,
 } from "lucide-react";
@@ -17,10 +18,11 @@ import { useAuthStore } from "@/store/auth-store";
 
 const menuItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/admin/productos", label: "Productos", icon: Package },
-  { href: "/admin/citas", label: "Citas", icon: CalendarCheck },
-  { href: "/admin/pedidos", label: "Pedidos", icon: ShoppingCart },
-  { href: "/admin/usuarios", label: "Usuarios", icon: Users },
+  { href: "/admin/citas", label: "Citas Agendadas", icon: CalendarCheck },
+  { href: "/admin/pedidos", label: "Pedidos y Pagos", icon: ShoppingCart },
+  { href: "/admin/productos", label: "Productos / Catálogo", icon: Package },
+  { href: "/admin/empleados", label: "Personal y Equipo", icon: UserCheck },
+  { href: "/admin/usuarios", label: "Usuarios Registrados", icon: Users },
 ];
 
 export function AdminSidebar() {
@@ -35,12 +37,25 @@ export function AdminSidebar() {
 
   return (
     <aside className="hidden w-64 shrink-0 border-r border-border bg-background md:flex md:flex-col">
-      <div className="flex h-16 items-center gap-2 border-b border-border px-6">
-        <Scissors className="h-6 w-6 text-primary" />
-        <span className="font-heading text-lg font-bold">Xiorizos Admin</span>
+      {/* Logotipo Xiorizos Vertical Prominente */}
+      <div className="flex flex-col items-center justify-center border-b border-border p-4 bg-muted/20">
+        <Link href="/admin" className="flex flex-col items-center group">
+          <div className="relative w-36 h-20 transition-transform group-hover:scale-105">
+            <Image
+              src="/images/Logo_completo_vertical.webp"
+              alt="Logo Xiorizos"
+              fill
+              className="object-contain"
+              priority
+            />
+          </div>
+          <span className="text-[11px] font-bold uppercase tracking-wider text-secondary mt-1">
+            Panel de Control
+          </span>
+        </Link>
       </div>
 
-      <nav className="flex-1 space-y-1 px-3 py-4">
+      <nav className="flex-1 space-y-1.5 px-3 py-4">
         {menuItems.map((item) => {
           const isActive =
             item.href === "/admin" ? pathname === "/admin" : pathname.startsWith(item.href);
@@ -57,8 +72,8 @@ export function AdminSidebar() {
                   : "text-muted-foreground hover:bg-secondary/15 hover:text-foreground"
               )}
             >
-              <Icon className="h-4 w-4" />
-              {item.label}
+              <Icon className="h-4 w-4 shrink-0" />
+              <span>{item.label}</span>
             </Link>
           );
         })}
@@ -70,7 +85,7 @@ export function AdminSidebar() {
             className="flex items-center gap-3 rounded-lg px-3 py-2 text-xs text-muted-foreground hover:text-primary transition-colors"
           >
             <ExternalLink className="h-4 w-4" />
-            <span>Ver sitio web público</span>
+            <span>Ver tienda pública</span>
           </Link>
         </div>
       </nav>

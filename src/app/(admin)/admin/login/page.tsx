@@ -56,10 +56,10 @@ export default function AdminLoginPage() {
 
   return (
     <div className="min-h-screen bg-[#1F140E] flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-md bg-card rounded-2xl border border-border shadow-2xl p-8 space-y-6">
+      <div className="w-full max-w-md bg-card rounded-lg border border-border shadow-2xl p-8 space-y-6">
         <div className="text-center space-y-2">
-          <div className="mx-auto w-14 h-14 rounded-2xl bg-secondary/15 flex items-center justify-center text-secondary mb-2">
-            <ShieldCheck className="w-8 h-8" />
+          <div className="mx-auto w-12 h-12 rounded-lg bg-secondary/15 flex items-center justify-center text-secondary mb-2">
+            <ShieldCheck className="w-7 h-7" />
           </div>
           <h1 className="font-heading text-2xl font-bold text-primary">Panel de Control</h1>
           <p className="text-xs text-muted-foreground">
@@ -68,7 +68,7 @@ export default function AdminLoginPage() {
         </div>
 
         {error && (
-          <div className="flex items-center gap-2 rounded-xl bg-destructive/10 p-3 text-xs font-medium text-destructive border border-destructive/20">
+          <div className="flex items-center gap-2 rounded-lg bg-destructive/10 p-3 text-xs font-medium text-destructive border border-destructive/20">
             <AlertCircle className="h-4 w-4 shrink-0" />
             <span>{error}</span>
           </div>

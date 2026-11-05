@@ -6,25 +6,38 @@ interface MetricCardProps {
   titulo: string;
   valor: string;
   icon: LucideIcon;
+  descripcion?: string;
   tendencia?: { valor: string; positiva: boolean };
-  colorIcono?: string;
+  badgeBg?: string;
+  badgeText?: string;
 }
 
-export function MetricCard({ titulo, valor, icon: Icon, tendencia, colorIcono = "text-primary" }: MetricCardProps) {
+export function MetricCard({
+  titulo,
+  valor,
+  icon: Icon,
+  descripcion,
+  tendencia,
+  badgeBg = "bg-primary/10",
+  badgeText = "text-primary",
+}: MetricCardProps) {
   return (
-    <Card>
-      <CardContent className="flex items-start justify-between p-5">
-        <div>
-          <p className="text-sm text-muted-foreground">{titulo}</p>
-          <p className="mt-1 font-heading text-2xl font-bold">{valor}</p>
+    <Card className="rounded-lg border-border shadow-sm hover:shadow-md transition-shadow">
+      <CardContent className="flex items-center justify-between p-5">
+        <div className="space-y-1">
+          <p className="text-sm font-medium text-muted-foreground">{titulo}</p>
+          <p className="font-heading text-2xl font-bold text-foreground">{valor}</p>
+          {descripcion && (
+            <p className="text-xs text-muted-foreground">{descripcion}</p>
+          )}
           {tendencia && (
-            <p className={cn("mt-1 text-xs font-medium", tendencia.positiva ? "text-emerald-600" : "text-destructive")}>
+            <p className={cn("text-xs font-semibold", tendencia.positiva ? "text-emerald-600" : "text-destructive")}>
               {tendencia.positiva ? "▲" : "▼"} {tendencia.valor}
             </p>
           )}
         </div>
-        <div className={cn("flex h-10 w-10 items-center justify-center rounded-lg bg-secondary", colorIcono)}>
-          <Icon className="h-5 w-5" />
+        <div className={cn("flex h-12 w-12 shrink-0 items-center justify-center rounded-lg shadow-sm border", badgeBg, badgeText)}>
+          <Icon className="h-6 w-6" />
         </div>
       </CardContent>
     </Card>
