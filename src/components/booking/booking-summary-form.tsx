@@ -8,9 +8,7 @@ import {
   User,
   Scissors,
   AlertCircle,
-  CheckCircle2,
   Pencil,
-  ArrowLeft,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,14 +26,13 @@ import {
 
 export function BookingSummaryForm() {
   const router = useRouter();
-  const { servicio, profesional, fecha, hora, reset, setStep, prevStep } = useBookingStore();
+  const { servicio, profesional, fecha, hora, reset, setStep } = useBookingStore();
 
   const [nombre, setNombre] = useState("");
   const [nombreError, setNombreError] = useState<string | null>(null);
 
   const [telefono, setTelefono] = useState("");
   const [telefonoError, setTelefonoError] = useState<string | null>(null);
-  const [telefonoPais, setTelefonoPais] = useState<"VE" | "CO" | null>(null);
 
   const [notas, setNotas] = useState("");
   const [enviando, setEnviando] = useState(false);
@@ -79,15 +76,11 @@ export function BookingSummaryForm() {
     const filtered = filterPhoneInput(e.target.value);
     setTelefono(filtered);
 
-    // Validación interactiva
-    if (filtered.trim().length >= 10) {
+    if (filtered.trim().length >= 11) {
       const res = validatePhone(filtered);
       if (res.isValid) {
         setTelefonoError(null);
-        setTelefonoPais(res.country || null);
       }
-    } else {
-      setTelefonoPais(null);
     }
   }
 
@@ -96,11 +89,9 @@ export function BookingSummaryForm() {
     const res = validatePhone(telefono);
     if (!res.isValid) {
       setTelefonoError(res.error || "Teléfono inválido");
-      setTelefonoPais(null);
     } else {
       setTelefono(res.formatted || telefono);
       setTelefonoError(null);
-      setTelefonoPais(res.country || null);
     }
   }
 
@@ -126,7 +117,6 @@ export function BookingSummaryForm() {
     } else {
       setTelefonoError(null);
       setTelefono(telefonoRes.formatted || telefono);
-      setTelefonoPais(telefonoRes.country || null);
     }
 
     if (hasErrors) return;
@@ -141,17 +131,7 @@ export function BookingSummaryForm() {
   return (
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_360px]">
       <form onSubmit={handleSubmit} className="space-y-5 rounded-2xl border border-border bg-card p-6 shadow-sm">
-        <div className="flex items-center justify-between">
-          <h2 className="font-heading text-lg font-bold text-primary">Tus datos de contacto</h2>
-          <button
-            type="button"
-            onClick={prevStep}
-            className="text-xs text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors"
-          >
-            <ArrowLeft className="h-3 w-3" />
-            <span>Paso anterior</span>
-          </button>
-        </div>
+        <h2 className="font-heading text-lg font-bold text-primary">Tus datos de contacto</h2>
 
         {/* Campo Nombre */}
         <div className="space-y-1.5">
@@ -168,29 +148,19 @@ export function BookingSummaryForm() {
             className={nombreError ? "border-destructive focus-visible:ring-destructive" : ""}
             autoComplete="name"
           />
-          {nombreError ? (
+          {nombreError && (
             <p className="flex items-center gap-1 text-xs text-destructive mt-1 font-medium">
               <AlertCircle className="h-3.5 w-3.5 shrink-0" />
               <span>{nombreError}</span>
             </p>
-          ) : (
-            <p className="text-[11px] text-muted-foreground">Solo letras y apellidos reales (sin números).</p>
           )}
         </div>
 
         {/* Campo Teléfono */}
         <div className="space-y-1.5">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="clienteTelefono" className="text-sm font-semibold">
-              Teléfono Celular <span className="text-destructive">*</span>
-            </Label>
-            {telefonoPais && (
-              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
-                <CheckCircle2 className="h-3 w-3" />
-                {telefonoPais === "VE" ? "🇻🇪 Venezuela" : "🇨🇴 Colombia"}
-              </span>
-            )}
-          </div>
+          <Label htmlFor="clienteTelefono" className="text-sm font-semibold">
+            Teléfono Celular <span className="text-destructive">*</span>
+          </Label>
           <Input
             id="clienteTelefono"
             required
@@ -198,18 +168,14 @@ export function BookingSummaryForm() {
             value={telefono}
             onChange={handleTelefonoChange}
             onBlur={handleTelefonoBlur}
-            placeholder="0412 1234567 o 310 1234567"
+            placeholder="0412 1234567"
             className={telefonoError ? "border-destructive focus-visible:ring-destructive" : ""}
             autoComplete="tel"
           />
-          {telefonoError ? (
+          {telefonoError && (
             <p className="flex items-start gap-1 text-xs text-destructive mt-1 font-medium">
               <AlertCircle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
               <span>{telefonoError}</span>
-            </p>
-          ) : (
-            <p className="text-[11px] text-muted-foreground">
-              Acepta números de <strong>Venezuela</strong> (0412, 0414, 0424, 0416, 0426) o <strong>Colombia</strong> (iniciando con 3). Solo números, sin letras.
             </p>
           )}
         </div>
@@ -228,26 +194,14 @@ export function BookingSummaryForm() {
           />
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-3 pt-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={prevStep}
-            className="rounded-xl px-5 text-sm h-12 flex items-center justify-center gap-1.5"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            <span>Atrás</span>
-          </Button>
-
-          <Button
-            type="submit"
-            size="lg"
-            className="flex-1 text-base font-semibold py-6 rounded-xl shadow-md"
-            disabled={enviando}
-          >
-            {enviando ? "Agendando cita..." : "Confirmar mi cita"}
-          </Button>
-        </div>
+        <Button
+          type="submit"
+          size="lg"
+          className="w-full text-base font-semibold py-6 rounded-xl shadow-md"
+          disabled={enviando}
+        >
+          {enviando ? "Agendando cita..." : "Confirmar mi cita"}
+        </Button>
       </form>
 
       {/* Resumen lateral con botones directos para editar cada paso */}

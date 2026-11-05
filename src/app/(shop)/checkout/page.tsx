@@ -199,29 +199,19 @@ export default function CheckoutPage() {
                   placeholder="Ej. Ana Pérez"
                   className={nombreError ? "border-destructive focus-visible:ring-destructive" : ""}
                 />
-                {nombreError ? (
+                {nombreError && (
                   <p className="flex items-center gap-1 text-xs text-destructive mt-1 font-medium">
                     <AlertCircle className="h-3.5 w-3.5 shrink-0" />
                     <span>{nombreError}</span>
                   </p>
-                ) : (
-                  <p className="text-[11px] text-muted-foreground">Solo letras (nombre y apellido real).</p>
                 )}
               </div>
 
               {/* Teléfono */}
               <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="telefono" className="text-sm font-semibold">
-                    Teléfono Celular <span className="text-destructive">*</span>
-                  </Label>
-                  {telefonoPais && (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
-                      <CheckCircle2 className="h-3 w-3" />
-                      {telefonoPais === "VE" ? "🇻🇪 Venezuela" : "🇨🇴 Colombia"}
-                    </span>
-                  )}
-                </div>
+                <Label htmlFor="telefono" className="text-sm font-semibold">
+                  Teléfono Celular <span className="text-destructive">*</span>
+                </Label>
                 <Input
                   id="telefono"
                   required
@@ -241,17 +231,13 @@ export default function CheckoutPage() {
                       }
                     }
                   }}
-                  placeholder="0412 1234567 o 310 1234567"
+                  placeholder="0412 1234567"
                   className={telefonoError ? "border-destructive focus-visible:ring-destructive" : ""}
                 />
-                {telefonoError ? (
+                {telefonoError && (
                   <p className="flex items-start gap-1 text-xs text-destructive mt-1 font-medium">
                     <AlertCircle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
                     <span>{telefonoError}</span>
-                  </p>
-                ) : (
-                  <p className="text-[11px] text-muted-foreground">
-                    Válido para Venezuela (0412, 0414, etc.) o Colombia (3XX). Sin letras.
                   </p>
                 )}
               </div>

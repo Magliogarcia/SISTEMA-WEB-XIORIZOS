@@ -8,7 +8,7 @@ export interface ValidationResult {
   isValid: boolean;
   error?: string;
   formatted?: string;
-  country?: "VE" | "CO";
+  country?: "VE";
 }
 
 /**
@@ -45,7 +45,10 @@ function hasTrivialRepetition(str: string, maxConsecutive: number = 5): boolean 
 }
 
 /**
- * Valida de forma estricta un número de teléfono celular de Venezuela o Colombia.
+ * Valida de forma estricta un número de teléfono celular de Venezuela.
+ * Operadoras válidas: 0412 (Digitel), 0414/0424 (Movistar), 0416/0426 (Movilnet).
+ * Formato nacional: 11 dígitos (0412 1234567).
+ * Formato internacional: +58 412 1234567.
  */
 export function validatePhone(rawPhone: string): ValidationResult {
   const trimmed = rawPhone.trim();
@@ -67,7 +70,6 @@ export function validatePhone(rawPhone: string): ValidationResult {
 
   // Quitar espacios, guiones y paréntesis para el análisis numérico
   const digitsOnly = trimmed.replace(/\D/g, "");
-  const hasPlus = trimmed.startsWith("+");
 
   // VENEZUELA:
   // Prefijos móviles venezolanos: 0412, 0414, 0424, 0416, 0426
@@ -83,7 +85,7 @@ export function validatePhone(rawPhone: string): ValidationResult {
     if (hasTrivialRepetition(subscriber, 5)) {
       return {
         isValid: false,
-        error: "Ingresa un número de teléfono venezolano real y válido.",
+        error: "Ingresa un número celular venezolano real y válido.",
       };
     }
 
@@ -102,7 +104,7 @@ export function validatePhone(rawPhone: string): ValidationResult {
     if (hasTrivialRepetition(subscriber, 5)) {
       return {
         isValid: false,
-        error: "Ingresa un número de teléfono venezolano real y válido.",
+        error: "Ingresa un número celular venezolano real y válido.",
       };
     }
 
@@ -114,72 +116,16 @@ export function validatePhone(rawPhone: string): ValidationResult {
     };
   }
 
-  // COLOMBIA:
-  // Prefijos móviles colombianos: siempre inician con 3 (300, 310, 315, 320, 350, etc.)
-  // Formato nacional: 10 dígitos exactos (3XXXXXXXXX)
-  // Formato internacional: 57 + 3XXXXXXXXX (12 dígitos numéricos en total)
-  const coNationalRegex = /^3(\d{9})$/;
-  const coIntlRegex = /^573(\d{9})$/;
-
-  if (coNationalRegex.test(digitsOnly)) {
-    const match = digitsOnly.match(coNationalRegex)!;
-    const rest = match[1];
-
-    if (hasTrivialRepetition(rest, 5)) {
-      return {
-        isValid: false,
-        error: "Ingresa un número de teléfono celular colombiano real y válido.",
-      };
-    }
-
-    const formatted = `3${rest.slice(0, 2)} ${rest.slice(2, 5)} ${rest.slice(5)}`;
-    return {
-      isValid: true,
-      formatted,
-      country: "CO",
-    };
-  }
-
-  if (coIntlRegex.test(digitsOnly)) {
-    const match = digitsOnly.match(coIntlRegex)!;
-    const rest = match[1];
-
-    if (hasTrivialRepetition(rest, 5)) {
-      return {
-        isValid: false,
-        error: "Ingresa un número de teléfono celular colombiano real y válido.",
-      };
-    }
-
-    const formatted = `+57 3${rest.slice(0, 2)} ${rest.slice(2, 5)} ${rest.slice(5)}`;
-    return {
-      isValid: true,
-      formatted,
-      country: "CO",
-    };
-  }
-
-  // Si no coincidió, dar diagnóstico orientativo al usuario
-  if (digitsOnly.startsWith("04") || digitsOnly.startsWith("58")) {
+  if (digitsOnly.length < 11) {
     return {
       isValid: false,
-      error:
-        "Número venezolano incompleto o incorrecto. Debe ser 0412, 0414, 0424, 0416 o 0426 seguido de 7 dígitos (ej: 0412 1234567).",
-    };
-  }
-
-  if (digitsOnly.startsWith("3") || digitsOnly.startsWith("57")) {
-    return {
-      isValid: false,
-      error:
-        "Número colombiano incompleto o incorrecto. Debe tener 10 dígitos iniciando por 3 (ej: 310 1234567).",
+      error: "El número debe tener 11 dígitos (ej. 0412 1234567 o +58 412 1234567).",
     };
   }
 
   return {
     isValid: false,
-    error:
-      "Ingresa un número válido de Venezuela (ej. 0412 1234567 / +58...) o Colombia (ej. 310 1234567 / +57...).",
+    error: "Ingresa un número celular venezolano válido (0412, 0414, 0424, 0416 o 0426).",
   };
 }
 

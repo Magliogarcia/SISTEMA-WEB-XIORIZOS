@@ -12,29 +12,29 @@ interface Swatch {
 
 const swatches: Swatch[] = [
   {
-    name: "Honey Blonde",
-    color: "#E5C158",
-    afterImage: "https://images.unsplash.com/photo-1580618672591-eb180b1a973f?w=800&auto=format&fit=crop&q=80",
-  },
-  {
-    name: "Rich Hazelnut",
-    color: "#5C3D2E",
-    afterImage: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=800&auto=format&fit=crop&q=80",
-  },
-  {
-    name: "Sunset Copper",
+    name: "Rojo Intenso / Copper",
     color: "#C86432",
-    afterImage: "https://images.unsplash.com/photo-1560869713-7d0a29430803?w=800&auto=format&fit=crop&q=80",
+    afterImage: "/images/persona_con_cabello_rojo_pintado.webp",
   },
   {
     name: "Burgundy Velvet",
     color: "#722F37",
-    afterImage: "https://images.unsplash.com/photo-1519699047748-de8e457a634e?w=800&auto=format&fit=crop&q=80",
+    afterImage: "/images/persona_con_cabello_rojo_pintado.webp",
+  },
+  {
+    name: "Honey Blonde",
+    color: "#E5C158",
+    afterImage: "/images/persona_con_cabello_rojo_pintado.webp",
+  },
+  {
+    name: "Rich Hazelnut",
+    color: "#5C3D2E",
+    afterImage: "/images/persona_con_cabello_rojo_pintado.webp",
   },
   {
     name: "Rose Gold Glow",
     color: "#DDA39D",
-    afterImage: "https://images.unsplash.com/photo-1562322140-8baeececf3df?w=800&auto=format&fit=crop&q=80",
+    afterImage: "/images/persona_con_cabello_rojo_pintado.webp",
   },
 ];
 
@@ -132,37 +132,37 @@ export function SimulatorSection() {
                 className="relative w-full max-w-[560px] aspect-[4/4] rounded-3xl overflow-hidden select-none shadow-[0_12px_32px_rgba(61,34,20,0.1)] cursor-ew-resize touch-none"
                 style={{ userSelect: "none", WebkitUserSelect: "none" }}
               >
-                {/* Before Image */}
+                {/* Right Image (Lado derecho: Cabello Rojo Pintado) */}
                 <div className="absolute inset-0 w-full h-full pointer-events-none select-none">
                   <Image
-                    src={
-                      customBeforeImage ||
-                      "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=800&auto=format&fit=crop&q=80"
-                    }
-                    alt="Cabello rizado antes del color"
+                    src={activeSwatch.afterImage}
+                    alt="Cabello rizado teñido"
                     fill
                     draggable={false}
                     className="object-cover pointer-events-none select-none"
                   />
+                  {/* Color tint filter simulation overlay */}
+                  <div
+                    className="absolute inset-0 opacity-20 mix-blend-color pointer-events-none"
+                    style={{ backgroundColor: activeSwatch.color }}
+                  />
                 </div>
 
-                {/* After Image (Revealed by split slider width) */}
+                {/* Left Image (Lado izquierdo: Cabello Castaño Normal) */}
                 <div
                   className="absolute inset-0 h-full overflow-hidden pointer-events-none select-none"
                   style={{ width: `${sliderPosition}%` }}
                 >
                   <div className="relative w-[560px] max-w-none h-full pointer-events-none select-none">
                     <Image
-                      src={activeSwatch.afterImage}
-                      alt={`Tono simulado ${activeSwatch.name}`}
+                      src={
+                        customBeforeImage ||
+                        "/images/persona_con_cabello_castano_normal.webp"
+                      }
+                      alt="Cabello rizado natural castaño"
                       fill
                       draggable={false}
                       className="object-cover pointer-events-none select-none"
-                    />
-                    {/* Color tint filter simulation overlay */}
-                    <div
-                      className="absolute inset-0 opacity-20 mix-blend-color pointer-events-none"
-                      style={{ backgroundColor: activeSwatch.color }}
                     />
                   </div>
                 </div>
@@ -178,11 +178,11 @@ export function SimulatorSection() {
                 </div>
 
                 {/* Tags */}
-                <span className="absolute bottom-4 left-4 bg-primary/70 backdrop-blur-md text-on-primary font-label-sm text-label-sm px-3 py-1 rounded-full pointer-events-none">
-                  Antes
+                <span className="absolute bottom-4 left-4 bg-primary/80 backdrop-blur-md text-on-primary font-label-sm text-label-sm px-3 py-1 rounded-full pointer-events-none shadow">
+                  Antes (Castaño)
                 </span>
-                <span className="absolute bottom-4 right-4 bg-secondary/80 backdrop-blur-md text-on-secondary font-label-sm text-label-sm px-3 py-1 rounded-full pointer-events-none">
-                  Después
+                <span className="absolute bottom-4 right-4 bg-secondary/90 backdrop-blur-md text-on-secondary font-label-sm text-label-sm px-3 py-1 rounded-full pointer-events-none shadow">
+                  Después (Pintado)
                 </span>
               </div>
 
