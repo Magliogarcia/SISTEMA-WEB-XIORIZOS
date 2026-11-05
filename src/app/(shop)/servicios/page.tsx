@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { OptimizedVideo } from "@/components/ui/optimized-video";
 import { mockServices } from "@/lib/mock-data";
 
 export const metadata = {
@@ -142,14 +143,9 @@ export default function ServiciosPage() {
 
             {/* Video Servicio de Uñas pegado a la derecha del texto, sin espacio gris, sin recortar */}
             <div className="flex-shrink-0 flex items-center justify-center bg-black/5 overflow-hidden order-1 md:order-2">
-              <video
+              <OptimizedVideo
                 src="/videos/servicio_de_unas.mp4"
-                autoPlay
-                muted
-                loop
-                playsInline
-                controls={false}
-                disablePictureInPicture
+                poster="/images/servicio_de_unas.webp"
                 className="h-[360px] sm:h-[440px] md:h-[480px] w-auto max-w-full block"
               />
             </div>

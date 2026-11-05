@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { OptimizedVideo } from "@/components/ui/optimized-video";
 import { useCartStore } from "@/store/cart-store";
 import { mockProducts } from "@/lib/mock-data";
 
@@ -59,14 +60,9 @@ export function ShopSection() {
 
             {/* Video container: rounded-none y con mayor altura dentro del contenedor */}
             <div className="w-full aspect-[4/4.8] rounded-none overflow-hidden bg-black/5 relative my-1 flex items-center justify-center">
-              <video
+              <OptimizedVideo
                 src="/videos/productos_para_los_rizos.mp4"
-                autoPlay
-                muted
-                loop
-                playsInline
-                controls={false}
-                disablePictureInPicture
+                poster="/images/crema_de_peinar_etniker.webp"
                 className="w-full h-full object-cover rounded-none"
               />
             </div>

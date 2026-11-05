@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { OptimizedVideo } from "@/components/ui/optimized-video";
 
 export function AboutSection() {
   return (
@@ -25,14 +26,9 @@ export function AboutSection() {
           <div className="max-w-fit mx-auto rounded-3xl overflow-hidden bg-surface-container-low border border-surface-container shadow-sm flex flex-col md:flex-row items-stretch">
             {/* Left Column: Video flush without empty horizontal margins */}
             <div className="flex-shrink-0 flex items-center justify-center bg-black/5 overflow-hidden">
-              <video
+              <OptimizedVideo
                 src="/videos/video_recorrido_por_negocio.mp4"
-                autoPlay
-                muted
-                loop
-                playsInline
-                controls={false}
-                disablePictureInPicture
+                poster="/images/Personal2.webp"
                 className="h-[360px] sm:h-[440px] md:h-[480px] w-auto max-w-full block"
               />
             </div>

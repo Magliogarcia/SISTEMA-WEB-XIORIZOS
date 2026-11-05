@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { SlidersHorizontal } from "lucide-react";
+import { OptimizedVideo } from "@/components/ui/optimized-video";
 import { SearchBar } from "@/components/shop/search-bar";
 import { ProductFilters } from "@/components/shop/product-filters";
 import { ProductCard } from "@/components/shop/product-card";
@@ -47,15 +48,10 @@ export default function CatalogoPage() {
             </p>
           </div>
           <div className="lg:col-span-5 flex items-center justify-center bg-black/5 rounded-xl overflow-hidden p-2">
-            <video
+            <OptimizedVideo
               src="/videos/productos_para_los_rizos.mp4"
-              autoPlay
-              muted
-              loop
-              playsInline
-              controls={false}
-              disablePictureInPicture
-              className="w-full h-auto max-h-[280px] object-contain rounded-2xl"
+              poster="/images/crema_de_peinar_etniker.webp"
+              className="w-full h-auto max-h-[280px] object-contain rounded-xl"
             />
           </div>
         </div>

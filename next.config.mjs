@@ -5,6 +5,9 @@ const nextConfig = {
       { protocol: "https", hostname: "**" },
     ],
   },
+  experimental: {
+    optimizePackageImports: ["lucide-react", "date-fns"],
+  },
 };
 
 export default nextConfig;

@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { OptimizedVideo } from "@/components/ui/optimized-video";
 import { realStaffMembers } from "@/lib/mock-data";
 
 export const metadata = {
@@ -39,14 +40,9 @@ export default function SobreNosotrosPage() {
           <div className="max-w-fit mx-auto bg-surface-container-low border border-surface-container rounded-3xl overflow-hidden shadow-sm flex flex-col md:flex-row items-stretch">
             {/* Video sin recortar, ajustado a su ancho natural y pegado al texto */}
             <div className="flex-shrink-0 flex items-center justify-center bg-black/5 overflow-hidden">
-              <video
+              <OptimizedVideo
                 src="/videos/video_recorrido_por_negocio.mp4"
-                autoPlay
-                muted
-                loop
-                playsInline
-                controls={false}
-                disablePictureInPicture
+                poster="/images/Personal2.webp"
                 className="h-[360px] sm:h-[440px] md:h-[480px] w-auto max-w-full block"
               />
             </div>
