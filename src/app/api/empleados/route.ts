@@ -102,3 +102,4 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ error: "Error al eliminar empleado" }, { status: 500 });
   }
 }
+

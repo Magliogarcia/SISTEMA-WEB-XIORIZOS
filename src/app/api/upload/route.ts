@@ -34,3 +34,4 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Error interno al guardar la imagen" }, { status: 500 });
   }
 }
+

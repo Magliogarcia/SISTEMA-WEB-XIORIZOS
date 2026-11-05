@@ -18,28 +18,28 @@ export function MetricCard({
   icon: Icon,
   descripcion,
   tendencia,
-  badgeBg = "bg-primary/10",
-  badgeText = "text-primary",
+  badgeBg = "bg-slate-100",
+  badgeText = "text-slate-700",
 }: MetricCardProps) {
   return (
-    <Card className="rounded-lg border-border shadow-sm hover:shadow-md transition-shadow">
-      <CardContent className="flex items-center justify-between p-5">
+    <div className="rounded-md border border-slate-200 bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.04)] hover:border-slate-300 transition-colors">
+      <div className="flex items-center justify-between">
         <div className="space-y-1">
-          <p className="text-sm font-medium text-muted-foreground">{titulo}</p>
-          <p className="font-heading text-2xl font-bold text-foreground">{valor}</p>
+          <p className="text-xs font-medium uppercase tracking-wider text-slate-500">{titulo}</p>
+          <p className="text-2xl font-bold text-slate-900 tracking-tight font-sans">{valor}</p>
           {descripcion && (
-            <p className="text-xs text-muted-foreground">{descripcion}</p>
+            <p className="text-xs text-slate-500 font-normal">{descripcion}</p>
           )}
           {tendencia && (
-            <p className={cn("text-xs font-semibold", tendencia.positiva ? "text-emerald-600" : "text-destructive")}>
+            <p className={cn("text-xs font-semibold", tendencia.positiva ? "text-emerald-600" : "text-rose-600")}>
               {tendencia.positiva ? "▲" : "▼"} {tendencia.valor}
             </p>
           )}
         </div>
-        <div className={cn("flex h-12 w-12 shrink-0 items-center justify-center rounded-lg shadow-sm border", badgeBg, badgeText)}>
-          <Icon className="h-6 w-6" />
+        <div className={cn("flex h-11 w-11 shrink-0 items-center justify-center rounded-md border", badgeBg, badgeText)}>
+          <Icon className="h-5 w-5" />
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

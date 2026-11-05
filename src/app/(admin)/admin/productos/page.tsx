@@ -10,21 +10,10 @@ import {
   RefreshCw,
   Upload,
   CheckCircle2,
-  AlertCircle,
   Package,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableRow,
-  TableHead,
-  TableCell,
-} from "@/components/ui/table";
 import {
   Dialog,
   DialogContent,
@@ -139,13 +128,13 @@ export default function AdminProductosPage() {
       const data = await res.json();
       if (data.success && data.url) {
         setImagenUrl(data.url);
-        setUploadMensaje("Foto subida correctamente a la carpeta de productos");
+        setUploadMensaje("Foto subida correctamente");
       } else {
         setUploadMensaje(data.error || "No se pudo subir la foto");
       }
     } catch (err) {
       console.error(err);
-      setUploadMensaje("Error de conexión al subir la imagen");
+      setUploadMensaje("Error al subir la imagen");
     } finally {
       setSubiendoFoto(false);
     }
@@ -202,7 +191,7 @@ export default function AdminProductosPage() {
   }
 
   async function eliminarProducto(id: string, nombreProd: string) {
-    if (!confirm(`¿Estás seguro de que deseas eliminar "${nombreProd}" del catálogo?`)) {
+    if (!confirm(`¿Estás seguro de eliminar "${nombreProd}" del catálogo?`)) {
       return;
     }
 
@@ -227,137 +216,134 @@ export default function AdminProductosPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between pb-2 border-b border-border">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between pb-4 border-b border-slate-200">
         <div>
-          <h1 className="font-heading text-2xl font-bold text-primary">Inventario y Productos</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            Gestiona productos, sube fotos, ajusta precios y actualiza el stock disponible en tienda.
+          <h1 className="text-xl font-bold text-slate-900 tracking-tight">Inventario y Productos</h1>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Gestión de catálogo, precios, stock y subida de fotos.
           </p>
         </div>
 
         <div className="flex items-center gap-2 self-start sm:self-auto">
-          <Button variant="outline" size="sm" onClick={cargarProductos} className="rounded-lg flex items-center gap-1.5 text-xs font-semibold">
-            <RefreshCw className="h-4 w-4" />
+          <Button variant="outline" size="sm" onClick={cargarProductos} className="rounded-md border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-1.5">
+            <RefreshCw className="h-3.5 w-3.5" />
             <span>Actualizar</span>
           </Button>
 
-          <Button onClick={abrirNuevo} className="rounded-lg flex items-center gap-1.5 bg-primary hover:bg-secondary text-white text-xs font-semibold shadow-sm">
+          <Button onClick={abrirNuevo} className="rounded-md bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm">
             <Plus className="h-4 w-4" />
             <span>Nuevo Producto</span>
           </Button>
         </div>
       </div>
 
-      <Card className="rounded-lg border-border shadow-sm">
-        <CardHeader className="flex-col sm:flex-row gap-3 sm:items-center justify-between pb-3 border-b border-border">
-          <CardTitle className="text-base font-bold text-primary">
+      <div className="rounded-md border border-slate-200 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)] overflow-hidden">
+        <div className="flex flex-col sm:flex-row gap-3 sm:items-center justify-between p-4 border-b border-slate-200">
+          <h2 className="text-sm font-bold text-slate-900">
             Catálogo General ({productosFiltrados.length})
-          </CardTitle>
+          </h2>
           <div className="relative w-full sm:w-72">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
             <Input
               placeholder="Buscar por nombre, categoría o marca..."
-              className="pl-9 rounded-lg text-sm"
+              className="pl-8 rounded-md text-xs h-9 border-slate-200"
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
             />
           </div>
-        </CardHeader>
-        <CardContent className="p-0">
+        </div>
+
+        <div className="overflow-x-auto">
           {cargando ? (
-            <div className="py-12 text-center text-sm text-muted-foreground">Cargando productos...</div>
+            <div className="py-12 text-center text-xs text-slate-500">Cargando productos...</div>
           ) : productosFiltrados.length === 0 ? (
-            <div className="py-12 text-center text-sm text-muted-foreground">
+            <div className="py-12 text-center text-xs text-slate-500">
               No se encontraron productos coincidentes.
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Producto</TableHead>
-                    <TableHead>Categoría</TableHead>
-                    <TableHead>Marca</TableHead>
-                    <TableHead>Precio</TableHead>
-                    <TableHead>Stock</TableHead>
-                    <TableHead className="text-right">Acciones</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {productosFiltrados.map((p) => (
-                    <TableRow key={p.id}>
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md bg-secondary/10 border border-border">
-                            <Image src={p.imagenUrl} alt={p.nombre} fill className="object-cover" />
-                          </div>
-                          <div>
-                            <p className="font-semibold text-sm text-foreground">{p.nombre}</p>
-                            <p className="text-xs text-muted-foreground line-clamp-1 max-w-xs">{p.descripcion}</p>
-                          </div>
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-slate-200 bg-slate-50/60 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                  <th className="py-3 px-4">Producto</th>
+                  <th className="py-3 px-4">Categoría</th>
+                  <th className="py-3 px-4">Marca</th>
+                  <th className="py-3 px-4">Precio</th>
+                  <th className="py-3 px-4">Stock</th>
+                  <th className="py-3 px-4 text-right">Acciones</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-xs">
+                {productosFiltrados.map((p) => (
+                  <tr key={p.id} className="hover:bg-slate-50/80 transition-colors">
+                    <td className="py-3 px-4">
+                      <div className="flex items-center gap-3">
+                        <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-md bg-slate-100 border border-slate-200">
+                          <Image src={p.imagenUrl} alt={p.nombre} fill className="object-cover" />
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="secondary" className="capitalize text-xs font-semibold">
-                          {p.categoria}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-xs font-medium text-foreground">
-                        {p.marca}
-                      </TableCell>
-                      <TableCell className="font-bold text-sm text-primary">
-                        {formatCurrency(p.precio)}
-                      </TableCell>
-                      <TableCell>
-                        <span className={`text-xs font-semibold px-2.5 py-1 rounded-md ${
-                          p.stock <= 5 ? "bg-rose-50 text-rose-700 border border-rose-200" : "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                        }`}>
-                          {p.stock} unid.
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-primary hover:bg-secondary/15 rounded-md"
-                            onClick={() => abrirEditar(p)}
-                            title="Editar información y precio"
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-destructive hover:bg-destructive/10 rounded-md"
-                            onClick={() => eliminarProducto(p.id, p.nombre)}
-                            title="Eliminar producto"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                        <div>
+                          <p className="font-semibold text-slate-900 text-sm">{p.nombre}</p>
+                          <p className="text-slate-500 line-clamp-1 max-w-xs">{p.descripcion}</p>
                         </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                      </div>
+                    </td>
+                    <td className="py-3 px-4">
+                      <span className="inline-block px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200 capitalize">
+                        {p.categoria}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 font-medium text-slate-700">
+                      {p.marca}
+                    </td>
+                    <td className="py-3 px-4 font-bold text-sm text-slate-900">
+                      {formatCurrency(p.precio)}
+                    </td>
+                    <td className="py-3 px-4">
+                      <span className={`inline-block text-[11px] font-semibold px-2 py-0.5 rounded ${
+                        p.stock <= 5 ? "bg-rose-50 text-rose-700 border border-rose-200" : "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                      }`}>
+                        {p.stock} unid.
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          type="button"
+                          onClick={() => abrirEditar(p)}
+                          className="p-1.5 rounded text-slate-600 hover:bg-slate-100 border border-slate-200 transition-colors cursor-pointer"
+                          title="Editar producto"
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => eliminarProducto(p.id, p.nombre)}
+                          className="p-1.5 rounded text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-colors cursor-pointer"
+                          title="Eliminar producto"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      {/* Modal Crear / Editar Producto (Optimizado en altura, no se corta en pantallas) */}
+      {/* Modal Crear / Editar Producto (max-h-[85vh] y rounded-md) */}
       <Dialog open={modalAbierto} onOpenChange={setModalAbierto}>
-        <DialogContent className="max-w-lg rounded-lg max-h-[85vh] overflow-y-auto p-5 sm:p-6">
-          <DialogHeader className="pb-2 border-b border-border">
-            <DialogTitle className="text-lg font-bold text-primary">
+        <DialogContent className="max-w-lg rounded-md max-h-[85vh] overflow-y-auto p-5 sm:p-6">
+          <DialogHeader className="pb-2 border-b border-slate-200">
+            <DialogTitle className="text-base font-bold text-slate-900">
               {modoEdicion ? "Editar información del producto" : "Añadir nuevo producto"}
             </DialogTitle>
           </DialogHeader>
 
-          <form onSubmit={handleSubmit} className="space-y-3.5 pt-2">
+          <form onSubmit={handleSubmit} className="space-y-3.5 pt-2 text-xs">
             <div className="space-y-1">
-              <Label htmlFor="prodNombre" className="text-xs font-semibold">
+              <Label htmlFor="prodNombre" className="text-xs font-semibold text-slate-700">
                 Nombre del producto *
               </Label>
               <Input
@@ -366,13 +352,13 @@ export default function AdminProductosPage() {
                 value={nombre}
                 onChange={(e) => setNombre(e.target.value)}
                 placeholder="Ej. Crema de Peinar Etniker"
-                className="rounded-lg text-sm"
+                className="rounded-md text-xs"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <Label htmlFor="prodMarca" className="text-xs font-semibold">
+                <Label htmlFor="prodMarca" className="text-xs font-semibold text-slate-700">
                   Marca
                 </Label>
                 <Input
@@ -380,12 +366,12 @@ export default function AdminProductosPage() {
                   value={marca}
                   onChange={(e) => setMarca(e.target.value)}
                   placeholder="Ej. Etniker, Skala, Cantu"
-                  className="rounded-lg text-sm"
+                  className="rounded-md text-xs"
                 />
               </div>
 
               <div className="space-y-1">
-                <Label htmlFor="prodCat" className="text-xs font-semibold">
+                <Label htmlFor="prodCat" className="text-xs font-semibold text-slate-700">
                   Categoría
                 </Label>
                 <Input
@@ -393,14 +379,14 @@ export default function AdminProductosPage() {
                   value={categoria}
                   onChange={(e) => setCategoria(e.target.value)}
                   placeholder="Ej. Cremas, Geles, Tratamientos"
-                  className="rounded-lg text-sm"
+                  className="rounded-md text-xs"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <Label htmlFor="prodPrecio" className="text-xs font-semibold">
+                <Label htmlFor="prodPrecio" className="text-xs font-semibold text-slate-700">
                   Precio (USD) *
                 </Label>
                 <Input
@@ -411,12 +397,12 @@ export default function AdminProductosPage() {
                   value={precio}
                   onChange={(e) => setPrecio(e.target.value)}
                   placeholder="25.00"
-                  className="rounded-lg text-sm"
+                  className="rounded-md text-xs"
                 />
               </div>
 
               <div className="space-y-1">
-                <Label htmlFor="prodStock" className="text-xs font-semibold">
+                <Label htmlFor="prodStock" className="text-xs font-semibold text-slate-700">
                   Stock disponible *
                 </Label>
                 <Input
@@ -426,13 +412,13 @@ export default function AdminProductosPage() {
                   value={stock}
                   onChange={(e) => setStock(e.target.value)}
                   placeholder="10"
-                  className="rounded-lg text-sm"
+                  className="rounded-md text-xs"
                 />
               </div>
             </div>
 
             <div className="space-y-1">
-              <Label htmlFor="prodDesc" className="text-xs font-semibold">
+              <Label htmlFor="prodDesc" className="text-xs font-semibold text-slate-700">
                 Descripción
               </Label>
               <Textarea
@@ -441,26 +427,26 @@ export default function AdminProductosPage() {
                 value={descripcion}
                 onChange={(e) => setDescripcion(e.target.value)}
                 placeholder="Beneficios, modo de uso y textura para rizos."
-                className="rounded-lg text-xs"
+                className="rounded-md text-xs"
               />
             </div>
 
-            {/* Subida de Imagen Dedicada a Carpeta de Productos */}
-            <div className="space-y-2 pt-2 border-t border-border">
-              <Label className="text-xs font-semibold">Foto del producto</Label>
+            {/* Subida de Imagen Limpia y sin textos indebidos */}
+            <div className="space-y-2 pt-2 border-t border-slate-200">
+              <Label className="text-xs font-semibold text-slate-700">Foto del producto</Label>
               
               <div className="flex items-center gap-3">
-                <div className="relative h-16 w-16 shrink-0 rounded-lg overflow-hidden border border-border bg-muted/40 shadow-sm">
+                <div className="relative h-14 w-14 shrink-0 rounded-md overflow-hidden border border-slate-200 bg-slate-100 shadow-sm">
                   {imagenUrl ? (
                     <Image src={imagenUrl} alt="Preview" fill className="object-cover" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                      <Package className="h-6 w-6" />
+                    <div className="w-full h-full flex items-center justify-center text-slate-400">
+                      <Package className="h-5 w-5" />
                     </div>
                   )}
                 </div>
 
-                <div className="flex-1 space-y-1">
+                <div className="flex-1">
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -474,19 +460,16 @@ export default function AdminProductosPage() {
                     size="sm"
                     disabled={subiendoFoto}
                     onClick={() => fileInputRef.current?.click()}
-                    className="rounded-lg text-xs font-semibold flex items-center gap-1.5"
+                    className="rounded-md text-xs font-semibold flex items-center gap-1.5 border-slate-200 text-slate-700 hover:bg-slate-50"
                   >
-                    <Upload className="h-3.5 w-3.5 text-secondary" />
-                    <span>{subiendoFoto ? "Subiendo foto..." : "Subir foto desde mi equipo"}</span>
+                    <Upload className="h-3.5 w-3.5 text-slate-600" />
+                    <span>{subiendoFoto ? "Subiendo..." : "Subir foto"}</span>
                   </Button>
-                  <p className="text-[11px] text-muted-foreground">
-                    Se guarda en la carpeta exclusiva <code className="text-foreground">/images/productos/</code>
-                  </p>
                 </div>
               </div>
 
               {uploadMensaje && (
-                <p className="text-xs font-medium text-emerald-600 flex items-center gap-1 mt-1">
+                <p className="text-xs font-medium text-emerald-700 flex items-center gap-1 mt-1">
                   <CheckCircle2 className="h-3.5 w-3.5" />
                   <span>{uploadMensaje}</span>
                 </p>
@@ -494,16 +477,16 @@ export default function AdminProductosPage() {
 
               {/* Galería de Selección Rápida */}
               <div className="pt-1">
-                <p className="text-[11px] font-medium text-muted-foreground mb-1.5">O elige una foto del catálogo existente:</p>
-                <div className="grid grid-cols-6 gap-2 p-1.5 bg-muted/30 rounded-lg max-h-24 overflow-y-auto">
+                <p className="text-[11px] font-medium text-slate-500 mb-1.5">O elige del catálogo existente:</p>
+                <div className="grid grid-cols-6 gap-2 p-1.5 bg-slate-50 rounded-md border border-slate-200 max-h-24 overflow-y-auto">
                   {IMAGENES_DISPONIBLES.map((img) => (
                     <button
                       key={img}
                       type="button"
                       onClick={() => setImagenUrl(img)}
-                      className={`relative aspect-square rounded-md overflow-hidden border transition-all ${
+                      className={`relative aspect-square rounded overflow-hidden border transition-all ${
                         imagenUrl === img
-                          ? "border-primary ring-2 ring-primary scale-105"
+                          ? "border-slate-900 ring-2 ring-slate-900 scale-105"
                           : "border-transparent opacity-70 hover:opacity-100"
                       }`}
                     >
@@ -514,11 +497,11 @@ export default function AdminProductosPage() {
               </div>
             </div>
 
-            <DialogFooter className="pt-3 border-t border-border flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => setModalAbierto(false)} className="rounded-lg">
+            <DialogFooter className="pt-3 border-t border-slate-200 flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => setModalAbierto(false)} className="rounded-md text-xs">
                 Cancelar
               </Button>
-              <Button type="submit" className="bg-primary hover:bg-secondary text-white font-semibold rounded-lg shadow-sm">
+              <Button type="submit" className="bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-md text-xs shadow-sm">
                 {modoEdicion ? "Guardar cambios" : "Crear producto"}
               </Button>
             </DialogFooter>
