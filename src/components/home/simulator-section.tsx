@@ -12,35 +12,26 @@ interface Swatch {
 
 const swatches: Swatch[] = [
   {
-    name: "Rojo Intenso / Copper",
-    color: "#C86432",
-    afterImage: "/images/persona_con_cabello_rojo_pintado.webp",
-  },
-  {
-    name: "Burgundy Velvet",
-    color: "#722F37",
-    afterImage: "/images/persona_con_cabello_rojo_pintado.webp",
-  },
-  {
-    name: "Honey Blonde",
-    color: "#E5C158",
-    afterImage: "/images/persona_con_cabello_rojo_pintado.webp",
-  },
-  {
-    name: "Rich Hazelnut",
+    name: "Castaño",
     color: "#5C3D2E",
-    afterImage: "/images/persona_con_cabello_rojo_pintado.webp",
+    afterImage: "/images/persona_con_cabello_castano_normal.webp",
   },
   {
-    name: "Rose Gold Glow",
-    color: "#DDA39D",
+    name: "Negro",
+    color: "#1A1A1A",
+    afterImage: "/images/persona_con_cabello_castano_normal.webp",
+  },
+  {
+    name: "Rojo",
+    color: "#C86432",
     afterImage: "/images/persona_con_cabello_rojo_pintado.webp",
   },
 ];
 
 export function SimulatorSection() {
   const [sliderPosition, setSliderPosition] = useState(50);
-  const [activeSwatch, setActiveSwatch] = useState(swatches[0]);
+  // Default to Rojo so the preview shows the contrast against the castaño
+  const [activeSwatch, setActiveSwatch] = useState(swatches[2]);
   const [customBeforeImage, setCustomBeforeImage] = useState<string | null>(null);
   const sliderRef = useRef<HTMLDivElement>(null);
   const isDraggingRef = useRef(false);
@@ -132,7 +123,7 @@ export function SimulatorSection() {
                 className="relative w-full max-w-[560px] aspect-[4/4] rounded-3xl overflow-hidden select-none shadow-[0_12px_32px_rgba(61,34,20,0.1)] cursor-ew-resize touch-none"
                 style={{ userSelect: "none", WebkitUserSelect: "none" }}
               >
-                {/* Right Image (Lado derecho: Cabello Rojo Pintado) */}
+                {/* Right Image (Lado derecho: Cabello con Color) */}
                 <div className="absolute inset-0 w-full h-full pointer-events-none select-none">
                   <Image
                     src={activeSwatch.afterImage}
@@ -143,7 +134,7 @@ export function SimulatorSection() {
                   />
                   {/* Color tint filter simulation overlay */}
                   <div
-                    className="absolute inset-0 opacity-20 mix-blend-color pointer-events-none"
+                    className="absolute inset-0 opacity-25 mix-blend-color pointer-events-none"
                     style={{ backgroundColor: activeSwatch.color }}
                   />
                 </div>
@@ -177,12 +168,12 @@ export function SimulatorSection() {
                   </div>
                 </div>
 
-                {/* Tags */}
-                <span className="absolute bottom-4 left-4 bg-primary/80 backdrop-blur-md text-on-primary font-label-sm text-label-sm px-3 py-1 rounded-full pointer-events-none shadow">
-                  Antes (Castaño)
+                {/* Tags limpios sin paréntesis ni textos extra */}
+                <span className="absolute bottom-4 left-4 bg-primary/80 backdrop-blur-md text-on-primary font-label-sm text-label-sm px-3.5 py-1 rounded-full pointer-events-none shadow font-medium">
+                  Antes
                 </span>
-                <span className="absolute bottom-4 right-4 bg-secondary/90 backdrop-blur-md text-on-secondary font-label-sm text-label-sm px-3 py-1 rounded-full pointer-events-none shadow">
-                  Después (Pintado)
+                <span className="absolute bottom-4 right-4 bg-secondary/90 backdrop-blur-md text-on-secondary font-label-sm text-label-sm px-3.5 py-1 rounded-full pointer-events-none shadow font-medium">
+                  Después
                 </span>
               </div>
 
@@ -213,24 +204,27 @@ export function SimulatorSection() {
                   </span>
                 </div>
 
-                {/* Swatches Palette List */}
-                <div className="flex flex-wrap gap-4 items-center justify-start py-2">
+                {/* Swatches Palette List (Solo Castaño, Negro o Rojo) */}
+                <div className="flex gap-4 items-center justify-start py-2">
                   {swatches.map((swatch) => (
                     <button
                       key={swatch.name}
                       onClick={() => setActiveSwatch(swatch)}
-                      className={`relative w-12 h-12 rounded-full p-1 transition-all active:scale-95 ${
+                      className={`relative flex items-center gap-2 px-3.5 py-2 rounded-xl border transition-all active:scale-95 ${
                         activeSwatch.name === swatch.name
-                          ? "ring-2 ring-primary scale-110"
-                          : "hover:scale-105"
+                          ? "border-primary bg-primary/5 ring-2 ring-primary/20 scale-105"
+                          : "border-border hover:bg-secondary/10"
                       }`}
                       title={swatch.name}
                       type="button"
                     >
                       <span
-                        className="w-full h-full rounded-full block shadow-inner"
+                        className="w-6 h-6 rounded-full block shadow-inner border border-black/10"
                         style={{ backgroundColor: swatch.color }}
                       />
+                      <span className="text-xs font-semibold text-primary">
+                        {swatch.name}
+                      </span>
                     </button>
                   ))}
                 </div>

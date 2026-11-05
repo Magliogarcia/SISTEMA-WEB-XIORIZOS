@@ -33,26 +33,43 @@ export default function CatalogoPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 pt-28 pb-16 sm:px-6 lg:px-8">
-      {/* Banner de Video Productos sin recortar */}
-      <div className="mb-10 bg-surface-container-low rounded-xl p-5 sm:p-7 border border-surface-container shadow-sm">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-          <div className="lg:col-span-7">
-            <span className="text-xs uppercase tracking-wider font-semibold text-secondary bg-secondary/10 px-3 py-1 rounded-full">
-              Línea Profesional para el Hogar
-            </span>
-            <h1 className="font-headline-lg text-2xl sm:text-4xl font-bold text-primary mt-3">
-              Catálogo de Productos para Rizos
-            </h1>
-            <p className="mt-2 text-sm sm:text-base text-on-surface-variant max-w-xl">
-              Fórmulas ricas en mantecas vegetales, aceites puros y agentes definidores sin sulfatos ni siliconas pesadas. Ideales para mantener el rizo hidratado y definido entre visitas al salón.
-            </p>
-          </div>
-          <div className="lg:col-span-5 flex items-center justify-center bg-black/5 rounded-xl overflow-hidden p-2">
+      {/* Banner de Video Productos sin recuadros grises, pegado al texto como la imagen de referencia */}
+      <div className="flex justify-center w-full mb-10">
+        <div className="w-full max-w-5xl rounded-2xl overflow-hidden bg-surface-container-low border border-surface-container shadow-sm flex flex-col md:flex-row items-stretch">
+          {/* Video: grande, completo, vertical y pegado al contenedor sin márgenes grises */}
+          <div className="flex-shrink-0 flex items-center justify-center overflow-hidden bg-black/5">
             <OptimizedVideo
               src="/videos/productos_para_los_rizos.mp4"
               poster="/images/crema_de_peinar_etniker.webp"
-              className="w-full h-auto max-h-[280px] object-contain rounded-xl"
+              className="h-[360px] sm:h-[420px] md:h-[460px] w-auto max-w-full block"
             />
+          </div>
+
+          {/* Información y detalles pegados al video */}
+          <div className="flex-1 p-6 sm:p-8 lg:p-10 flex flex-col justify-center">
+            <div className="inline-flex items-center gap-2 bg-secondary/10 text-secondary px-3 py-1 rounded-full text-xs font-semibold mb-3 w-fit">
+              <span>Línea Profesional para el Hogar</span>
+            </div>
+            <h1 className="font-headline-lg text-2xl sm:text-3xl font-bold text-primary mb-3">
+              Catálogo de Productos para Rizos
+            </h1>
+            <p className="font-body-md text-on-surface-variant mb-5 text-sm sm:text-base leading-relaxed">
+              Fórmulas ricas en mantecas vegetales, aceites puros y agentes definidores sin sulfatos ni siliconas pesadas. Ideales para mantener el rizo hidratado y definido entre visitas al salón.
+            </p>
+            <div className="space-y-2.5 pt-1 text-xs sm:text-sm text-on-surface">
+              <div className="flex items-center gap-2.5">
+                <span className="material-symbols-outlined text-secondary text-[18px]">verified</span>
+                <span>Marcas internacionales y nacionales aprobadas (Etniker, Skala, Cantu)</span>
+              </div>
+              <div className="flex items-center gap-2.5">
+                <span className="material-symbols-outlined text-secondary text-[18px]">verified</span>
+                <span>Fórmulas limpias aptas para el Método Curly Girl</span>
+              </div>
+              <div className="flex items-center gap-2.5">
+                <span className="material-symbols-outlined text-secondary text-[18px]">verified</span>
+                <span>Disponibles en el salón y con envíos a toda Venezuela</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>

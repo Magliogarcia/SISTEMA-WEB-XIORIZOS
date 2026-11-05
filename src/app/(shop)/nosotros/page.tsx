@@ -111,8 +111,8 @@ export default function SobreNosotrosPage() {
                 <span className="font-label-sm text-xs text-secondary bg-secondary/10 px-3 py-1 rounded-full mt-1.5 font-medium">
                   {member.cargo}
                 </span>
-                <span className="text-[11px] text-on-surface-variant/80 mt-1 font-semibold">
-                  Especialidad: {member.especialidad}
+                <span className="text-[11px] text-on-surface-variant mt-1.5 font-medium">
+                  {member.especialidad}
                 </span>
                 <p className="text-xs text-on-surface-variant mt-3 leading-relaxed">
                   {member.descripcion}
