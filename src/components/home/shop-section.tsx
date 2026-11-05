@@ -39,7 +39,7 @@ export function ShopSection() {
         {/* 4 Cards Grid: 1 Video Card + 3 Product Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
           {/* Card 1: Video de Productos */}
-          <div className="bg-surface-container-lowest rounded-xl p-4 shadow-sm flex flex-col justify-between border border-surface-container group hover:shadow-md transition-all">
+          <div className="bg-surface-container-lowest rounded-md p-4 shadow-sm flex flex-col justify-between border border-surface-container group hover:shadow-md transition-all">
             <div>
               <span className="font-label-sm text-[11px] font-semibold text-secondary uppercase tracking-wider block mb-1">
                 Línea Botánica
@@ -53,7 +53,7 @@ export function ShopSection() {
             </div>
 
             {/* Video container */}
-            <div className="w-full h-[230px] rounded-lg overflow-hidden bg-black/5 relative my-auto">
+            <div className="w-full h-[230px] rounded overflow-hidden bg-black/5 relative my-auto">
               <OptimizedVideo
                 src="/videos/productos_para_los_rizos.mp4"
                 poster="/images/crema_de_peinar_etniker.webp"
@@ -81,11 +81,11 @@ export function ShopSection() {
             return (
               <div
                 key={product.id}
-                className="bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm flex flex-col justify-between group hover:shadow-md transition-all border border-surface-container"
+                className="bg-surface-container-lowest rounded-md overflow-hidden shadow-sm flex flex-col justify-between group hover:shadow-md transition-all border border-surface-container"
               >
                 <div>
                   {/* Imagen abarcando toda la parte superior */}
-                  <div className="w-full aspect-square overflow-hidden bg-surface-container-low relative">
+                  <div className="w-full aspect-square overflow-hidden bg-surface-container-low relative rounded-t-md">
                     <Image
                       src={product.imagenUrl}
                       alt={product.nombre}

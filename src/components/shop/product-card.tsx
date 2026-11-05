@@ -12,11 +12,11 @@ export function ProductCard({ product }: { product: Product }) {
   const addItem = useCartStore((state) => state.addItem);
 
   return (
-    <Card className="group h-full overflow-hidden rounded-xl border border-surface-container bg-surface-container-lowest transition-all hover:shadow-md hover:border-primary/20 flex flex-col justify-between">
+    <Card className="group h-full overflow-hidden rounded-md border border-surface-container bg-surface-container-lowest transition-all hover:shadow-md hover:border-primary/20 flex flex-col justify-between">
       <div>
         <Link href={`/catalogo/${product.id}`} className="block">
-          {/* Imagen ocupando toda la parte superior de extremo a extremo, sin márgenes ni encapsulamiento */}
-          <div className="relative aspect-square w-full bg-surface-container-low overflow-hidden rounded-t-xl">
+          {/* Imagen ocupando toda la parte superior de extremo a extremo, con esquinas sutilmente redondeadas */}
+          <div className="relative aspect-square w-full bg-surface-container-low overflow-hidden rounded-t-md">
             <Image
               src={product.imagenUrl}
               alt={product.nombre}
