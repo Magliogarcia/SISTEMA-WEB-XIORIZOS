@@ -10,6 +10,8 @@ import {
   RefreshCw,
   Scissors,
   RotateCcw,
+  Landmark,
+  Banknote,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatDate, formatCurrency } from "@/lib/utils";
@@ -100,40 +102,72 @@ export default function AdminCitasPage() {
               No hay citas registradas en el sistema aún.
             </div>
           ) : (
-            <table className="w-full text-left border-collapse min-w-[900px]">
+            <table className="w-full text-left border-collapse min-w-[980px]">
               <thead>
                 <tr className="border-b border-slate-200 bg-slate-50/70 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
                   <th className="py-3 px-4 min-w-[200px] whitespace-nowrap">Cliente & Contacto</th>
-                  <th className="py-3 px-4 min-w-[180px]">Servicio</th>
-                  <th className="py-3 px-4 min-w-[150px] whitespace-nowrap">Especialista</th>
-                  <th className="py-3 px-4 min-w-[170px] whitespace-nowrap">Fecha & Hora</th>
-                  <th className="py-3 px-4 min-w-[150px]">Notas</th>
+                  <th className="py-3 px-4 min-w-[170px]">Servicio & Total</th>
+                  <th className="py-3 px-4 min-w-[200px] whitespace-nowrap">Reserva (20%) & Pago</th>
+                  <th className="py-3 px-4 min-w-[140px] whitespace-nowrap">Especialista</th>
+                  <th className="py-3 px-4 min-w-[160px] whitespace-nowrap">Fecha & Hora</th>
+                  <th className="py-3 px-4 min-w-[140px]">Notas</th>
                   <th className="py-3 px-4 min-w-[130px] whitespace-nowrap">Estado</th>
-                  <th className="py-3 px-4 min-w-[230px] text-right whitespace-nowrap">Acciones</th>
+                  <th className="py-3 px-4 min-w-[220px] text-right whitespace-nowrap">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-xs">
-                {citas.map((cita) => (
-                  <tr key={cita.id} className="hover:bg-slate-50/80 transition-colors">
-                    {/* Cliente y Teléfono sin saltos de línea cortados */}
-                    <td className="py-3.5 px-4 whitespace-nowrap">
-                      <p className="font-semibold text-slate-900 text-sm tracking-tight">{cita.clienteNombre}</p>
-                      <p className="flex items-center gap-1.5 text-slate-600 mt-0.5 text-xs font-mono font-medium">
-                        <Phone className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                        <span>{cita.clienteTelefono}</span>
-                      </p>
-                    </td>
+                {citas.map((cita) => {
+                  const reserva = cita.montoReserva || Math.round(cita.servicioPrecio * 0.2 * 100) / 100;
+                  const restante = cita.montoRestante || Math.round((cita.servicioPrecio - reserva) * 100) / 100;
 
-                    {/* Servicio y Precio */}
-                    <td className="py-3.5 px-4">
-                      <p className="font-semibold text-slate-800 text-xs sm:text-sm">{cita.servicioNombre}</p>
-                      <p className="text-slate-500 font-medium">{formatCurrency(cita.servicioPrecio)}</p>
-                    </td>
+                  return (
+                    <tr key={cita.id} className="hover:bg-slate-50/80 transition-colors">
+                      {/* Cliente y Teléfono sin saltos de línea cortados */}
+                      <td className="py-3.5 px-4 whitespace-nowrap">
+                        <p className="font-semibold text-slate-900 text-sm tracking-tight">{cita.clienteNombre}</p>
+                        <p className="flex items-center gap-1.5 text-slate-600 mt-0.5 text-xs font-mono font-medium">
+                          <Phone className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                          <span>{cita.clienteTelefono}</span>
+                        </p>
+                      </td>
 
-                    {/* Especialista */}
-                    <td className="py-3.5 px-4 font-medium text-slate-800 whitespace-nowrap">
-                      {cita.profesionalNombre}
-                    </td>
+                      {/* Servicio y Precio */}
+                      <td className="py-3.5 px-4">
+                        <p className="font-semibold text-slate-800 text-xs sm:text-sm">{cita.servicioNombre}</p>
+                        <p className="text-slate-500 font-medium">Total: {formatCurrency(cita.servicioPrecio)}</p>
+                      </td>
+
+                      {/* Abono 20% y Estado de Pago */}
+                      <td className="py-3.5 px-4 whitespace-nowrap">
+                        <div className="space-y-0.5">
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 text-[11px]">
+                              Abono 20%: {formatCurrency(reserva)}
+                            </span>
+                            <span className="text-[10px] text-slate-500">
+                              (Resta: {formatCurrency(restante)})
+                            </span>
+                          </div>
+                          {cita.metodoPago === "pagomovil" && cita.pagoMovil ? (
+                            <p className="text-[11px] text-slate-600 flex items-center gap-1">
+                              <Landmark className="h-3 w-3 text-blue-600 shrink-0" />
+                              <span>
+                                {cita.pagoMovil.banco} &bull; Ref: <strong className="font-mono text-slate-900 bg-slate-100 px-1 rounded">{cita.pagoMovil.referencia}</strong>
+                              </span>
+                            </p>
+                          ) : (
+                            <p className="text-[11px] text-slate-500 flex items-center gap-1">
+                              <Banknote className="h-3 w-3 text-slate-400 shrink-0" />
+                              <span>Efectivo en recepción</span>
+                            </p>
+                          )}
+                        </div>
+                      </td>
+
+                      {/* Especialista */}
+                      <td className="py-3.5 px-4 font-medium text-slate-800 whitespace-nowrap">
+                        {cita.profesionalNombre}
+                      </td>
 
                     {/* Fecha y Hora en una sola línea armónica */}
                     <td className="py-3.5 px-4 whitespace-nowrap">
@@ -262,8 +296,9 @@ export default function AdminCitasPage() {
                       </div>
                     </td>
                   </tr>
-                ))}
-              </tbody>
+                );
+              })}
+            </tbody>
             </table>
           )}
         </div>

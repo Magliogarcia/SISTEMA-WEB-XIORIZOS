@@ -30,6 +30,8 @@ export async function POST(req: Request) {
       fecha,
       hora,
       notas,
+      metodoPago,
+      pagoMovil,
     } = body;
 
     if (!clienteNombre || !clienteTelefono || !servicioNombre || !profesionalNombre || !fecha || !hora) {
@@ -39,8 +41,22 @@ export async function POST(req: Request) {
       );
     }
 
+    if (metodoPago === "pagomovil") {
+      if (!pagoMovil?.banco || !pagoMovil?.referencia) {
+        return NextResponse.json(
+          { error: "Para abonar la reserva por Pago Móvil debes indicar el banco y número de referencia." },
+          { status: 400 }
+        );
+      }
+    }
+
     const db = readDB();
     const duracionFinal = getServiceDurationByName(servicioNombre, Number(duracionMin));
+
+    // Cálculo del 20% de reserva y 80% restante en salón
+    const precioTotal = Number(servicioPrecio) || 0;
+    const montoReserva = Math.round(precioTotal * 0.20 * 100) / 100;
+    const montoRestante = Math.round((precioTotal - montoReserva) * 100) / 100;
 
     // Verificación de solapamiento en el servidor
     const conflicto = findConflictingAppointment({
@@ -68,7 +84,11 @@ export async function POST(req: Request) {
       clienteNombre: clienteNombre.trim(),
       clienteTelefono: clienteTelefono.trim(),
       servicioNombre,
-      servicioPrecio: Number(servicioPrecio) || 0,
+      servicioPrecio: precioTotal,
+      montoReserva,
+      montoRestante,
+      metodoPago: metodoPago === "pagomovil" ? "pagomovil" : "efectivo",
+      pagoMovil: metodoPago === "pagomovil" ? pagoMovil : undefined,
       duracionMin: duracionFinal,
       profesionalNombre,
       fecha,

@@ -19,6 +19,13 @@ export interface DBAppointment {
   clienteTelefono: string;
   servicioNombre: string;
   servicioPrecio: number;
+  montoReserva?: number; // 20% abono para agendar
+  montoRestante?: number; // 80% restante a pagar en salón
+  metodoPago?: "pagomovil" | "efectivo";
+  pagoMovil?: {
+    banco: string;
+    referencia: string;
+  };
   duracionMin?: number;
   profesionalNombre: string;
   fecha: string;

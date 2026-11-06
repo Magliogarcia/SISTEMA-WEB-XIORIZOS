@@ -167,7 +167,10 @@ export default function AdminDashboardPage() {
                       </span>
                     </div>
                     <p className="text-xs text-slate-600">
-                      {cita.servicioNombre} &bull; <span className="font-medium text-slate-800">{cita.profesionalNombre}</span>
+                      {cita.servicioNombre} &bull; <span className="font-medium text-slate-800">{cita.profesionalNombre}</span> &bull;{" "}
+                      <span className="font-semibold text-emerald-700 bg-emerald-50 px-1 py-0.5 rounded border border-emerald-200 text-[11px]">
+                        Reserva 20%: {formatCurrency(cita.montoReserva || cita.servicioPrecio * 0.2)}
+                      </span>
                     </p>
                     {cita.clienteTelefono && (
                       <p className="text-xs text-slate-500 flex items-center gap-1">
