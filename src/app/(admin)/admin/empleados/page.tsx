@@ -198,43 +198,43 @@ export default function AdminEmpleadosPage() {
         </Button>
       </div>
 
-      {/* Métricas Rápidas con esquinas sutiles (rounded-md) y tipografía firme */}
+      {/* Métricas Rápidas con esquinas sutiles (rounded-md) */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="rounded-md border border-slate-200 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)] flex items-center justify-between">
-          <div className="space-y-1">
-            <p className="text-xs font-bold text-slate-700 uppercase tracking-wider">Total de Empleados</p>
-            <p className="text-2xl font-black text-slate-900">{empleados.length}</p>
+        <div className="rounded-md border border-slate-200 bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)] flex items-center justify-between">
+          <div>
+            <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Total de Empleados</p>
+            <p className="text-2xl font-bold text-slate-900 mt-1">{empleados.length}</p>
           </div>
-          <div className="w-11 h-11 rounded-md bg-blue-50 text-blue-800 flex items-center justify-center border border-blue-300">
-            <Users className="h-5 w-5 stroke-[2.5]" />
-          </div>
-        </div>
-
-        <div className="rounded-md border border-slate-200 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)] flex items-center justify-between">
-          <div className="space-y-1">
-            <p className="text-xs font-bold text-slate-700 uppercase tracking-wider">Operativos en Agenda</p>
-            <p className="text-2xl font-black text-emerald-800">{operativosCount}</p>
-          </div>
-          <div className="w-11 h-11 rounded-md bg-emerald-50 text-emerald-800 flex items-center justify-center border border-emerald-300">
-            <UserCheck className="h-5 w-5 stroke-[2.5]" />
+          <div className="w-10 h-10 rounded-md bg-blue-50 text-blue-700 flex items-center justify-center border border-blue-200">
+            <Users className="h-5 w-5" />
           </div>
         </div>
 
-        <div className="rounded-md border border-slate-200 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)] flex items-center justify-between">
-          <div className="space-y-1">
-            <p className="text-xs font-bold text-slate-700 uppercase tracking-wider">Inoperativos / Reposo</p>
-            <p className="text-2xl font-black text-amber-800">{inoperativosCount}</p>
+        <div className="rounded-md border border-slate-200 bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)] flex items-center justify-between">
+          <div>
+            <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Operativos en Agenda</p>
+            <p className="text-2xl font-bold text-emerald-700 mt-1">{operativosCount}</p>
           </div>
-          <div className="w-11 h-11 rounded-md bg-amber-50 text-amber-800 flex items-center justify-center border border-amber-300">
-            <UserX className="h-5 w-5 stroke-[2.5]" />
+          <div className="w-10 h-10 rounded-md bg-emerald-50 text-emerald-700 flex items-center justify-center border border-emerald-200">
+            <UserCheck className="h-5 w-5" />
+          </div>
+        </div>
+
+        <div className="rounded-md border border-slate-200 bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)] flex items-center justify-between">
+          <div>
+            <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Inoperativos / Reposo</p>
+            <p className="text-2xl font-bold text-amber-700 mt-1">{inoperativosCount}</p>
+          </div>
+          <div className="w-10 h-10 rounded-md bg-amber-50 text-amber-700 flex items-center justify-center border border-amber-200">
+            <UserX className="h-5 w-5" />
           </div>
         </div>
       </div>
 
       {/* Directorio de Empleados */}
-      <div className="rounded-md border border-slate-200 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.04)] overflow-hidden">
-        <div className="p-4 border-b border-slate-200 bg-slate-50/70">
-          <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wide">Directorio del Personal</h2>
+      <div className="rounded-md border border-slate-200 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)] overflow-hidden">
+        <div className="p-4 border-b border-slate-200">
+          <h2 className="text-sm font-bold text-slate-900">Directorio del Personal</h2>
         </div>
 
         {cargando ? (
@@ -261,39 +261,39 @@ export default function AdminEmpleadosPage() {
                       </div>
                     )}
                   </div>
-                  <div className="space-y-1">
+                  <div>
                     <div className="flex items-center gap-2">
-                      <h3 className="font-bold text-sm text-slate-900">{emp.nombre}</h3>
+                      <h3 className="font-semibold text-sm text-slate-900">{emp.nombre}</h3>
                       <span
-                        className={`text-xs font-black px-2.5 py-0.5 rounded-md border ${
+                        className={`text-[11px] font-semibold px-2 py-0.5 rounded ${
                           emp.activo !== false
-                            ? "bg-emerald-50 text-emerald-800 border-emerald-300"
-                            : "bg-rose-50 text-rose-800 border-rose-300"
+                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                            : "bg-rose-50 text-rose-700 border border-rose-200"
                         }`}
                       >
                         {emp.activo !== false ? "Operativo en Agenda" : "Inoperativo"}
                       </span>
                     </div>
-                    <div className="flex flex-wrap items-center gap-2 text-xs pt-0.5">
-                      <span className="inline-flex items-center gap-1.5 text-slate-800 font-bold bg-slate-100 border border-slate-200 px-2 py-0.5 rounded">
-                        <Briefcase className="h-3 w-3 text-slate-600" />
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500 mt-0.5">
+                      <span className="flex items-center gap-1 text-slate-700 font-medium">
+                        <Briefcase className="h-3 w-3 text-slate-400" />
                         <span>{emp.cargo}</span>
                       </span>
                       {emp.especialidad && (
-                        <span className="inline-flex items-center gap-1.5 text-amber-900 font-bold bg-amber-50 border border-amber-200 px-2 py-0.5 rounded">
-                          <Sparkles className="h-3 w-3 text-amber-600" />
+                        <span className="flex items-center gap-1">
+                          <Sparkles className="h-3 w-3 text-amber-500" />
                           <span>{emp.especialidad}</span>
                         </span>
                       )}
                       {emp.telefono && (
-                        <span className="inline-flex items-center gap-1.5 text-slate-800 font-mono font-bold bg-slate-100 border border-slate-200 px-2 py-0.5 rounded">
-                          <Phone className="h-3 w-3 text-slate-600" />
+                        <span className="flex items-center gap-1">
+                          <Phone className="h-3 w-3 text-slate-400" />
                           <span>{emp.telefono}</span>
                         </span>
                       )}
                     </div>
                     {emp.activo === false && emp.motivoInoperativo && (
-                      <p className="text-xs font-bold text-amber-800 bg-amber-50 px-2.5 py-1 rounded border border-amber-300 mt-1.5 w-fit">
+                      <p className="text-xs text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 mt-1.5 w-fit">
                         Motivo: {emp.motivoInoperativo}
                       </p>
                     )}

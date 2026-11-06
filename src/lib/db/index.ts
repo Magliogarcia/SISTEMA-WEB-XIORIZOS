@@ -19,6 +19,7 @@ export interface DBAppointment {
   clienteTelefono: string;
   servicioNombre: string;
   servicioPrecio: number;
+  duracionMin?: number;
   profesionalNombre: string;
   fecha: string;
   hora: string;

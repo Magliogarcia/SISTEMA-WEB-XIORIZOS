@@ -1,10 +1,19 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { cn, formatDate } from "@/lib/utils";
 import { useBookingStore } from "@/store/booking-store";
-import { Clock, Calendar as CalendarIcon, Sun, Sunset, AlertCircle, CheckCircle2 } from "lucide-react";
+import { isSlotConflicting } from "@/lib/booking-availability";
+import type { DBAppointment } from "@/lib/db";
+import {
+  Clock,
+  Calendar as CalendarIcon,
+  Sun,
+  Sunset,
+  AlertCircle,
+  CheckCircle2,
+} from "lucide-react";
 
 // Horario oficial del salón Xiorizos:
 // Martes a Sábado de 8:30 a.m. a 5:30 p.m.
@@ -13,11 +22,36 @@ const turnosManana = ["08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:
 const turnosTarde = ["13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00"];
 
 export function BookingCalendar() {
-  const { setFechaHora, fecha: storedFecha, hora: storedHora } = useBookingStore();
+  const {
+    setFechaHora,
+    fecha: storedFecha,
+    hora: storedHora,
+    servicio,
+    profesional,
+  } = useBookingStore();
+
   const [fecha, setFecha] = useState<Date | undefined>(
     storedFecha ? new Date(storedFecha) : undefined
   );
   const [hora, setHora] = useState<string | null>(storedHora);
+  const [citasExistentes, setCitasExistentes] = useState<DBAppointment[]>([]);
+
+  // Cargar citas existentes del sistema para validar disponibilidad en tiempo real
+  const cargarCitas = useCallback(async () => {
+    try {
+      const res = await fetch("/api/citas");
+      const data = await res.json();
+      if (data.success && Array.isArray(data.citas)) {
+        setCitasExistentes(data.citas);
+      }
+    } catch (err) {
+      console.error("Error al cargar disponibilidad de citas:", err);
+    }
+  }, []);
+
+  useEffect(() => {
+    cargarCitas();
+  }, [cargarCitas]);
 
   // Función para determinar si un día no es laborable o ya pasó
   function isDayDisabled(date: Date): boolean {
@@ -55,6 +89,39 @@ export function BookingCalendar() {
     return slotTime.getTime() <= now.getTime() + 15 * 60 * 1000;
   }
 
+  // Comprueba si una hora no es seleccionable (ya pasó o choca con la agenda del profesional)
+  const isSlotDisabled = useCallback(
+    (slot: string): boolean => {
+      if (!fecha) return true;
+
+      // 1. Si la hora ya pasó en el día de hoy
+      if (isTimePassed(slot, fecha)) return true;
+
+      // 2. Validación de choque de agenda y duración del servicio
+      if (profesional && servicio) {
+        const hayConflicto = isSlotConflicting({
+          slot,
+          serviceDurationMin: servicio.duracionMin || 60,
+          targetDate: fecha,
+          professionalName: profesional.nombre,
+          existingAppointments: citasExistentes,
+        });
+
+        if (hayConflicto) return true;
+      }
+
+      return false;
+    },
+    [fecha, profesional, servicio, citasExistentes]
+  );
+
+  // Si la hora seleccionada anteriormente entra en conflicto al cambiar fecha/profesional, se deselecciona
+  useEffect(() => {
+    if (hora && isSlotDisabled(hora)) {
+      setHora(null);
+    }
+  }, [hora, isSlotDisabled]);
+
   function handleSelectDate(d: Date | undefined) {
     if (d && isDayDisabled(d)) return;
     setFecha(d);
@@ -62,26 +129,33 @@ export function BookingCalendar() {
   }
 
   function confirmarHora(h: string) {
-    if (!fecha) return;
+    if (!fecha || isSlotDisabled(h)) return;
     setHora(h);
     setFechaHora(fecha.toISOString(), h);
   }
 
-  // Verifica si para el día seleccionado quedan horas disponibles
-  const horasDisponiblesHoy = useMemo(() => {
+  // Verifica las horas que quedan disponibles para la fecha seleccionada
+  const horasDisponibles = useMemo(() => {
     if (!fecha) return [];
-    return [...turnosManana, ...turnosTarde].filter((slot) => !isTimePassed(slot, fecha));
-  }, [fecha]);
+    return [...turnosManana, ...turnosTarde].filter((slot) => !isSlotDisabled(slot));
+  }, [fecha, isSlotDisabled]);
 
   return (
     <div className="space-y-6">
-      {/* Banner informativo de horario oficial */}
+      {/* Banner informativo de horario oficial y servicio */}
       <div className="rounded-xl border border-secondary/20 bg-secondary/5 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs sm:text-sm">
-        <div className="flex items-center gap-2 text-foreground font-medium">
-          <Clock className="h-4 w-4 text-secondary shrink-0" />
-          <span>
-            <strong>Horario de atención:</strong> Martes a Sábado de 8:30 a.m. a 5:30 p.m.
-          </span>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-foreground font-medium">
+          <div className="flex items-center gap-2">
+            <Clock className="h-4 w-4 text-secondary shrink-0" />
+            <span>
+              <strong>Horario:</strong> Martes a Sábado de 8:30 a.m. a 5:30 p.m.
+            </span>
+          </div>
+          {servicio && (
+            <span className="text-muted-foreground sm:ml-2 sm:pl-2 sm:border-l sm:border-secondary/30">
+              Duración del servicio: <strong>{servicio.duracionMin} min</strong>
+            </span>
+          )}
         </div>
         <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-muted text-muted-foreground border border-border">
           🚫 Domingos y Lunes cerrado
@@ -129,12 +203,14 @@ export function BookingCalendar() {
                 <CalendarIcon className="mx-auto h-8 w-8 text-muted-foreground/50 mb-2" />
                 <p>Por favor selecciona un día hábil en el calendario de la izquierda (Martes a Sábado).</p>
               </div>
-            ) : horasDisponiblesHoy.length === 0 ? (
+            ) : horasDisponibles.length === 0 ? (
               <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 p-6 text-center text-sm text-amber-800">
                 <AlertCircle className="mx-auto h-6 w-6 text-amber-600 mb-2" />
-                <p className="font-medium">No quedan turnos disponibles para hoy.</p>
+                <p className="font-medium">No quedan turnos disponibles para esta fecha.</p>
                 <p className="mt-1 text-xs text-amber-700">
-                  El horario de atención es hasta las 5:30 p.m. Por favor escoge un día posterior.
+                  {profesional
+                    ? `La agenda de ${profesional.nombre} no tiene turnos que admitan los ${servicio?.duracionMin || 60} min requeridos para este servicio. Por favor escoge otra fecha u otro especialista.`
+                    : "El horario de atención es hasta las 5:30 p.m. Por favor escoge un día posterior."}
                 </p>
               </div>
             ) : (
@@ -147,7 +223,7 @@ export function BookingCalendar() {
                   </div>
                   <div className="grid grid-cols-3 gap-2">
                     {turnosManana.map((slot) => {
-                      const disabled = isTimePassed(slot, fecha);
+                      const disabled = isSlotDisabled(slot);
                       const isSelected = hora === slot;
                       return (
                         <button
@@ -156,9 +232,9 @@ export function BookingCalendar() {
                           disabled={disabled}
                           onClick={() => confirmarHora(slot)}
                           className={cn(
-                            "rounded-lg border px-3 py-2 text-sm font-medium transition-all text-center",
+                            "rounded-lg border px-3 py-2 text-sm font-medium transition-all text-center select-none",
                             disabled
-                              ? "opacity-40 cursor-not-allowed bg-muted text-muted-foreground border-transparent line-through"
+                              ? "opacity-30 cursor-not-allowed bg-muted/60 text-muted-foreground/50 border-transparent line-through pointer-events-none"
                               : isSelected
                               ? "border-primary bg-primary text-primary-foreground shadow-sm ring-2 ring-primary/20"
                               : "border-border hover:bg-secondary hover:text-secondary-foreground"
@@ -179,7 +255,7 @@ export function BookingCalendar() {
                   </div>
                   <div className="grid grid-cols-3 gap-2">
                     {turnosTarde.map((slot) => {
-                      const disabled = isTimePassed(slot, fecha);
+                      const disabled = isSlotDisabled(slot);
                       const isSelected = hora === slot;
                       return (
                         <button
@@ -188,9 +264,9 @@ export function BookingCalendar() {
                           disabled={disabled}
                           onClick={() => confirmarHora(slot)}
                           className={cn(
-                            "rounded-lg border px-3 py-2 text-sm font-medium transition-all text-center",
+                            "rounded-lg border px-3 py-2 text-sm font-medium transition-all text-center select-none",
                             disabled
-                              ? "opacity-40 cursor-not-allowed bg-muted text-muted-foreground border-transparent line-through"
+                              ? "opacity-30 cursor-not-allowed bg-muted/60 text-muted-foreground/50 border-transparent line-through pointer-events-none"
                               : isSelected
                               ? "border-primary bg-primary text-primary-foreground shadow-sm ring-2 ring-primary/20"
                               : "border-border hover:bg-secondary hover:text-secondary-foreground"

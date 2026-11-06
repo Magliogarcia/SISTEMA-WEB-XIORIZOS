@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { readDB, writeDB, DBAppointment } from "@/lib/db";
+import {
+  findConflictingAppointment,
+  getServiceDurationByName,
+} from "@/lib/booking-availability";
 
-// GET /api/citas - Listar citas (para panel admin)
+// GET /api/citas - Listar citas (para panel admin y disponibilidad de agenda)
 export async function GET() {
   try {
     const db = readDB();
@@ -12,11 +16,21 @@ export async function GET() {
   }
 }
 
-// POST /api/citas - Crear nueva cita
+// POST /api/citas - Crear nueva cita con validación anti-solapamiento de agendas
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { clienteNombre, clienteTelefono, servicioNombre, servicioPrecio, profesionalNombre, fecha, hora, notas } = body;
+    const {
+      clienteNombre,
+      clienteTelefono,
+      servicioNombre,
+      servicioPrecio,
+      duracionMin,
+      profesionalNombre,
+      fecha,
+      hora,
+      notas,
+    } = body;
 
     if (!clienteNombre || !clienteTelefono || !servicioNombre || !profesionalNombre || !fecha || !hora) {
       return NextResponse.json(
@@ -26,12 +40,36 @@ export async function POST(req: Request) {
     }
 
     const db = readDB();
+    const duracionFinal = getServiceDurationByName(servicioNombre, Number(duracionMin));
+
+    // Verificación de solapamiento en el servidor
+    const conflicto = findConflictingAppointment({
+      slot: hora,
+      serviceDurationMin: duracionFinal,
+      targetDate: fecha,
+      professionalName: profesionalNombre,
+      existingAppointments: db.appointments,
+    });
+
+    if (conflicto) {
+      const motivo =
+        "motivo" in conflicto
+          ? conflicto.motivo
+          : `El especialista ${profesionalNombre} ya tiene una cita reservada que coincide con ese horario. Por favor selecciona otra hora.`;
+
+      return NextResponse.json(
+        { error: motivo, conflicto: true },
+        { status: 409 }
+      );
+    }
+
     const nuevaCita: DBAppointment = {
       id: `cita-${Date.now()}`,
       clienteNombre: clienteNombre.trim(),
       clienteTelefono: clienteTelefono.trim(),
       servicioNombre,
       servicioPrecio: Number(servicioPrecio) || 0,
+      duracionMin: duracionFinal,
       profesionalNombre,
       fecha,
       hora,

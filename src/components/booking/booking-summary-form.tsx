@@ -36,6 +36,7 @@ export function BookingSummaryForm() {
 
   const [notas, setNotas] = useState("");
   const [enviando, setEnviando] = useState(false);
+  const [errorGeneral, setErrorGeneral] = useState<string | null>(null);
 
   if (!servicio || !profesional || !fecha || !hora) {
     return (
@@ -124,8 +125,9 @@ export function BookingSummaryForm() {
     if (hasErrors) return;
 
     setEnviando(true);
+    setErrorGeneral(null);
     try {
-      await fetch("/api/citas", {
+      const res = await fetch("/api/citas", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -133,18 +135,27 @@ export function BookingSummaryForm() {
           clienteTelefono: telefonoRes.formatted || telefono,
           servicioNombre: servicio.nombre,
           servicioPrecio: servicio.precio,
+          duracionMin: servicio.duracionMin,
           profesionalNombre: profesional.nombre,
           fecha,
           hora,
           notas: notas.trim(),
         }),
       });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        setErrorGeneral(data.error || "No se pudo agendar la cita. Por favor verifica el horario.");
+        setEnviando(false);
+        return;
+      }
+
       reset();
       router.push("/citas/confirmacion");
     } catch (err) {
       console.error("Error al guardar cita:", err);
-      reset();
-      router.push("/citas/confirmacion");
+      setErrorGeneral("Error de conexión al procesar la cita. Inténtalo nuevamente.");
+      setEnviando(false);
     }
   }
 
@@ -152,6 +163,23 @@ export function BookingSummaryForm() {
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_360px]">
       <form onSubmit={handleSubmit} className="space-y-5 rounded-2xl border border-border bg-card p-6 shadow-sm">
         <h2 className="font-heading text-lg font-bold text-primary">Tus datos de contacto</h2>
+
+        {errorGeneral && (
+          <div className="rounded-xl bg-destructive/10 border border-destructive/20 p-3.5 flex items-start gap-2.5 text-xs text-destructive">
+            <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="font-semibold">Conflicto en la agenda</p>
+              <p className="mt-0.5">{errorGeneral}</p>
+              <button
+                type="button"
+                onClick={() => setStep(3)}
+                className="mt-2 inline-flex items-center gap-1 font-semibold underline hover:no-underline"
+              >
+                Volver al paso 3 y elegir otro horario
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Campo Nombre */}
         <div className="space-y-1.5">

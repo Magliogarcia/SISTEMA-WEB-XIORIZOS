@@ -26,12 +26,14 @@ export const useBookingStore = create<BookingState>((set) => ({
   setServicio: (servicio) =>
     set((state) => ({
       servicio,
+      hora: null,
       // Avanzar al paso 2 solo si estamos en el paso 1
       step: state.step === 1 ? 2 : state.step,
     })),
   setProfesional: (profesional) =>
     set((state) => ({
       profesional,
+      hora: null,
       // Avanzar al paso 3 solo si estamos en el paso 2
       step: state.step === 2 ? 3 : state.step,
     })),

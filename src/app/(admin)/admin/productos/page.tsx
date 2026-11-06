@@ -264,19 +264,19 @@ export default function AdminProductosPage() {
           ) : (
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-slate-200 bg-slate-100/80 text-xs font-bold text-slate-700 uppercase tracking-wider">
-                  <th className="py-3.5 px-4">Producto</th>
-                  <th className="py-3.5 px-4">Categoría</th>
-                  <th className="py-3.5 px-4">Marca</th>
-                  <th className="py-3.5 px-4">Precio</th>
-                  <th className="py-3.5 px-4">Stock</th>
-                  <th className="py-3.5 px-4 text-right">Acciones</th>
+                <tr className="border-b border-slate-200 bg-slate-50/60 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                  <th className="py-3 px-4">Producto</th>
+                  <th className="py-3 px-4">Categoría</th>
+                  <th className="py-3 px-4">Marca</th>
+                  <th className="py-3 px-4">Precio</th>
+                  <th className="py-3 px-4">Stock</th>
+                  <th className="py-3 px-4 text-right">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-xs">
                 {productosFiltrados.map((p) => (
-                  <tr key={p.id} className="hover:bg-slate-50/90 transition-colors">
-                    <td className="py-4 px-4">
+                  <tr key={p.id} className="hover:bg-slate-50/80 transition-colors">
+                    <td className="py-3 px-4">
                       <div className="flex items-center gap-3">
                         <button
                           type="button"
@@ -299,30 +299,30 @@ export default function AdminProductosPage() {
                           />
                         </button>
                         <div>
-                          <p className="font-bold text-slate-900 text-sm">{p.nombre}</p>
-                          <p className="text-slate-600 font-medium text-xs line-clamp-1 max-w-xs">{p.descripcion}</p>
+                          <p className="font-semibold text-slate-900 text-sm">{p.nombre}</p>
+                          <p className="text-slate-500 line-clamp-1 max-w-xs">{p.descripcion}</p>
                         </div>
                       </div>
                     </td>
-                    <td className="py-4 px-4">
-                      <span className="inline-block px-2.5 py-1 rounded text-xs font-bold bg-slate-100 text-slate-800 border border-slate-200 capitalize">
+                    <td className="py-3 px-4">
+                      <span className="inline-block px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200 capitalize">
                         {p.categoria}
                       </span>
                     </td>
-                    <td className="py-4 px-4 font-bold text-xs text-slate-800">
+                    <td className="py-3 px-4 font-medium text-slate-700">
                       {p.marca}
                     </td>
-                    <td className="py-4 px-4 font-black text-sm text-slate-900">
+                    <td className="py-3 px-4 font-bold text-sm text-slate-900">
                       {formatCurrency(p.precio)}
                     </td>
-                    <td className="py-4 px-4">
-                      <span className={`inline-block text-xs font-black px-2.5 py-1 rounded-md border ${
-                        p.stock <= 5 ? "bg-rose-50 text-rose-800 border-rose-300" : "bg-emerald-50 text-emerald-800 border-emerald-300"
+                    <td className="py-3 px-4">
+                      <span className={`inline-block text-[11px] font-semibold px-2 py-0.5 rounded ${
+                        p.stock <= 5 ? "bg-rose-50 text-rose-700 border border-rose-200" : "bg-emerald-50 text-emerald-700 border border-emerald-200"
                       }`}>
                         {p.stock} unid.
                       </span>
                     </td>
-                    <td className="py-4 px-4 text-right">
+                    <td className="py-3 px-4 text-right">
                       <div className="flex items-center justify-end gap-1">
                         <button
                           type="button"
