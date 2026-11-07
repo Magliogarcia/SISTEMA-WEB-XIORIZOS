@@ -22,6 +22,34 @@
   ],
   "appointments": [
     {
+      "id": "cita-1793977571928",
+      "clienteNombre": "Maglio Garcia",
+      "clienteTelefono": "0414 581 2979",
+      "servicioNombre": "SERVICIO DE UÑAS",
+      "servicioPrecio": 25,
+      "duracionMin": 60,
+      "profesionalNombre": "Yakeline Daboin",
+      "fecha": "2026-11-07T04:00:00.000Z",
+      "hora": "08:30",
+      "notas": "",
+      "estado": "cancelada",
+      "creadoEn": "2026-11-06T15:06:11.928Z"
+    },
+    {
+      "id": "cita-1793976627423",
+      "clienteNombre": "Maglio Garcia",
+      "clienteTelefono": "0414 581 2979",
+      "servicioNombre": "TRATAMIENTO REFRESH",
+      "servicioPrecio": 30,
+      "duracionMin": 45,
+      "profesionalNombre": "Xioilin Guzmán",
+      "fecha": "2026-11-07T04:00:00.000Z",
+      "hora": "08:30",
+      "notas": "",
+      "estado": "pendiente",
+      "creadoEn": "2026-11-06T14:50:27.423Z"
+    },
+    {
       "id": "cita-1793975006867",
       "clienteNombre": "Maglio Garcia",
       "clienteTelefono": "0414 581 2979",
@@ -174,6 +202,26 @@
   ],
   "orders": [
     {
+      "id": "#ORD-1411",
+      "clienteNombre": "Administrador Xiorizos",
+      "clienteTelefono": "0414 581 2979",
+      "clienteEmail": "admin@xiorizos.com",
+      "direccion": "Los guayos",
+      "items": [
+        {
+          "productId": "p1",
+          "nombre": "Curl Butter Mascarilla",
+          "precio": 34,
+          "cantidad": 3,
+          "imagenUrl": "/images/mascarilla_nutritiva.webp"
+        }
+      ],
+      "total": 102,
+      "metodoPago": "efectivo",
+      "estado": "pendiente_verificacion",
+      "creadoEn": "2026-11-06T15:11:36.786Z"
+    },
+    {
       "id": "#ORD-9102",
       "clienteNombre": "Valeria Mendoza",
       "clienteTelefono": "0414 7654321",
@@ -247,7 +295,7 @@
         "s10",
         "s11"
       ],
-      "activo": true,
+      "activo": false,
       "creadoEn": "2026-11-05T20:28:09.470Z"
     },
     {
