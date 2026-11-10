@@ -198,16 +198,15 @@ export default function AdminPedidosPage() {
               No hay pedidos registrados en el sistema aún.
             </div>
           ) : (
-            <table className="w-full text-left border-collapse min-w-[950px]">
+            <table className="w-full text-left border-collapse min-w-[760px]">
               <thead>
                 <tr className="border-b border-slate-200 bg-slate-50/60 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-                  <th className="py-3 px-4 min-w-[130px] whitespace-nowrap">Orden</th>
-                  <th className="py-3 px-4 min-w-[200px] whitespace-nowrap">Cliente</th>
-                  <th className="py-3 px-4 min-w-[130px] whitespace-nowrap">Método de Pago</th>
-                  <th className="py-3 px-4 min-w-[190px] whitespace-nowrap">Comprobante Pago</th>
-                  <th className="py-3 px-4 min-w-[110px] whitespace-nowrap">Total</th>
-                  <th className="py-3 px-4 min-w-[140px] whitespace-nowrap">Estado</th>
-                  <th className="py-3 px-4 min-w-[180px] whitespace-nowrap text-right">Acciones</th>
+                  <th className="py-3 px-4">Orden</th>
+                  <th className="py-3 px-4">Cliente</th>
+                  <th className="py-3 px-4">Total</th>
+                  <th className="py-3 px-4">Método</th>
+                  <th className="py-3 px-4">Estado</th>
+                  <th className="py-3 px-4 text-right">Acción</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-xs">
@@ -232,43 +231,7 @@ export default function AdminPedidosPage() {
                         </p>
                       </td>
 
-                      <td className="py-3.5 px-4 whitespace-nowrap">
-                        {pedido.metodoPago === "pagomovil" ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
-                            <Landmark className="h-3 w-3 shrink-0" />
-                            <span>Pago Móvil</span>
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                            <Banknote className="h-3 w-3 shrink-0" />
-                            <span>Efectivo</span>
-                          </span>
-                        )}
-                      </td>
-
-                      <td className="py-3.5 px-4 whitespace-nowrap">
-                        {pedido.metodoPago === "pagomovil" && pedido.pagoMovil ? (
-                          <div className="space-y-0.5">
-                            <p className="text-slate-600">
-                              <strong>Banco:</strong> {pedido.pagoMovil.banco}
-                            </p>
-                            <p className="text-slate-600">
-                              <strong>Ref:</strong>{" "}
-                              <span className="font-mono font-bold text-slate-900 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">
-                                {pedido.pagoMovil.referencia}
-                              </span>
-                            </p>
-                            {pedido.pagoMovil.telefonoEmisor && (
-                              <p className="text-[10px] text-slate-500 font-mono">
-                                Emisor: {pedido.pagoMovil.telefonoEmisor}
-                              </p>
-                            )}
-                          </div>
-                        ) : (
-                          <span className="text-slate-400">Pago en efectivo al entregar/retirar</span>
-                        )}
-                      </td>
-
+                      {/* Total */}
                       <td className="py-3.5 px-4 whitespace-nowrap">
                         <p className="font-bold text-sm text-slate-900">
                           {formatCurrency(pedido.total)}
@@ -278,59 +241,70 @@ export default function AdminPedidosPage() {
                         </p>
                       </td>
 
-                      {/* Estado: Badge limpio (NO selector editable en la tabla) */}
+                      {/* Método */}
                       <td className="py-3.5 px-4 whitespace-nowrap">
-                        <span
-                          className={`inline-block text-[11px] font-semibold px-2.5 py-1 rounded-md border ${
-                            pedido.estado === "verificado"
-                              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                              : pedido.estado === "entregado"
-                              ? "bg-blue-50 text-blue-700 border-blue-200"
-                              : pedido.estado === "cancelado"
-                              ? "bg-rose-50 text-rose-700 border-rose-200"
-                              : "bg-amber-50 text-amber-700 border-amber-200"
-                          }`}
-                        >
-                          {estadoLabel[pedido.estado] || pedido.estado}
+                        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-700">
+                          {pedido.metodoPago === "pagomovil" ? (
+                            <>
+                              <Landmark className="h-3.5 w-3.5 text-blue-600" />
+                              <span>Pago Móvil</span>
+                            </>
+                          ) : (
+                            <>
+                              <Banknote className="h-3.5 w-3.5 text-emerald-600" />
+                              <span>Efectivo</span>
+                            </>
+                          )}
                         </span>
                       </td>
 
-                      {/* Acciones */}
-                      <td className="py-3.5 px-4 text-right whitespace-nowrap">
-                        <div className="flex items-center justify-end gap-2">
-                          {/* Botón WhatsApp: SOLO aparece tras verificar o en efectivo, y desaparece tras ser notificado */}
-                          {puedeEnviarWhatsApp && (
-                            pedido.notificadoWhatsApp ? (
-                              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-800 bg-emerald-50/80 px-2 py-0.5 rounded-md border border-emerald-200">
-                                <WhatsAppIcon className="w-3 h-3 text-[#25D366]" />
-                                <span>Notificado</span>
-                              </span>
-                            ) : (
-                              <a
-                                href={getPedidoWhatsAppUrl(pedido)}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                onClick={() => marcarNotificadoWhatsApp(pedido.id)}
-                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold text-white bg-[#25D366] hover:bg-[#20bd5a] transition-all cursor-pointer shadow-xs"
-                                title="Enviar confirmación oficial por WhatsApp"
-                              >
-                                <WhatsAppIcon className="h-3 w-3" />
-                                <span>WhatsApp</span>
-                              </a>
-                            )
-                          )}
-
-                          {/* Botón Detalle */}
-                          <button
-                            type="button"
-                            onClick={() => setPedidoDetalle(pedido)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold text-slate-700 hover:bg-slate-100 border border-slate-200 transition-colors cursor-pointer"
-                            title="Ver información completa y gestionar orden"
+                      {/* Estado: Indicador dot puro, sin contenedor ni recuadros */}
+                      <td className="py-3.5 px-4 whitespace-nowrap">
+                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold">
+                          <span
+                            className={`w-2 h-2 rounded-full shrink-0 ${
+                              pedido.estado === "verificado"
+                                ? "bg-emerald-500"
+                                : pedido.estado === "entregado"
+                                ? "bg-blue-500"
+                                : pedido.estado === "cancelado"
+                                ? "bg-rose-500"
+                                : "bg-amber-500"
+                            }`}
+                          />
+                          <span
+                            className={
+                              pedido.estado === "verificado"
+                                ? "text-emerald-700"
+                                : pedido.estado === "entregado"
+                                ? "text-blue-700"
+                                : pedido.estado === "cancelado"
+                                ? "text-rose-700"
+                                : "text-amber-700"
+                            }
                           >
-                            <Eye className="h-3 w-3" />
-                            <span>Detalle</span>
-                          </button>
-                        </div>
+                            {pedido.estado === "verificado"
+                              ? "Verificado"
+                              : pedido.estado === "entregado"
+                              ? "Entregado"
+                              : pedido.estado === "cancelado"
+                              ? "Cancelado"
+                              : "Pendiente"}
+                          </span>
+                        </span>
+                      </td>
+
+                      {/* Acción única: Detalle */}
+                      <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                        <button
+                          type="button"
+                          onClick={() => setPedidoDetalle(pedido)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-50 border border-slate-200 transition-colors cursor-pointer shadow-xs"
+                          title="Ver información completa y gestionar pedido"
+                        >
+                          <Eye className="h-3.5 w-3.5 text-slate-500" />
+                          <span>Detalle</span>
+                        </button>
                       </td>
                     </tr>
                   );
@@ -341,213 +315,237 @@ export default function AdminPedidosPage() {
         </div>
       </div>
 
-      {/* Modal Detalle de Pedido y Acciones Reversibles */}
+      {/* Modal Rediseñado: Detalle de Pedido y Acciones Reversibles */}
       {pedidoDetalle && (
         <Dialog open={!!pedidoDetalle} onOpenChange={() => setPedidoDetalle(null)}>
-          <DialogContent className="max-w-md rounded-md max-h-[85vh] overflow-y-auto font-sans">
-            <DialogHeader className="pb-2 border-b border-slate-200">
+          <DialogContent className="max-w-xl rounded-md max-h-[88vh] overflow-y-auto font-sans p-5 sm:p-6">
+            <DialogHeader className="pb-3 border-b border-slate-200">
               <div className="flex items-center justify-between">
-                <DialogTitle className="text-base font-bold text-slate-900">
-                  Orden {pedidoDetalle.id}
-                </DialogTitle>
-                <span
-                  className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-md border ${
-                    pedidoDetalle.estado === "verificado"
-                      ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                <div>
+                  <DialogTitle className="text-base font-bold text-slate-900">
+                    Orden {pedidoDetalle.id}
+                  </DialogTitle>
+                  <p className="text-[11px] text-slate-500 font-mono mt-0.5">
+                    Registrada el {formatDate(new Date(pedidoDetalle.creadoEn))}
+                  </p>
+                </div>
+                <span className="inline-flex items-center gap-1.5 text-xs font-semibold">
+                  <span
+                    className={`w-2 h-2 rounded-full shrink-0 ${
+                      pedidoDetalle.estado === "verificado"
+                        ? "bg-emerald-500"
+                        : pedidoDetalle.estado === "entregado"
+                        ? "bg-blue-500"
+                        : pedidoDetalle.estado === "cancelado"
+                        ? "bg-rose-500"
+                        : "bg-amber-500"
+                    }`}
+                  />
+                  <span
+                    className={
+                      pedidoDetalle.estado === "verificado"
+                        ? "text-emerald-700"
+                        : pedidoDetalle.estado === "entregado"
+                        ? "text-blue-700"
+                        : pedidoDetalle.estado === "cancelado"
+                        ? "text-rose-700"
+                        : "text-amber-700"
+                    }
+                  >
+                    {pedidoDetalle.estado === "verificado"
+                      ? "Verificado"
                       : pedidoDetalle.estado === "entregado"
-                      ? "bg-blue-50 text-blue-700 border border-blue-200"
+                      ? "Entregado"
                       : pedidoDetalle.estado === "cancelado"
-                      ? "bg-rose-50 text-rose-700 border border-rose-200"
-                      : "bg-amber-50 text-amber-700 border border-amber-200"
-                  }`}
-                >
-                  {estadoLabel[pedidoDetalle.estado] || pedidoDetalle.estado}
+                      ? "Cancelado"
+                      : "Pendiente"}
+                  </span>
                 </span>
               </div>
             </DialogHeader>
 
-            <div className="space-y-3.5 text-xs pt-1">
-              {/* Datos del Cliente */}
-              <div className="p-3 bg-slate-50 rounded-md border border-slate-200 space-y-1.5">
-                <p className="font-semibold text-slate-900 text-sm">{pedidoDetalle.clienteNombre}</p>
-                <p className="flex items-center gap-1.5 text-slate-600 font-mono">
-                  <Phone className="h-3.5 w-3.5 text-slate-400" />
-                  <span>{pedidoDetalle.clienteTelefono}</span>
-                </p>
-                {pedidoDetalle.clienteEmail && (
-                  <p className="flex items-center gap-1.5 text-slate-600">
-                    <Mail className="h-3.5 w-3.5 text-slate-400" />
-                    <span>{pedidoDetalle.clienteEmail}</span>
-                  </p>
-                )}
+            <div className="space-y-4 text-xs pt-2">
+              {/* Tarjeta 1: Datos del Cliente y Envío con WhatsApp */}
+              <div className="p-3.5 bg-slate-50 rounded-md border border-slate-200">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                  <div>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Cliente</span>
+                    <p className="font-bold text-slate-900 text-sm mt-0.5">{pedidoDetalle.clienteNombre}</p>
+                    <p className="flex items-center gap-1.5 text-slate-600 font-mono mt-0.5 text-xs">
+                      <Phone className="h-3.5 w-3.5 text-slate-400" />
+                      <span>{pedidoDetalle.clienteTelefono}</span>
+                    </p>
+                    {pedidoDetalle.clienteEmail && (
+                      <p className="flex items-center gap-1.5 text-slate-500 mt-0.5 text-xs">
+                        <Mail className="h-3.5 w-3.5 text-slate-400" />
+                        <span>{pedidoDetalle.clienteEmail}</span>
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Botón WhatsApp */}
+                  {pedidoDetalle.notificadoWhatsApp ? (
+                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-800 bg-emerald-100/70 px-2.5 py-1 rounded-md self-start sm:self-auto">
+                      <WhatsAppIcon className="w-3.5 h-3.5 text-[#25D366]" />
+                      <span>✓ Notificado por WhatsApp</span>
+                    </span>
+                  ) : (
+                    <a
+                      href={getPedidoWhatsAppUrl(pedidoDetalle)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => marcarNotificadoWhatsApp(pedidoDetalle.id)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold text-white bg-[#25D366] hover:bg-[#20bd5a] transition-all shadow-xs self-start sm:self-auto shrink-0"
+                      title="Abrir WhatsApp para confirmar el pedido"
+                    >
+                      <WhatsAppIcon className="w-3.5 h-3.5" />
+                      <span>Contactar por WhatsApp</span>
+                    </a>
+                  )}
+                </div>
+
                 {pedidoDetalle.direccion && (
-                  <p className="flex items-center gap-1.5 text-slate-600">
-                    <MapPin className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                    <span>{pedidoDetalle.direccion}</span>
-                  </p>
+                  <div className="mt-2.5 pt-2 border-t border-slate-200">
+                    <p className="flex items-start gap-1.5 text-slate-700 text-xs">
+                      <MapPin className="h-3.5 w-3.5 text-slate-400 shrink-0 mt-0.5" />
+                      <span><strong>Dirección de entrega:</strong> {pedidoDetalle.direccion}</span>
+                    </p>
+                  </div>
                 )}
               </div>
 
-              {/* Comprobante de Pago Móvil */}
-              {pedidoDetalle.metodoPago === "pagomovil" && pedidoDetalle.pagoMovil ? (
-                <div className="p-3 bg-blue-50/70 border border-blue-200 rounded-md text-blue-900 space-y-1">
-                  <p className="font-bold flex items-center gap-1.5 text-xs">
-                    <Landmark className="h-4 w-4 text-blue-700" />
-                    <span>Comprobante Pago Móvil</span>
-                  </p>
-                  <p><strong>Banco Emisor:</strong> {pedidoDetalle.pagoMovil.banco}</p>
-                  <p>
-                    <strong>Número de Referencia:</strong>{" "}
-                    <span className="font-mono font-bold bg-white px-2 py-0.5 rounded border border-blue-200 text-blue-950">
-                      {pedidoDetalle.pagoMovil.referencia}
-                    </span>
-                  </p>
-                  {pedidoDetalle.pagoMovil.telefonoEmisor && (
-                    <p>
-                      <strong>Teléfono Emisor:</strong>{" "}
-                      <span className="font-mono font-medium">{pedidoDetalle.pagoMovil.telefonoEmisor}</span>
-                    </p>
-                  )}
-                </div>
-              ) : (
-                <div className="p-3 bg-slate-50 border border-slate-200 rounded-md text-slate-700 space-y-1">
-                  <p className="font-bold flex items-center gap-1.5 text-xs">
-                    <Banknote className="h-4 w-4 text-slate-600" />
-                    <span>Método de Pago: Efectivo</span>
-                  </p>
-                  <p className="text-[11px] text-slate-500">
-                    El cliente abonará el total en efectivo al recibir o retirar en salón.
-                  </p>
-                </div>
-              )}
-
-              {/* Lista de Productos Comprados */}
-              <div className="space-y-1.5 pt-1 border-t border-slate-200">
-                <p className="font-semibold text-slate-900 flex items-center gap-1.5">
-                  <Package className="h-3.5 w-3.5 text-slate-400" />
-                  <span>Productos ({pedidoDetalle.items.length}):</span>
-                </p>
-                <div className="divide-y divide-slate-100 max-h-36 overflow-y-auto">
+              {/* Tarjeta 2: Productos Comprados */}
+              <div className="p-3.5 bg-slate-50 rounded-md border border-slate-200 space-y-2">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  Productos en la Orden ({pedidoDetalle.items.length})
+                </span>
+                <div className="divide-y divide-slate-200 bg-white rounded-md border border-slate-200 p-2.5 max-h-48 overflow-y-auto">
                   {pedidoDetalle.items.map((it, idx) => (
-                    <div key={idx} className="py-2 flex items-center justify-between">
+                    <div key={idx} className="py-2 first:pt-0 last:pb-0 flex items-center justify-between">
                       <div>
-                        <p className="font-medium text-slate-900">{it.nombre}</p>
-                        <p className="text-[11px] text-slate-500">{it.cantidad}x {formatCurrency(it.precio)}</p>
+                        <p className="font-semibold text-slate-900 text-xs">{it.nombre}</p>
+                        <p className="text-[11px] text-slate-500 font-mono mt-0.5">
+                          {it.cantidad} {it.cantidad === 1 ? "unidad" : "unidades"} &times; {formatCurrency(it.precio)}
+                        </p>
                       </div>
-                      <p className="font-bold text-slate-900">{formatCurrency(it.precio * it.cantidad)}</p>
+                      <p className="font-bold text-slate-900 text-xs">{formatCurrency(it.precio * it.cantidad)}</p>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Notificación WhatsApp en Modal */}
-              <div className="p-3 bg-emerald-50/50 rounded-md border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div>
-                  <p className="font-semibold text-slate-900 flex items-center gap-1.5">
-                    <WhatsAppIcon className="w-3.5 h-3.5 text-[#25D366]" />
-                    <span>Notificación por WhatsApp:</span>
-                  </p>
-                  <p className="text-[11px] text-slate-500 mt-0.5">
-                    {pedidoDetalle.notificadoWhatsApp
-                      ? "Ya se notificó la comprobación/contacto al cliente."
-                      : "Envía el mensaje predeterminado directamente."}
-                  </p>
-                </div>
-                {pedidoDetalle.notificadoWhatsApp ? (
-                  <span className="text-[11px] font-semibold text-emerald-800 bg-emerald-100 px-2.5 py-1 rounded-md">
-                    ✓ Ya notificado
+              {/* Tarjeta 3: Comprobante y Datos del Pago */}
+              <div className="p-3.5 bg-slate-50 rounded-md border border-slate-200 space-y-2.5">
+                <div className="flex items-center justify-between pb-1 border-b border-slate-200">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Detalles del Pago</span>
+                  <span className="font-bold text-sm text-slate-900">
+                    Total: {formatCurrency(pedidoDetalle.total)}
                   </span>
+                </div>
+
+                {pedidoDetalle.metodoPago === "pagomovil" && pedidoDetalle.pagoMovil ? (
+                  <div className="bg-white p-2.5 rounded-md border border-slate-200 space-y-1.5 text-slate-700">
+                    <p className="font-semibold text-slate-900 flex items-center gap-1.5">
+                      <Landmark className="h-3.5 w-3.5 text-blue-600" />
+                      <span>Pago Móvil</span>
+                    </p>
+                    <p><strong>Banco Emisor:</strong> {pedidoDetalle.pagoMovil.banco}</p>
+                    <p>
+                      <strong>Número de Referencia:</strong>{" "}
+                      <span className="font-mono font-bold bg-slate-100 px-2 py-0.5 rounded border border-slate-200 text-slate-900">
+                        {pedidoDetalle.pagoMovil.referencia}
+                      </span>
+                    </p>
+                    {pedidoDetalle.pagoMovil.telefonoEmisor && (
+                      <p>
+                        <strong>Teléfono Emisor:</strong>{" "}
+                        <span className="font-mono">{pedidoDetalle.pagoMovil.telefonoEmisor}</span>
+                      </p>
+                    )}
+                  </div>
                 ) : (
-                  <a
-                    href={getPedidoWhatsAppUrl(pedidoDetalle)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={() => marcarNotificadoWhatsApp(pedidoDetalle.id)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold text-white bg-[#25D366] hover:bg-[#20bd5a] transition-all shadow-xs shrink-0"
-                  >
-                    <WhatsAppIcon className="w-3.5 h-3.5" />
-                    <span>Abrir WhatsApp</span>
-                  </a>
+                  <div className="bg-white p-2.5 rounded-md border border-slate-200 text-slate-700 space-y-1">
+                    <p className="font-semibold text-slate-900 flex items-center gap-1.5">
+                      <Banknote className="h-3.5 w-3.5 text-emerald-600" />
+                      <span>Pago en Efectivo</span>
+                    </p>
+                    <p className="text-[11px] text-slate-500">
+                      El cliente abonará el total en efectivo al momento de recibir o retirar los productos.
+                    </p>
+                  </div>
                 )}
               </div>
 
-              {/* Total y Botones de Acción Reversibles */}
-              <div className="pt-3 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div>
-                  <p className="text-[11px] text-slate-500">Monto total:</p>
-                  <p className="text-base font-bold text-slate-900">{formatCurrency(pedidoDetalle.total)}</p>
-                </div>
+              {/* Tarjeta 4: Acciones de Gestión Reversibles */}
+              <div className="pt-3 border-t border-slate-200 flex flex-wrap items-center justify-end gap-2">
+                {pedidoDetalle.estado === "pendiente_verificacion" && (
+                  <Button
+                    size="sm"
+                    onClick={() => cambiarEstado(pedidoDetalle.id, "verificado")}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-md text-xs font-semibold"
+                  >
+                    <Check className="h-3.5 w-3.5 mr-1" />
+                    Marcar Pago Verificado
+                  </Button>
+                )}
 
-                <div className="flex flex-wrap items-center gap-2">
-                  {pedidoDetalle.estado === "pendiente_verificacion" && (
+                {pedidoDetalle.estado === "verificado" && (
+                  <>
                     <Button
                       size="sm"
-                      onClick={() => cambiarEstado(pedidoDetalle.id, "verificado")}
-                      className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-md text-xs font-semibold"
+                      onClick={() => cambiarEstado(pedidoDetalle.id, "entregado")}
+                      className="bg-blue-600 hover:bg-blue-700 text-white rounded-md text-xs font-semibold"
                     >
-                      <Check className="h-3.5 w-3.5 mr-1" />
-                      Marcar Pago Verificado
+                      Marcar como Entregado
                     </Button>
-                  )}
-
-                  {pedidoDetalle.estado === "verificado" && (
-                    <>
-                      <Button
-                        size="sm"
-                        onClick={() => cambiarEstado(pedidoDetalle.id, "entregado")}
-                        className="bg-blue-600 hover:bg-blue-700 text-white rounded-md text-xs font-semibold"
-                      >
-                        Marcar como Entregado
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => cambiarEstado(pedidoDetalle.id, "pendiente_verificacion")}
-                        className="border-amber-200 text-amber-700 hover:bg-amber-50 rounded-md text-xs"
-                        title="Deshacer si se verificó por error"
-                      >
-                        <RotateCcw className="h-3.5 w-3.5 mr-1" />
-                        Revertir a Pendiente
-                      </Button>
-                    </>
-                  )}
-
-                  {pedidoDetalle.estado === "entregado" && (
                     <Button
                       variant="outline"
-                      size="sm"
-                      onClick={() => cambiarEstado(pedidoDetalle.id, "verificado")}
-                      className="border-slate-300 text-slate-700 hover:bg-slate-50 rounded-md text-xs"
-                      title="Reabrir si se marcó como entregado por error"
-                    >
-                      <RotateCcw className="h-3.5 w-3.5 mr-1" />
-                      Revertir a Verificado
-                    </Button>
-                  )}
-
-                  {pedidoDetalle.estado === "cancelado" && (
-                    <Button
                       size="sm"
                       onClick={() => cambiarEstado(pedidoDetalle.id, "pendiente_verificacion")}
-                      className="bg-amber-600 hover:bg-amber-700 text-white rounded-md text-xs font-semibold"
+                      className="border-amber-200 text-amber-700 hover:bg-amber-50 rounded-md text-xs"
+                      title="Deshacer si se verificó por error"
                     >
                       <RotateCcw className="h-3.5 w-3.5 mr-1" />
-                      Reactivar Orden
+                      Revertir a Pendiente
                     </Button>
-                  )}
+                  </>
+                )}
 
-                  {pedidoDetalle.estado !== "cancelado" && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => cambiarEstado(pedidoDetalle.id, "cancelado")}
-                      className="text-rose-700 hover:bg-rose-50 border-rose-200 rounded-md text-xs"
-                    >
-                      <X className="h-3.5 w-3.5 mr-1" />
-                      Cancelar Orden
-                    </Button>
-                  )}
-                </div>
+                {pedidoDetalle.estado === "entregado" && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => cambiarEstado(pedidoDetalle.id, "verificado")}
+                    className="border-slate-300 text-slate-700 hover:bg-slate-50 rounded-md text-xs"
+                    title="Reabrir si se marcó como entregado por error"
+                  >
+                    <RotateCcw className="h-3.5 w-3.5 mr-1" />
+                    Revertir a Verificado
+                  </Button>
+                )}
+
+                {pedidoDetalle.estado === "cancelado" && (
+                  <Button
+                    size="sm"
+                    onClick={() => cambiarEstado(pedidoDetalle.id, "pendiente_verificacion")}
+                    className="bg-amber-600 hover:bg-amber-700 text-white rounded-md text-xs font-semibold"
+                  >
+                    <RotateCcw className="h-3.5 w-3.5 mr-1" />
+                    Reactivar Orden
+                  </Button>
+                )}
+
+                {pedidoDetalle.estado !== "cancelado" && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => cambiarEstado(pedidoDetalle.id, "cancelado")}
+                    className="text-rose-700 hover:bg-rose-50 border-rose-200 rounded-md text-xs"
+                  >
+                    <X className="h-3.5 w-3.5 mr-1" />
+                    Cancelar Orden
+                  </Button>
+                )}
               </div>
             </div>
           </DialogContent>

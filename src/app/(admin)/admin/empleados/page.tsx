@@ -41,6 +41,9 @@ export default function AdminEmpleadosPage() {
   const [especialidad, setEspecialidad] = useState("");
   const [activo, setActivo] = useState(true);
   const [motivoInoperativo, setMotivoInoperativo] = useState("");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [errorForm, setErrorForm] = useState("");
   const [guardando, setGuardando] = useState(false);
 
   useEffect(() => {
@@ -71,6 +74,9 @@ export default function AdminEmpleadosPage() {
     setEspecialidad("");
     setActivo(true);
     setMotivoInoperativo("");
+    setUsername("");
+    setPassword("");
+    setErrorForm("");
     setModalAbierto(true);
   }
 
@@ -83,6 +89,9 @@ export default function AdminEmpleadosPage() {
     setEspecialidad(emp.especialidad);
     setActivo(emp.activo !== false);
     setMotivoInoperativo(emp.motivoInoperativo || "");
+    setUsername("");
+    setPassword("");
+    setErrorForm("");
     setModalAbierto(true);
   }
 
@@ -110,6 +119,7 @@ export default function AdminEmpleadosPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setErrorForm("");
     setGuardando(true);
 
     try {
@@ -133,8 +143,30 @@ export default function AdminEmpleadosPage() {
             prev.map((e) => (e.id === idSeleccionado ? data.employee : e))
           );
           setModalAbierto(false);
+        } else {
+          setErrorForm(data.error || "Error al actualizar empleado");
         }
       } else {
+        // Validar credenciales de acceso para el nuevo empleado
+        if (!username.trim()) {
+          setErrorForm("Ingresa un nombre de usuario para el inicio de sesión.");
+          setGuardando(false);
+          return;
+        }
+
+        const hasLower = /[a-z]/.test(password);
+        const hasUpper = /[A-Z]/.test(password);
+        const hasNumber = /\d/.test(password);
+        const hasSymbol = /[^a-zA-Z0-9]/.test(password);
+
+        if (password.length < 6 || !hasLower || !hasUpper || !hasNumber || !hasSymbol) {
+          setErrorForm(
+            "La contraseña debe tener mínimo 6 caracteres e incluir al menos una minúscula, una mayúscula, un número y un símbolo especial (ej. Xio28$)."
+          );
+          setGuardando(false);
+          return;
+        }
+
         const res = await fetch("/api/empleados", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -144,16 +176,21 @@ export default function AdminEmpleadosPage() {
             cargo,
             especialidad,
             activo,
+            username: username.trim(),
+            password,
           }),
         });
         const data = await res.json();
         if (data.success) {
           setEmpleados((prev) => [data.employee, ...prev]);
           setModalAbierto(false);
+        } else {
+          setErrorForm(data.error || "Error al registrar empleado");
         }
       }
     } catch (err) {
       console.error("Error al guardar empleado:", err);
+      setErrorForm("Ocurrió un error de red al procesar la solicitud.");
     } finally {
       setGuardando(false);
     }
@@ -265,18 +302,20 @@ export default function AdminEmpleadosPage() {
                     <div className="flex items-center gap-2">
                       <h3 className="font-semibold text-sm text-slate-900">{emp.nombre}</h3>
                       {emp.nombre.toLowerCase().includes("germán") || emp.cargo.toLowerCase().includes("gerente") || emp.serviciosIds.length === 0 ? (
-                        <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200">
+                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600">
+                          <span className="w-2 h-2 rounded-full bg-slate-400 shrink-0" />
                           Rol Gerencial (No Agendable)
                         </span>
                       ) : (
-                        <span
-                          className={`text-[11px] font-semibold px-2 py-0.5 rounded-md ${
-                            emp.activo !== false
-                              ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                              : "bg-rose-50 text-rose-700 border border-rose-200"
-                          }`}
-                        >
-                          {emp.activo !== false ? "Operativo en Agenda" : "Inoperativo"}
+                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold">
+                          <span
+                            className={`w-2 h-2 rounded-full shrink-0 ${
+                              emp.activo !== false ? "bg-emerald-500" : "bg-rose-500"
+                            }`}
+                          />
+                          <span className={emp.activo !== false ? "text-emerald-700" : "text-rose-700"}>
+                            {emp.activo !== false ? "Operativo en Agenda" : "Inoperativo"}
+                          </span>
                         </span>
                       )}
                     </div>
@@ -375,6 +414,12 @@ export default function AdminEmpleadosPage() {
           </DialogHeader>
 
           <form onSubmit={handleSubmit} className="space-y-3.5 pt-1 text-xs">
+            {errorForm && (
+              <div className="p-2.5 rounded-md bg-rose-50 border border-rose-200 text-rose-700 text-xs">
+                {errorForm}
+              </div>
+            )}
+
             <div className="space-y-1">
               <Label htmlFor="empNombre" className="text-xs font-semibold text-slate-700">
                 Nombre y Apellido *
@@ -388,6 +433,71 @@ export default function AdminEmpleadosPage() {
                 className="rounded-md text-xs"
               />
             </div>
+
+            {/* Credenciales de acceso para el empleado (solo en creación) */}
+            {!modoEdicion && (
+              <div className="p-3 bg-slate-50 rounded-md border border-slate-200 space-y-3">
+                <p className="text-[11px] font-bold text-slate-900 tracking-tight flex items-center gap-1.5">
+                  <UserCheck className="w-3.5 h-3.5 text-slate-600" />
+                  <span>Credenciales de acceso al sistema</span>
+                </p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label htmlFor="empUser" className="text-xs font-semibold text-slate-700">
+                      Nombre de usuario *
+                    </Label>
+                    <Input
+                      id="empUser"
+                      required
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      placeholder="ej. carolina"
+                      className="rounded-md text-xs bg-white"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label htmlFor="empPass" className="text-xs font-semibold text-slate-700">
+                      Contraseña inicial *
+                    </Label>
+                    <Input
+                      id="empPass"
+                      type="password"
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Ej. Carolina28$"
+                      className="rounded-md text-xs bg-white font-mono"
+                    />
+                  </div>
+                </div>
+
+                <div className="text-[11px] text-slate-500 bg-white p-2 rounded border border-slate-200 space-y-0.5">
+                  <p className="font-semibold text-slate-700">Requisitos de la contraseña:</p>
+                  <p className="flex items-center gap-1.5">
+                    <span className={/[a-z]/.test(password) ? "text-emerald-600 font-bold" : "text-slate-400"}>
+                      {/[a-z]/.test(password) ? "✓" : "•"} Al menos una letra minúscula (a-z)
+                    </span>
+                  </p>
+                  <p className="flex items-center gap-1.5">
+                    <span className={/[A-Z]/.test(password) ? "text-emerald-600 font-bold" : "text-slate-400"}>
+                      {/[A-Z]/.test(password) ? "✓" : "•"} Al menos una letra mayúscula (A-Z)
+                    </span>
+                  </p>
+                  <p className="flex items-center gap-1.5">
+                    <span className={/\d/.test(password) ? "text-emerald-600 font-bold" : "text-slate-400"}>
+                      {/\d/.test(password) ? "✓" : "•"} Al menos un número (0-9)
+                    </span>
+                  </p>
+                  <p className="flex items-center gap-1.5">
+                    <span className={/[^a-zA-Z0-9]/.test(password) ? "text-emerald-600 font-bold" : "text-slate-400"}>
+                      {/[^a-zA-Z0-9]/.test(password) ? "✓" : "•"} Al menos un símbolo (!@#$%^&*...)
+                    </span>
+                  </p>
+                </div>
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">

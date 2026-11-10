@@ -305,7 +305,7 @@ export default function AdminProductosPage() {
                       </div>
                     </td>
                     <td className="py-3 px-4">
-                      <span className="inline-block px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200 capitalize">
+                      <span className="text-xs font-medium text-slate-600 capitalize">
                         {p.categoria}
                       </span>
                     </td>
@@ -316,10 +316,15 @@ export default function AdminProductosPage() {
                       {formatCurrency(p.precio)}
                     </td>
                     <td className="py-3 px-4">
-                      <span className={`inline-block text-[11px] font-semibold px-2 py-0.5 rounded ${
-                        p.stock <= 5 ? "bg-rose-50 text-rose-700 border border-rose-200" : "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                      }`}>
-                        {p.stock} unid.
+                      <span className="inline-flex items-center gap-1.5 text-xs font-semibold">
+                        <span
+                          className={`w-2 h-2 rounded-full shrink-0 ${
+                            p.stock <= 5 ? "bg-rose-500" : "bg-emerald-500"
+                          }`}
+                        />
+                        <span className={p.stock <= 5 ? "text-rose-700" : "text-slate-800"}>
+                          {p.stock} unid.
+                        </span>
                       </span>
                     </td>
                     <td className="py-3 px-4 text-right">

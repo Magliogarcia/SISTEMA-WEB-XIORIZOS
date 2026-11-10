@@ -207,26 +207,19 @@ export default function AdminCitasPage() {
               No hay citas registradas para mostrar.
             </div>
           ) : (
-            <table className="w-full text-left border-collapse min-w-[980px]">
+            <table className="w-full text-left border-collapse min-w-[760px]">
               <thead>
                 <tr className="border-b border-slate-200 bg-slate-50/70 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-                  <th className="py-3 px-4 min-w-[190px] whitespace-nowrap">Cliente & Contacto</th>
-                  <th className="py-3 px-4 min-w-[160px]">Servicio & Abono</th>
-                  <th className="py-3 px-4 min-w-[140px] whitespace-nowrap">Especialista</th>
-                  <th className="py-3 px-4 min-w-[150px] whitespace-nowrap">Fecha & Hora</th>
-                  <th className="py-3 px-4 min-w-[180px]">Notas</th>
-                  <th className="py-3 px-4 min-w-[120px] whitespace-nowrap">Estado</th>
-                  <th className="py-3 px-4 min-w-[200px] text-right whitespace-nowrap">Acciones</th>
+                  <th className="py-3 px-4">Cliente</th>
+                  <th className="py-3 px-4">Servicio</th>
+                  <th className="py-3 px-4 whitespace-nowrap">Especialista</th>
+                  <th className="py-3 px-4 whitespace-nowrap">Fecha & Hora</th>
+                  <th className="py-3 px-4 whitespace-nowrap">Estado</th>
+                  <th className="py-3 px-4 text-right whitespace-nowrap">Acción</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-xs">
                 {citasFiltradas.map((cita) => {
-                  const reserva = cita.montoReserva || Math.round(cita.servicioPrecio * 0.2 * 100) / 100;
-
-                  // Condición de WhatsApp: solo si está confirmada o es efectivo
-                  const puedeEnviarWhatsApp =
-                    cita.estado === "confirmada" || cita.metodoPago === "efectivo";
-
                   return (
                     <tr key={cita.id} className="hover:bg-slate-50/80 transition-colors">
                       {/* Cliente y Teléfono */}
@@ -238,14 +231,9 @@ export default function AdminCitasPage() {
                         </p>
                       </td>
 
-                      {/* Servicio y Abono */}
+                      {/* Servicio */}
                       <td className="py-3.5 px-4">
                         <p className="font-semibold text-slate-800 text-xs">{cita.servicioNombre}</p>
-                        <div className="flex items-center gap-1.5 text-slate-500 mt-0.5">
-                          <span>Total: {formatCurrency(cita.servicioPrecio)}</span>
-                          <span className="text-slate-300">&bull;</span>
-                          <span className="text-emerald-700 font-semibold">20%: {formatCurrency(reserva)}</span>
-                        </div>
                       </td>
 
                       {/* Especialista */}
@@ -264,75 +252,53 @@ export default function AdminCitasPage() {
                         </p>
                       </td>
 
-                      {/* Notas: Truncado estricto para no colisionar con el siguiente campo */}
-                      <td className="py-3.5 px-4 max-w-[180px]">
-                        <p
-                          className="truncate text-slate-600 cursor-help"
-                          title={cita.notas || "Sin notas"}
-                        >
-                          {cita.notas || <span className="text-slate-400 italic">Sin notas</span>}
-                        </p>
-                      </td>
-
-                      {/* Estado: Badge limpio (NO selector editable en tabla) */}
+                      {/* Estado: Indicador dot puro, sin contenedor ni recuadros */}
                       <td className="py-3.5 px-4 whitespace-nowrap">
-                        <span
-                          className={`inline-block text-[11px] font-semibold px-2.5 py-1 rounded-md border ${
-                            cita.estado === "confirmada"
-                              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold">
+                          <span
+                            className={`w-2 h-2 rounded-full shrink-0 ${
+                              cita.estado === "confirmada"
+                                ? "bg-emerald-500"
+                                : cita.estado === "completada"
+                                ? "bg-blue-500"
+                                : cita.estado === "cancelada"
+                                ? "bg-rose-500"
+                                : "bg-amber-500"
+                            }`}
+                          />
+                          <span
+                            className={
+                              cita.estado === "confirmada"
+                                ? "text-emerald-700"
+                                : cita.estado === "completada"
+                                ? "text-blue-700"
+                                : cita.estado === "cancelada"
+                                ? "text-rose-700"
+                                : "text-amber-700"
+                            }
+                          >
+                            {cita.estado === "confirmada"
+                              ? "Confirmada"
                               : cita.estado === "completada"
-                              ? "bg-blue-50 text-blue-700 border-blue-200"
+                              ? "Completada"
                               : cita.estado === "cancelada"
-                              ? "bg-rose-50 text-rose-700 border-rose-200"
-                              : "bg-amber-50 text-amber-700 border-amber-200"
-                          }`}
-                        >
-                          {cita.estado === "confirmada"
-                            ? "Confirmada"
-                            : cita.estado === "completada"
-                            ? "Completada"
-                            : cita.estado === "cancelada"
-                            ? "Cancelada"
-                            : "Pendiente"}
+                              ? "Cancelada"
+                              : "Pendiente"}
+                          </span>
                         </span>
                       </td>
 
-                      {/* Acciones */}
+                      {/* Acción única: Detalle */}
                       <td className="py-3.5 px-4 text-right whitespace-nowrap">
-                        <div className="flex items-center justify-end gap-2">
-                          {/* Botón WhatsApp: SOLO aparece tras confirmar o en efectivo, y desaparece tras ser notificado */}
-                          {puedeEnviarWhatsApp && (
-                            cita.notificadoWhatsApp ? (
-                              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-800 bg-emerald-50/80 px-2 py-0.5 rounded-md border border-emerald-200">
-                                <WhatsAppIcon className="w-3 h-3 text-[#25D366]" />
-                                <span>Notificado</span>
-                              </span>
-                            ) : (
-                              <a
-                                href={getCitaWhatsAppUrl(cita)}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                onClick={() => marcarNotificadoWhatsApp(cita.id)}
-                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold text-white bg-[#25D366] hover:bg-[#20bd5a] transition-all cursor-pointer shadow-xs"
-                                title="Enviar confirmación oficial por WhatsApp"
-                              >
-                                <WhatsAppIcon className="h-3 w-3" />
-                                <span>WhatsApp</span>
-                              </a>
-                            )
-                          )}
-
-                          {/* Botón único de Detalle y Gestión para evitar redundancia */}
-                          <button
-                            type="button"
-                            onClick={() => setCitaDetalle(cita)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold text-slate-700 hover:bg-slate-100 border border-slate-200 transition-colors cursor-pointer"
-                            title="Ver información completa y gestionar cita"
-                          >
-                            <Eye className="h-3 w-3" />
-                            <span>Detalle</span>
-                          </button>
-                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setCitaDetalle(cita)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-50 border border-slate-200 transition-colors cursor-pointer shadow-xs"
+                          title="Ver información completa y gestionar cita"
+                        >
+                          <Eye className="h-3.5 w-3.5 text-slate-500" />
+                          <span>Detalle</span>
+                        </button>
                       </td>
                     </tr>
                   );
@@ -343,58 +309,122 @@ export default function AdminCitasPage() {
         </div>
       </div>
 
-      {/* Modal Detalle Completo y Gestión de la Cita */}
+      {/* Modal Rediseñado: Detalle Completo y Gestión de la Cita */}
       {citaDetalle && (
         <Dialog open={!!citaDetalle} onOpenChange={() => setCitaDetalle(null)}>
-          <DialogContent className="max-w-lg rounded-md max-h-[85vh] overflow-y-auto font-sans">
+          <DialogContent className="max-w-xl rounded-md max-h-[88vh] overflow-y-auto font-sans p-5 sm:p-6">
             <DialogHeader className="pb-3 border-b border-slate-200">
               <div className="flex items-center justify-between">
-                <DialogTitle className="text-base font-bold text-slate-900">
-                  Detalle de Cita
-                </DialogTitle>
-                <span
-                  className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-md border ${
-                    citaDetalle.estado === "confirmada"
-                      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                <div>
+                  <DialogTitle className="text-base font-bold text-slate-900">
+                    Detalle de Cita
+                  </DialogTitle>
+                  <p className="text-[11px] text-slate-500 font-mono mt-0.5">
+                    ID: {citaDetalle.id} &bull; Agendada: {formatDate(new Date(citaDetalle.creadoEn || citaDetalle.fecha))}
+                  </p>
+                </div>
+                <span className="inline-flex items-center gap-1.5 text-xs font-semibold">
+                  <span
+                    className={`w-2 h-2 rounded-full shrink-0 ${
+                      citaDetalle.estado === "confirmada"
+                        ? "bg-emerald-500"
+                        : citaDetalle.estado === "completada"
+                        ? "bg-blue-500"
+                        : citaDetalle.estado === "cancelada"
+                        ? "bg-rose-500"
+                        : "bg-amber-500"
+                    }`}
+                  />
+                  <span
+                    className={
+                      citaDetalle.estado === "confirmada"
+                        ? "text-emerald-700"
+                        : citaDetalle.estado === "completada"
+                        ? "text-blue-700"
+                        : citaDetalle.estado === "cancelada"
+                        ? "text-rose-700"
+                        : "text-amber-700"
+                    }
+                  >
+                    {citaDetalle.estado === "confirmada"
+                      ? "Confirmada"
                       : citaDetalle.estado === "completada"
-                      ? "bg-blue-50 text-blue-700 border-blue-200"
+                      ? "Completada"
                       : citaDetalle.estado === "cancelada"
-                      ? "bg-rose-50 text-rose-700 border-rose-200"
-                      : "bg-amber-50 text-amber-700 border-amber-200"
-                  }`}
-                >
-                  {citaDetalle.estado === "confirmada"
-                    ? "Confirmada"
-                    : citaDetalle.estado === "completada"
-                    ? "Completada"
-                    : citaDetalle.estado === "cancelada"
-                    ? "Cancelada"
-                    : "Pendiente"}
+                      ? "Cancelada"
+                      : "Pendiente"}
+                  </span>
                 </span>
               </div>
             </DialogHeader>
 
             <div className="space-y-4 pt-2 text-xs">
-              {/* Tarjeta de Cliente y Contacto */}
-              <div className="p-3.5 bg-slate-50 rounded-md border border-slate-200 space-y-1.5">
-                <p className="font-semibold text-slate-900 text-sm">{citaDetalle.clienteNombre}</p>
-                <p className="flex items-center gap-1.5 text-slate-600 font-mono">
-                  <Phone className="h-3.5 w-3.5 text-slate-400" />
-                  <span>{citaDetalle.clienteTelefono}</span>
-                </p>
-                <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-200 text-slate-700">
-                  <p><strong>Servicio:</strong> {citaDetalle.servicioNombre}</p>
-                  <p><strong>Especialista:</strong> {citaDetalle.profesionalNombre}</p>
-                  <p><strong>Fecha:</strong> {formatDate(new Date(citaDetalle.fecha))}</p>
-                  <p><strong>Hora:</strong> {citaDetalle.hora}</p>
+              {/* Tarjeta 1: Cliente y Contacto Directo */}
+              <div className="p-3.5 bg-slate-50 rounded-md border border-slate-200">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                  <div>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Cliente</span>
+                    <p className="font-bold text-slate-900 text-sm mt-0.5">{citaDetalle.clienteNombre}</p>
+                    <p className="flex items-center gap-1.5 text-slate-600 font-mono mt-0.5 text-xs">
+                      <Phone className="h-3.5 w-3.5 text-slate-400" />
+                      <span>{citaDetalle.clienteTelefono}</span>
+                    </p>
+                  </div>
+
+                  {/* Botón WhatsApp */}
+                  {citaDetalle.notificadoWhatsApp ? (
+                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-800 bg-emerald-100/70 px-2.5 py-1 rounded-md self-start sm:self-auto">
+                      <WhatsAppIcon className="w-3.5 h-3.5 text-[#25D366]" />
+                      <span>✓ Notificado por WhatsApp</span>
+                    </span>
+                  ) : (
+                    <a
+                      href={getCitaWhatsAppUrl(citaDetalle)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => marcarNotificadoWhatsApp(citaDetalle.id)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold text-white bg-[#25D366] hover:bg-[#20bd5a] transition-all shadow-xs self-start sm:self-auto shrink-0"
+                      title="Abrir chat en WhatsApp y notificar al cliente"
+                    >
+                      <WhatsAppIcon className="w-3.5 h-3.5" />
+                      <span>Contactar por WhatsApp</span>
+                    </a>
+                  )}
                 </div>
               </div>
 
-              {/* Información de Pago y Reserva */}
-              <div className="p-3.5 bg-slate-50 rounded-md border border-slate-200 space-y-1.5 text-slate-700">
+              {/* Tarjeta 2: Servicio & Horario */}
+              <div className="p-3.5 bg-slate-50 rounded-md border border-slate-200 space-y-2">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Servicio Agendado</span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-slate-700 pt-0.5">
+                  <div>
+                    <p className="text-slate-500 text-[11px]">Servicio:</p>
+                    <p className="font-semibold text-slate-900 text-xs">{citaDetalle.servicioNombre}</p>
+                  </div>
+                  <div>
+                    <p className="text-slate-500 text-[11px]">Especialista Asignado:</p>
+                    <p className="font-semibold text-slate-900 text-xs">{citaDetalle.profesionalNombre}</p>
+                  </div>
+                  <div>
+                    <p className="text-slate-500 text-[11px]">Fecha:</p>
+                    <p className="font-semibold text-slate-900 text-xs">{formatDate(new Date(citaDetalle.fecha))}</p>
+                  </div>
+                  <div>
+                    <p className="text-slate-500 text-[11px]">Horario:</p>
+                    <p className="font-semibold text-slate-900 text-xs flex items-center gap-1">
+                      <Clock className="w-3 h-3 text-slate-400" />
+                      <span>{citaDetalle.hora}</span>
+                      {citaDetalle.duracionMin && <span className="text-slate-500 font-normal">({citaDetalle.duracionMin} min)</span>}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Tarjeta 3: Desglose Financiero y Método de Pago */}
+              <div className="p-3.5 bg-slate-50 rounded-md border border-slate-200 space-y-2.5">
                 <div className="flex items-center justify-between pb-1 border-b border-slate-200">
-                  <span className="font-semibold text-slate-900">Método de Abono:</span>
-                  <span className="font-medium flex items-center gap-1">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Desglose de Pago</span>
+                  <span className="font-medium text-xs flex items-center gap-1 text-slate-700">
                     {citaDetalle.metodoPago === "pagomovil" ? (
                       <>
                         <Landmark className="h-3.5 w-3.5 text-blue-600" />
@@ -409,78 +439,53 @@ export default function AdminCitasPage() {
                   </span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 pt-1">
+                <div className="grid grid-cols-3 gap-2 text-center py-1 bg-white p-2.5 rounded-md border border-slate-200">
                   <div>
-                    <span className="text-slate-500">Total Servicio:</span>
-                    <p className="font-bold text-slate-900">{formatCurrency(citaDetalle.servicioPrecio)}</p>
+                    <span className="text-slate-500 text-[10px] block">Total Servicio</span>
+                    <p className="font-bold text-slate-900 text-sm mt-0.5">{formatCurrency(citaDetalle.servicioPrecio)}</p>
+                  </div>
+                  <div className="border-x border-slate-200">
+                    <span className="text-slate-500 text-[10px] block">Abono 20% (Reserva)</span>
+                    <p className="font-bold text-emerald-700 text-sm mt-0.5">
+                      {formatCurrency(citaDetalle.montoReserva || Math.round(citaDetalle.servicioPrecio * 0.2 * 100) / 100)}
+                    </p>
                   </div>
                   <div>
-                    <span className="text-slate-500">Abono 20%:</span>
-                    <p className="font-bold text-emerald-700">
-                      {formatCurrency(citaDetalle.montoReserva || citaDetalle.servicioPrecio * 0.2)}
+                    <span className="text-slate-500 text-[10px] block">Restante en Salón (80%)</span>
+                    <p className="font-bold text-slate-700 text-sm mt-0.5">
+                      {formatCurrency(citaDetalle.montoRestante || Math.round((citaDetalle.servicioPrecio * 0.8) * 100) / 100)}
                     </p>
                   </div>
                 </div>
 
                 {citaDetalle.metodoPago === "pagomovil" && citaDetalle.pagoMovil && (
-                  <div className="mt-2 pt-2 border-t border-slate-200 space-y-1">
-                    <p><strong>Banco Emisor:</strong> {citaDetalle.pagoMovil.banco}</p>
+                  <div className="pt-2 border-t border-slate-200 text-slate-700 space-y-1">
+                    <p><strong>Banco:</strong> {citaDetalle.pagoMovil.banco}</p>
                     <p>
                       <strong>Número de Referencia:</strong>{" "}
-                      <span className="font-mono font-bold bg-white px-2 py-0.5 rounded border border-slate-200">
+                      <span className="font-mono font-bold bg-white px-2 py-0.5 rounded border border-slate-200 text-slate-900">
                         {citaDetalle.pagoMovil.referencia}
                       </span>
                     </p>
                     {citaDetalle.pagoMovil.telefonoEmisor && (
-                      <p><strong>Teléfono Emisor:</strong> {citaDetalle.pagoMovil.telefonoEmisor}</p>
+                      <p><strong>Teléfono Emisor:</strong> <span className="font-mono">{citaDetalle.pagoMovil.telefonoEmisor}</span></p>
                     )}
                   </div>
                 )}
               </div>
 
-              {/* Notas del Cliente completas (sin recortar) */}
+              {/* Tarjeta 4: Notas del Cliente */}
               <div className="p-3 bg-slate-50 rounded-md border border-slate-200">
                 <p className="font-semibold text-slate-900 mb-1 flex items-center gap-1.5">
                   <FileText className="h-3.5 w-3.5 text-slate-400" />
-                  <span>Notas o indicaciones del cliente:</span>
+                  <span>Notas o requerimientos:</span>
                 </p>
                 <p className="text-slate-700 whitespace-pre-wrap leading-relaxed">
                   {citaDetalle.notas ? citaDetalle.notas : <span className="text-slate-400 italic">No se indicaron notas adicionales.</span>}
                 </p>
               </div>
 
-              {/* Notificación por WhatsApp dentro del Modal */}
-              <div className="p-3 bg-emerald-50/50 rounded-md border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div>
-                  <p className="font-semibold text-slate-900 flex items-center gap-1.5">
-                    <WhatsAppIcon className="w-3.5 h-3.5 text-[#25D366]" />
-                    <span>Notificación por WhatsApp:</span>
-                  </p>
-                  <p className="text-[11px] text-slate-500 mt-0.5">
-                    {citaDetalle.notificadoWhatsApp
-                      ? "Ya se envió mensaje de confirmación/contacto al cliente."
-                      : "Puedes enviar el mensaje oficial predeterminado directamente."}
-                  </p>
-                </div>
-                {citaDetalle.notificadoWhatsApp ? (
-                  <span className="text-[11px] font-semibold text-emerald-800 bg-emerald-100 px-2.5 py-1 rounded-md">
-                    ✓ Ya notificado
-                  </span>
-                ) : (
-                  <a
-                    href={getCitaWhatsAppUrl(citaDetalle)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={() => marcarNotificadoWhatsApp(citaDetalle.id)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold text-white bg-[#25D366] hover:bg-[#20bd5a] transition-all shadow-xs shrink-0"
-                  >
-                    <WhatsAppIcon className="w-3.5 h-3.5" />
-                    <span>Abrir WhatsApp</span>
-                  </a>
-                )}
-              </div>
-
-              {/* Botones de Acción Reversibles */}
+              {/* Tarjeta 5: Gestión de Estado (Acciones Reversibles) */}
               {esAdmin && (
                 <div className="pt-3 border-t border-slate-200 flex flex-wrap items-center justify-end gap-2">
                   {citaDetalle.estado === "pendiente" && (
@@ -531,7 +536,7 @@ export default function AdminCitasPage() {
                         onClick={() => cambiarEstado(citaDetalle.id, "cancelada")}
                         className="text-rose-700 hover:bg-rose-50 border-rose-200 rounded-md text-xs"
                       >
-                        Cancelar
+                        Cancelar Cita
                       </Button>
                     </>
                   )}

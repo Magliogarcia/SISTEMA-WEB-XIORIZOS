@@ -144,16 +144,33 @@ export default function AdminUsuariosPage() {
                     </td>
                     <td className="py-3.5 px-4 text-slate-600">{usuario.email}</td>
                     <td className="py-3.5 px-4">
-                      <span
-                        className={`inline-block text-[11px] font-semibold px-2 py-0.5 rounded ${
-                          usuario.rol === "admin"
-                            ? "bg-purple-50 text-purple-700 border border-purple-200"
+                      <span className="inline-flex items-center gap-1.5 text-xs font-semibold">
+                        <span
+                          className={`w-2 h-2 rounded-full shrink-0 ${
+                            usuario.rol === "admin"
+                              ? "bg-purple-500"
+                              : usuario.rol === "empleado" || usuario.rol === "estilista"
+                              ? "bg-blue-500"
+                              : "bg-slate-400"
+                          }`}
+                        />
+                        <span
+                          className={
+                            usuario.rol === "admin"
+                              ? "text-purple-700"
+                              : usuario.rol === "empleado" || usuario.rol === "estilista"
+                              ? "text-blue-700"
+                              : "text-slate-700"
+                          }
+                        >
+                          {usuario.rol === "admin"
+                            ? "Administrador"
+                            : usuario.rol === "empleado"
+                            ? "Empleado"
                             : usuario.rol === "estilista"
-                            ? "bg-blue-50 text-blue-700 border border-blue-200"
-                            : "bg-slate-100 text-slate-700 border border-slate-200"
-                        }`}
-                      >
-                        {usuario.rol.charAt(0).toUpperCase() + usuario.rol.slice(1)}
+                            ? "Especialista"
+                            : "Cliente"}
+                        </span>
                       </span>
                     </td>
                     <td className="py-3.5 px-4 text-right">
