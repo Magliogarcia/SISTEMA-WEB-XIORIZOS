@@ -158,7 +158,10 @@ export default function CheckoutPage() {
       }
     }
 
-    if (hasErrors) return;
+    if (hasErrors) {
+      window.scrollTo({ top: 120, behavior: "smooth" });
+      return;
+    }
 
     setEnviando(true);
 
@@ -200,6 +203,7 @@ export default function CheckoutPage() {
       }
 
       setPedidoExitoso(data.pedido.id);
+      window.scrollTo({ top: 0, behavior: "smooth" });
       clearCart();
     } catch (err) {
       console.error(err);

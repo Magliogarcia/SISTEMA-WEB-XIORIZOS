@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
 import { Check, ArrowLeft, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -20,6 +20,11 @@ const pasos = [
 function CitasWizardContent() {
   const { step, servicio, profesional, fecha, hora, prevStep, nextStep, setStep } = useBookingStore();
 
+  // Scroll suave automático a la parte superior cada vez que se avanza o cambia de paso
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [step]);
+
   // Comprueba qué pasos están desbloqueados según la información seleccionada
   function isStepClickable(numero: number): boolean {
     if (numero === step) return true;
@@ -37,6 +42,12 @@ function CitasWizardContent() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 pt-28 pb-16 sm:px-6 lg:px-8">
+      {/* Precarga instantánea de fotos de especialistas para despliegue sin demora en el paso 2 */}
+      <link rel="preload" as="image" href="/images/fundadora_xioilin_guzman.webp" />
+      <link rel="preload" as="image" href="/images/especialista_en_rizos_Yolennis_Yelamo.webp" />
+      <link rel="preload" as="image" href="/images/especialista_en_color_y_curvaturas_Axel_Alvarado.webp" />
+      <link rel="preload" as="image" href="/images/especialista_unas_yakeline_daboin.webp" />
+
       <div className="mb-8">
         <span className="text-xs uppercase tracking-wider font-semibold text-secondary bg-secondary/10 px-3 py-1 rounded-full">
           Estudio Xiorizos Naguanagua

@@ -175,7 +175,10 @@ export function BookingSummaryForm() {
       }
     }
 
-    if (hasErrors) return;
+    if (hasErrors) {
+      window.scrollTo({ top: 120, behavior: "smooth" });
+      return;
+    }
 
     setEnviando(true);
     setErrorGeneral(null);
