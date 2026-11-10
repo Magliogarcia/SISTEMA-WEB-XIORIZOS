@@ -58,13 +58,17 @@ export default function SimuladorPage() {
           ) : (
             <>
               <DualCanvas />
-              <div className="flex flex-wrap gap-3">
-                <Button onClick={handleProcesar} disabled={!tonoSeleccionado || status === "segmentando"}>
-                  <Wand2 className="h-4 w-4" />
-                  {status === "segmentando" ? "Procesando..." : "Aplicar color"}
+              <div className="flex flex-wrap gap-3 pt-1">
+                <Button
+                  onClick={handleProcesar}
+                  disabled={!tonoSeleccionado || status === "segmentando"}
+                  className="rounded-full bg-primary hover:bg-secondary text-white font-semibold shadow-sm"
+                >
+                  <Wand2 className="h-4 w-4 mr-2" />
+                  {status === "segmentando" ? "Procesando con IA..." : "Aplicar color"}
                 </Button>
-                <Button variant="outline" onClick={reset}>
-                  <RefreshCw className="h-4 w-4" />
+                <Button variant="outline" onClick={reset} className="rounded-full">
+                  <RefreshCw className="h-4 w-4 mr-2" />
                   Cambiar foto
                 </Button>
               </div>

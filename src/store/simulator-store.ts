@@ -8,6 +8,7 @@ interface SimulatorState {
   intensidad: number;
   status: SimulatorStatus;
   setImagenOriginal: (url: string) => void;
+  setImagenSegmentada: (url: string | null) => void;
   setTono: (tono: HairColorTone) => void;
   setIntensidad: (valor: number) => void;
   setStatus: (status: SimulatorStatus) => void;
@@ -15,14 +16,16 @@ interface SimulatorState {
 }
 
 // NOTA: imagenSegmentadaUrl y status="segmentando"/"listo" quedan listos
-// para conectarse con la API de Hugging Face (segmentación) + OpenCV (recoloreo) en el backend.
+// para conectarse con la API de IA (generación / recoloreo) en el backend.
 export const useSimulatorStore = create<SimulatorState>((set) => ({
   imagenOriginalUrl: null,
   imagenSegmentadaUrl: null,
   tonoSeleccionado: null,
   intensidad: 70,
   status: "idle",
-  setImagenOriginal: (url) => set({ imagenOriginalUrl: url, status: "imagen_cargada" }),
+  setImagenOriginal: (url) =>
+    set({ imagenOriginalUrl: url, imagenSegmentadaUrl: null, status: "imagen_cargada" }),
+  setImagenSegmentada: (url) => set({ imagenSegmentadaUrl: url }),
   setTono: (tono) => set({ tonoSeleccionado: tono }),
   setIntensidad: (valor) => set({ intensidad: valor }),
   setStatus: (status) => set({ status }),
