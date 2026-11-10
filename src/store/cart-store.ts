@@ -73,6 +73,9 @@ export const useCartStore = create<CartState>()(
         return get().items.reduce((count, item) => count + item.cantidad, 0);
       },
     }),
-    { name: "xiorizos-cart" }
+    {
+      name: "xiorizos-cart",
+      partialize: (state) => ({ items: state.items }),
+    }
   )
 );

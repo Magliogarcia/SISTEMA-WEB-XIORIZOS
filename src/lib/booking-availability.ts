@@ -3,8 +3,11 @@ import type { DBAppointment } from "@/lib/db";
 
 // Horario oficial del salón Xiorizos:
 // 8:30 a.m. a 5:30 p.m. (Martes a Sábado)
+// Receso de almuerzo del personal: 12:00 m. a 12:30 p.m.
 export const SALON_OPENING_MINUTES = 8 * 60 + 30; // 510 minutos (08:30)
 export const SALON_CLOSING_MINUTES = 17 * 60 + 30; // 1050 minutos (17:30)
+export const LUNCH_BREAK_START_MINUTES = 12 * 60; // 720 minutos (12:00)
+export const LUNCH_BREAK_END_MINUTES = 12 * 60 + 30; // 750 minutos (12:30)
 
 /**
  * Convierte una hora en formato "HH:MM" a minutos transcurridos desde medianoche.
@@ -140,6 +143,14 @@ export function findConflictingAppointment({
     return {
       id: "cierre-salon",
       motivo: `El servicio tiene una duración de ${candidateDuration} min y terminaría a las ${minutesToTime(candidateEnd)}, después de la hora de cierre del salón (5:30 p.m.).`,
+    };
+  }
+
+  // Receso oficial de almuerzo del personal (12:00 m. a 12:30 p.m.)
+  if (candidateStart < LUNCH_BREAK_END_MINUTES && candidateEnd > LUNCH_BREAK_START_MINUTES) {
+    return {
+      id: "almuerzo-personal",
+      motivo: "El turno coincide con el receso de almuerzo del personal (12:00 m. a 12:30 p.m.).",
     };
   }
 

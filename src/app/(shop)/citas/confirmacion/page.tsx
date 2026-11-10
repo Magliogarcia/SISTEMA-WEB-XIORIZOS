@@ -28,10 +28,10 @@ export default function ConfirmacionCitaPage() {
           <span>Notificación oficial por WhatsApp</span>
         </div>
         <p className="text-foreground leading-relaxed">
-          Revisaremos los 8 dígitos de tu referencia de Pago Móvil y tu teléfono emisor. En cuanto el pago sea comprobado, recibirás en tu WhatsApp el mensaje de confirmación con la fecha, hora y especialista asignado.
+          Revisaremos la referencia de tu Pago Móvil y tu teléfono emisor. En cuanto el pago sea comprobado, recibirás en tu WhatsApp el mensaje de confirmación con la fecha, hora y especialista asignado.
         </p>
         <p className="text-muted-foreground pt-1 border-t border-emerald-500/15">
-          • <strong>80% restante:</strong> Lo cancelarás el día de tu cita en el estudio (efectivo, punto, transferencia o Cashea).
+          • <strong>80% restante:</strong> Lo cancelarás el día de tu cita en el estudio (efectivo, punto o transferencia).
         </p>
       </div>
 

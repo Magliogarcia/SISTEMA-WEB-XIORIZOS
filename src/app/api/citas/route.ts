@@ -44,7 +44,7 @@ export async function POST(req: Request) {
     if (metodoPago === "pagomovil") {
       if (!pagoMovil?.banco || !pagoMovil?.referencia || !pagoMovil?.telefonoEmisor) {
         return NextResponse.json(
-          { error: "Para abonar la reserva por Pago Móvil debes indicar el banco, número de referencia (8 dígitos) y teléfono emisor." },
+          { error: "Para abonar la reserva por Pago Móvil debes indicar el banco, número de referencia y teléfono emisor." },
           { status: 400 }
         );
       }
@@ -108,14 +108,14 @@ export async function POST(req: Request) {
   }
 }
 
-// PATCH /api/citas - Cambiar estado de la cita
+// PATCH /api/citas - Cambiar estado de la cita o marcar notificado por WhatsApp
 export async function PATCH(req: Request) {
   try {
     const body = await req.json();
-    const { id, estado } = body;
+    const { id, estado, notificadoWhatsApp } = body;
 
-    if (!id || !estado) {
-      return NextResponse.json({ error: "ID y estado requeridos" }, { status: 400 });
+    if (!id) {
+      return NextResponse.json({ error: "ID requerido" }, { status: 400 });
     }
 
     const db = readDB();
@@ -124,13 +124,18 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ error: "Cita no encontrada" }, { status: 404 });
     }
 
-    cita.estado = estado;
+    if (estado !== undefined) {
+      cita.estado = estado;
+    }
+    if (notificadoWhatsApp !== undefined) {
+      cita.notificadoWhatsApp = notificadoWhatsApp;
+    }
     writeDB(db);
 
     return NextResponse.json({ success: true, cita });
   } catch (error) {
     console.error("Error in PATCH /api/citas:", error);
-    return NextResponse.json({ error: "Error al actualizar estado de cita" }, { status: 500 });
+    return NextResponse.json({ error: "Error al actualizar cita" }, { status: 500 });
   }
 }
 

@@ -8,7 +8,7 @@ export interface DBUser {
   nombre: string;
   email: string;
   password: string;
-  rol: "admin" | "cliente";
+  rol: "admin" | "cliente" | "empleado" | "estilista";
   telefono?: string;
   creadoEn: string;
 }
@@ -27,6 +27,7 @@ export interface DBAppointment {
     referencia: string;
     telefonoEmisor?: string;
   };
+  notificadoWhatsApp?: boolean; // true si ya se le envió notificación por WS
   duracionMin?: number;
   profesionalNombre: string;
   fecha: string;
@@ -71,6 +72,7 @@ export interface DBOrder {
     telefonoEmisor?: string;
   };
   estado: "pendiente_verificacion" | "verificado" | "entregado" | "cancelado";
+  notificadoWhatsApp?: boolean;
   creadoEn: string;
 }
 
@@ -106,8 +108,58 @@ function getInitialData(): DatabaseSchema {
         username: "admin",
         nombre: "Administrador Xiorizos",
         email: "admin@xiorizos.com",
-        password: "123",
+        password: "Maglio28$",
         rol: "admin",
+        creadoEn: new Date().toISOString(),
+      },
+      {
+        id: "u-emp-xioilin",
+        username: "xioilin",
+        nombre: "Xioilin Guzmán",
+        email: "xioilin@xiorizos.com",
+        password: "Xioilin28$",
+        rol: "empleado",
+        telefono: "0412 8493021",
+        creadoEn: new Date().toISOString(),
+      },
+      {
+        id: "u-emp-axel",
+        username: "axel",
+        nombre: "Axel Alvarado",
+        email: "axel@xiorizos.com",
+        password: "Axel28$",
+        rol: "empleado",
+        telefono: "0414 4321980",
+        creadoEn: new Date().toISOString(),
+      },
+      {
+        id: "u-emp-yolennis",
+        username: "yolennis",
+        nombre: "Yolennis Yélamo",
+        email: "yolennis@xiorizos.com",
+        password: "Yolennis28$",
+        rol: "empleado",
+        telefono: "0424 5543210",
+        creadoEn: new Date().toISOString(),
+      },
+      {
+        id: "u-emp-yakeline",
+        username: "yakeline",
+        nombre: "Yakeline Daboin",
+        email: "yakeline@xiorizos.com",
+        password: "Yakeline28$",
+        rol: "empleado",
+        telefono: "0416 9988776",
+        creadoEn: new Date().toISOString(),
+      },
+      {
+        id: "u-emp-german",
+        username: "german",
+        nombre: "Germán Jácome",
+        email: "german@xiorizos.com",
+        password: "German28$",
+        rol: "empleado",
+        telefono: "0412 1122334",
         creadoEn: new Date().toISOString(),
       },
       {
@@ -220,7 +272,7 @@ function getInitialData(): DatabaseSchema {
         id: "emp-1",
         nombre: "Xioilin Guzmán",
         telefono: "0412 8493021",
-        cargo: "Fundadora & Master Curly",
+        cargo: "Master Curly",
         especialidad: "Diagnóstico capilar y asesoría integral",
         avatarUrl: "/images/fundadora_xioilin_guzman.webp",
         serviciosIds: ["s1", "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9", "s10", "s11"],

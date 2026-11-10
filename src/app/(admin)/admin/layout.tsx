@@ -18,11 +18,21 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       return;
     }
 
-    if (!isAuthenticated || user?.rol !== "admin") {
+    const esAdmin = user?.rol === "admin";
+    const esEmpleado = user?.rol === "empleado" || user?.rol === "estilista";
+
+    if (!isAuthenticated || (!esAdmin && !esEmpleado)) {
       router.replace("/admin/login");
-    } else {
-      setChecked(true);
+      return;
     }
+
+    // Los empleados solo pueden ver su agenda de citas
+    if (!esAdmin && esEmpleado && pathname !== "/admin/citas") {
+      router.replace("/admin/citas");
+      return;
+    }
+
+    setChecked(true);
   }, [pathname, isAuthenticated, user, router]);
 
   // Si estamos en /admin/login, renderizar solo la pantalla limpia de login

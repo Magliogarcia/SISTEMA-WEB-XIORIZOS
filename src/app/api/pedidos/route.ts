@@ -28,7 +28,7 @@ export async function POST(req: Request) {
     if (metodoPago === "pagomovil") {
       if (!pagoMovil?.banco || !pagoMovil?.referencia || !pagoMovil?.telefonoEmisor) {
         return NextResponse.json(
-          { error: "Para Pago Móvil debes indicar el banco, número de referencia (8 dígitos) y teléfono emisor." },
+          { error: "Para Pago Móvil debes indicar el banco, número de referencia y teléfono emisor." },
           { status: 400 }
         );
       }
@@ -36,7 +36,7 @@ export async function POST(req: Request) {
 
     const db = readDB();
     const nuevoPedido: DBOrder = {
-      id: `#ORD-${Math.floor(1000 + Math.random() * 9000)}`,
+      id: `ORD-2026-${Math.floor(1000 + Math.random() * 9000)}`,
       clienteNombre: clienteNombre.trim(),
       clienteTelefono: clienteTelefono.trim(),
       clienteEmail: clienteEmail.trim(),
@@ -59,14 +59,14 @@ export async function POST(req: Request) {
   }
 }
 
-// PATCH /api/pedidos - Actualizar estado del pedido (ej. Verificar Pago Móvil)
+// PATCH /api/pedidos - Actualizar estado del pedido o marcar notificado por WhatsApp
 export async function PATCH(req: Request) {
   try {
     const body = await req.json();
-    const { id, estado } = body;
+    const { id, estado, notificadoWhatsApp } = body;
 
-    if (!id || !estado) {
-      return NextResponse.json({ error: "ID y estado son requeridos" }, { status: 400 });
+    if (!id) {
+      return NextResponse.json({ error: "ID requerido" }, { status: 400 });
     }
 
     const db = readDB();
@@ -75,7 +75,12 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ error: "Pedido no encontrado" }, { status: 404 });
     }
 
-    pedido.estado = estado;
+    if (estado !== undefined) {
+      pedido.estado = estado;
+    }
+    if (notificadoWhatsApp !== undefined) {
+      pedido.notificadoWhatsApp = notificadoWhatsApp;
+    }
     writeDB(db);
 
     return NextResponse.json({ success: true, pedido });

@@ -28,7 +28,12 @@ const menuItems = [
 export function AdminSidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const logout = useAuthStore((state) => state.logout);
+  const { user, logout } = useAuthStore();
+  const esAdmin = user?.rol === "admin";
+
+  const visibleMenuItems = esAdmin
+    ? menuItems
+    : [{ href: "/admin/citas", label: "Mis Citas Agendadas", icon: CalendarCheck }];
 
   function handleLogout() {
     logout();
@@ -39,7 +44,7 @@ export function AdminSidebar() {
     <aside className="hidden w-64 shrink-0 border-r border-slate-200 bg-white md:flex md:flex-col">
       {/* Logotipo Xiorizos Vertical Prominente */}
       <div className="flex flex-col items-center justify-center border-b border-slate-200 p-4 bg-slate-50/50">
-        <Link href="/admin" className="flex flex-col items-center group">
+        <Link href={esAdmin ? "/admin" : "/admin/citas"} className="flex flex-col items-center group">
           <div className="relative w-36 h-20 transition-transform group-hover:scale-105">
             <Image
               src="/images/Logo_completo_vertical.webp"
@@ -50,13 +55,13 @@ export function AdminSidebar() {
             />
           </div>
           <span className="text-[11px] font-bold uppercase tracking-wider text-secondary mt-1">
-            Panel de Control
+            {esAdmin ? "Panel de Control" : "Portal Especialista"}
           </span>
         </Link>
       </div>
 
       <nav className="flex-1 space-y-1 px-3 py-4">
-        {menuItems.map((item) => {
+        {visibleMenuItems.map((item) => {
           const isActive =
             item.href === "/admin" ? pathname === "/admin" : pathname.startsWith(item.href);
           const Icon = item.icon;

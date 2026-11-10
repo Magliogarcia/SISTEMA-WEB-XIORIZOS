@@ -14,8 +14,8 @@ export default function AdminLoginPage() {
   const router = useRouter();
   const login = useAuthStore((state) => state.login);
 
-  const [username, setUsername] = useState("admin");
-  const [password, setPassword] = useState("123");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,14 +39,18 @@ export default function AdminLoginPage() {
         return;
       }
 
-      if (data.user.rol !== "admin") {
-        setError("Esta cuenta no tiene permisos de administrador.");
+      if (data.user.rol !== "admin" && data.user.rol !== "empleado" && data.user.rol !== "estilista") {
+        setError("Esta cuenta no tiene permisos para acceder al panel de control.");
         setCargando(false);
         return;
       }
 
       login(data.user);
-      router.push("/admin");
+      if (data.user.rol === "admin") {
+        router.push("/admin");
+      } else {
+        router.push("/admin/citas");
+      }
     } catch (err) {
       console.error(err);
       setError("Error al conectar con el servidor.");
@@ -104,15 +108,10 @@ export default function AdminLoginPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="123"
+                placeholder="••••••••"
                 className="pl-9"
               />
             </div>
-          </div>
-
-          <div className="p-3 bg-muted/60 rounded-xl text-[11px] text-muted-foreground flex justify-between items-center">
-            <span>Credenciales por defecto:</span>
-            <span className="font-mono font-semibold text-foreground">admin / 123</span>
           </div>
 
           <Button type="submit" size="lg" className="w-full font-semibold" disabled={cargando}>

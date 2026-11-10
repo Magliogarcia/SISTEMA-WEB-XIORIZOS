@@ -66,6 +66,7 @@ export default function CheckoutPage() {
 
   const [telefonoEmisor, setTelefonoEmisor] = useState("");
   const [telefonoEmisorError, setTelefonoEmisorError] = useState<string | null>(null);
+  const [errorGeneral, setErrorGeneral] = useState<string | null>(null);
 
   const total = getTotal();
 
@@ -103,10 +104,13 @@ export default function CheckoutPage() {
 
     let hasErrors = false;
 
+    let firstErrorId: string | null = null;
+
     // Validar nombre
     const resNombre = validateFullName(nombre);
     if (!resNombre.isValid) {
       setNombreError(resNombre.error || "Nombre inválido");
+      firstErrorId = "nombre";
       hasErrors = true;
     } else {
       setNombreError(null);
@@ -117,6 +121,7 @@ export default function CheckoutPage() {
     const resTel = validatePhone(telefono);
     if (!resTel.isValid) {
       setTelefonoError(resTel.error || "Teléfono inválido");
+      if (!firstErrorId) firstErrorId = "telefono";
       hasErrors = true;
     } else {
       setTelefonoError(null);
@@ -127,6 +132,7 @@ export default function CheckoutPage() {
     const resEmail = validateEmail(email);
     if (!resEmail.isValid) {
       setEmailError(resEmail.error || "Correo inválido");
+      if (!firstErrorId) firstErrorId = "email";
       hasErrors = true;
     } else {
       setEmailError(null);
@@ -136,6 +142,7 @@ export default function CheckoutPage() {
     const resDir = validateAddress(direccion);
     if (!resDir.isValid) {
       setDireccionError(resDir.error || "Dirección inválida");
+      if (!firstErrorId) firstErrorId = "direccion";
       hasErrors = true;
     } else {
       setDireccionError(null);
@@ -145,6 +152,7 @@ export default function CheckoutPage() {
     if (metodoPago === "pagomovil") {
       if (!banco) {
         setBancoError("Selecciona el banco desde el que realizaste el pago móvil.");
+        if (!firstErrorId) firstErrorId = "banco";
         hasErrors = true;
       } else {
         setBancoError(null);
@@ -152,7 +160,8 @@ export default function CheckoutPage() {
 
       const refClean = referencia.replace(/\D/g, "");
       if (!refClean || refClean.length !== 8) {
-        setReferenciaError("El número de referencia debe contener exactamente 8 dígitos numéricos.");
+        setReferenciaError("El número de referencia debe contener 8 dígitos numéricos.");
+        if (!firstErrorId) firstErrorId = "referencia";
         hasErrors = true;
       } else {
         setReferenciaError(null);
@@ -160,11 +169,13 @@ export default function CheckoutPage() {
 
       if (!telefonoEmisor.trim()) {
         setTelefonoEmisorError("El teléfono emisor del pago móvil es obligatorio.");
+        if (!firstErrorId) firstErrorId = "telefonoEmisor";
         hasErrors = true;
       } else {
         const telEmisorRes = validatePhone(telefonoEmisor);
         if (!telEmisorRes.isValid) {
           setTelefonoEmisorError(telEmisorRes.error || "Teléfono emisor inválido.");
+          if (!firstErrorId) firstErrorId = "telefonoEmisor";
           hasErrors = true;
         } else {
           setTelefonoEmisorError(null);
@@ -174,6 +185,14 @@ export default function CheckoutPage() {
     }
 
     if (hasErrors) {
+      if (firstErrorId) {
+        const el = document.getElementById(firstErrorId);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+          el.focus();
+          return;
+        }
+      }
       window.scrollTo({ top: 120, behavior: "smooth" });
       return;
     }
@@ -222,7 +241,7 @@ export default function CheckoutPage() {
       clearCart();
     } catch (err) {
       console.error(err);
-      alert("Error de conexión al registrar el pedido.");
+      setErrorGeneral("Error de conexión al registrar el pedido. Inténtalo nuevamente.");
       setEnviando(false);
     }
   }
@@ -239,7 +258,7 @@ export default function CheckoutPage() {
         </span>
 
         <h1 className="mt-3 font-heading text-2xl font-bold text-primary">
-          ¡Orden #{pedidoExitoso} registrada!
+          ¡Orden {pedidoExitoso} registrada!
         </h1>
 
         <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
@@ -254,7 +273,7 @@ export default function CheckoutPage() {
               <span>🔔 Notificación por WhatsApp:</span>
             </p>
             <p className="text-foreground leading-relaxed">
-              En cuanto el personal verifique los 8 dígitos de tu referencia y el teléfono emisor, recibirás un mensaje en tu WhatsApp confirmando el despacho o disponibilidad de tu paquete.
+              En cuanto el personal verifique tu referencia de Pago Móvil y el teléfono emisor, recibirás un mensaje en tu WhatsApp confirmando el despacho o disponibilidad de tu paquete.
             </p>
           </div>
         )}
@@ -312,6 +331,13 @@ export default function CheckoutPage() {
 
       <div className="grid grid-cols-1 gap-10 lg:grid-cols-[1fr_380px]">
         <form onSubmit={handleSubmit} className="space-y-8" noValidate>
+          {errorGeneral && (
+            <div className="flex items-center gap-2 rounded-lg bg-destructive/10 p-3.5 text-xs font-medium text-destructive border border-destructive/20">
+              <AlertCircle className="h-4 w-4 shrink-0" />
+              <span>{errorGeneral}</span>
+            </div>
+          )}
+
           {/* Datos del Cliente */}
           <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
             <h2 className="mb-4 font-heading text-lg font-semibold text-primary">

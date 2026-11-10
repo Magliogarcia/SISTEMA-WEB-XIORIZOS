@@ -11,6 +11,10 @@ import {
   Phone,
   Mail,
   MapPin,
+  Check,
+  RotateCcw,
+  X,
+  Package,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -52,17 +56,23 @@ function getPedidoWhatsAppMessage(pedido: DBOrder): string {
     .map((it) => `• ${it.cantidad}x ${it.nombre} ($${(it.precio * it.cantidad).toFixed(2)})`)
     .join("\n");
 
-  let detallePago = "";
-  if (pedido.metodoPago === "pagomovil" && pedido.pagoMovil) {
-    detallePago = `Hemos comprobado con éxito tu Pago Móvil de $${pedido.total.toFixed(2)} (Banco: ${pedido.pagoMovil.banco}, Ref: ${pedido.pagoMovil.referencia}).`;
-  } else {
-    detallePago = `Hemos comprobado con éxito tu pago por un total de $${pedido.total.toFixed(2)}.`;
+  if (pedido.metodoPago === "efectivo") {
+    return (
+      `¡Hola ${pedido.clienteNombre}! 👋 Te saludamos desde la tienda botánica de *Estudio Xiorizos*.\n\n` +
+      `Hemos recibido el registro de tu pedido ${pedido.id} con pago en efectivo al momento de la entrega o retiro:\n` +
+      `${itemsText}\n\n` +
+      `💰 *Total:* $${pedido.total.toFixed(2)}\n` +
+      (pedido.direccion
+        ? `📍 *Dirección de entrega:* ${pedido.direccion}\n\n`
+        : `📍 *Retiro:* Directamente en nuestro salón en Naguanagua\n\n`) +
+      `Nos ponemos en contacto contigo para coordinar la entrega de tus productos botánicos. ¡Muchas gracias por tu preferencia! 🌿✨`
+    );
   }
 
+  // Pago Móvil comprobado
   return (
     `¡Hola ${pedido.clienteNombre}! 👋 Te saludamos desde la tienda botánica de *Estudio Xiorizos*.\n\n` +
-    `✅ *¡El pago de tu orden ha sido COMPROBADO con éxito!*\n` +
-    `${detallePago}\n\n` +
+    `✅ *¡El pago de tu orden ha sido COMPROBADO con éxito!*\n\n` +
     `🛍️ *Detalles de tu orden ${pedido.id}:*\n` +
     `${itemsText}\n\n` +
     `💰 *Total:* $${pedido.total.toFixed(2)}\n` +
@@ -83,7 +93,6 @@ export default function AdminPedidosPage() {
   const [pedidos, setPedidos] = useState<DBOrder[]>([]);
   const [cargando, setCargando] = useState(true);
   const [pedidoDetalle, setPedidoDetalle] = useState<DBOrder | null>(null);
-  const [modalWhatsAppPedido, setModalWhatsAppPedido] = useState<DBOrder | null>(null);
 
   async function cargarPedidos() {
     setCargando(true);
@@ -106,8 +115,7 @@ export default function AdminPedidosPage() {
 
   async function cambiarEstado(
     id: string,
-    nuevoEstado: "pendiente_verificacion" | "verificado" | "entregado" | "cancelado",
-    abrirWhatsAppModal = false
+    nuevoEstado: "pendiente_verificacion" | "verificado" | "entregado" | "cancelado"
   ) {
     try {
       const res = await fetch("/api/pedidos", {
@@ -123,17 +131,27 @@ export default function AdminPedidosPage() {
         if (pedidoDetalle?.id === id) {
           setPedidoDetalle((prev) => (prev ? { ...prev, estado: nuevoEstado } : null));
         }
+        window.dispatchEvent(new CustomEvent("xiorizos-admin-update"));
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
 
-        // Sincronizar notificaciones de topbar en vivo
-        if (typeof window !== "undefined") {
-          window.dispatchEvent(new CustomEvent("xiorizos-admin-update"));
-        }
-
-        if (abrirWhatsAppModal) {
-          const ped = pedidos.find((p) => p.id === id) || pedidoDetalle;
-          if (ped) {
-            setModalWhatsAppPedido({ ...ped, estado: nuevoEstado });
-          }
+  async function marcarNotificadoWhatsApp(id: string) {
+    try {
+      const res = await fetch("/api/pedidos", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, notificadoWhatsApp: true }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setPedidos((prev) =>
+          prev.map((p) => (p.id === id ? { ...p, notificadoWhatsApp: true } : p))
+        );
+        if (pedidoDetalle?.id === id) {
+          setPedidoDetalle((prev) => (prev ? { ...prev, notificadoWhatsApp: true } : null));
         }
       }
     } catch (err) {
@@ -142,7 +160,7 @@ export default function AdminPedidosPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-sans">
       {/* Encabezado */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-slate-200">
         <div>
@@ -150,7 +168,7 @@ export default function AdminPedidosPage() {
             Pedidos de la Tienda
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Comprobación de compras, verificación de referencias de Pago Móvil y entrega.
+            Comprobación de compras, verificación de pagos y control de entregas.
           </p>
         </div>
         <Button
@@ -164,7 +182,7 @@ export default function AdminPedidosPage() {
         </Button>
       </div>
 
-      {/* Tabla con esquinas rounded-md y fondo blanco nítido */}
+      {/* Tabla con esquinas rounded-md y fondo limpio */}
       <div className="rounded-md border border-slate-200 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)] overflow-hidden">
         <div className="p-4 border-b border-slate-200 flex items-center justify-between">
           <h2 className="text-sm font-bold text-slate-900">
@@ -184,203 +202,175 @@ export default function AdminPedidosPage() {
               <thead>
                 <tr className="border-b border-slate-200 bg-slate-50/60 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
                   <th className="py-3 px-4 min-w-[130px] whitespace-nowrap">Orden</th>
-                  <th className="py-3 px-4 min-w-[210px] whitespace-nowrap">Cliente</th>
+                  <th className="py-3 px-4 min-w-[200px] whitespace-nowrap">Cliente</th>
                   <th className="py-3 px-4 min-w-[130px] whitespace-nowrap">Método de Pago</th>
-                  <th className="py-3 px-4 min-w-[190px] whitespace-nowrap">Comprobante Pago Móvil</th>
+                  <th className="py-3 px-4 min-w-[190px] whitespace-nowrap">Comprobante Pago</th>
                   <th className="py-3 px-4 min-w-[110px] whitespace-nowrap">Total</th>
-                  <th className="py-3 px-4 min-w-[170px] whitespace-nowrap">Estado (Editable)</th>
-                  <th className="py-3 px-4 min-w-[160px] whitespace-nowrap text-right">Acciones</th>
+                  <th className="py-3 px-4 min-w-[140px] whitespace-nowrap">Estado</th>
+                  <th className="py-3 px-4 min-w-[180px] whitespace-nowrap text-right">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-xs">
-                {pedidos.map((pedido) => (
-                  <tr key={pedido.id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="py-3.5 px-4 whitespace-nowrap">
-                      <p className="font-mono font-bold text-slate-900 text-xs">{pedido.id}</p>
-                      <p className="text-[11px] text-slate-500">
-                        {formatDate(new Date(pedido.creadoEn))}
-                      </p>
-                    </td>
+                {pedidos.map((pedido) => {
+                  const puedeEnviarWhatsApp =
+                    pedido.estado === "verificado" || pedido.metodoPago === "efectivo";
 
-                    <td className="py-3.5 px-4 whitespace-nowrap">
-                      <p className="font-semibold text-slate-900 text-sm">{pedido.clienteNombre}</p>
-                      <p className="flex items-center gap-1.5 text-slate-500 mt-0.5 font-mono text-xs">
-                        <Phone className="h-3 w-3 text-slate-400 shrink-0" />
-                        <span>{pedido.clienteTelefono}</span>
-                      </p>
-                    </td>
+                  return (
+                    <tr key={pedido.id} className="hover:bg-slate-50/80 transition-colors">
+                      <td className="py-3.5 px-4 whitespace-nowrap">
+                        <p className="font-mono font-bold text-slate-900 text-xs">{pedido.id}</p>
+                        <p className="text-[11px] text-slate-500">
+                          {formatDate(new Date(pedido.creadoEn))}
+                        </p>
+                      </td>
 
-                    <td className="py-3.5 px-4 whitespace-nowrap">
-                      {pedido.metodoPago === "pagomovil" ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
-                          <Landmark className="h-3 w-3 shrink-0" />
-                          <span>Pago Móvil</span>
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                          <Banknote className="h-3 w-3 shrink-0" />
-                          <span>Efectivo</span>
-                        </span>
-                      )}
-                    </td>
+                      <td className="py-3.5 px-4 whitespace-nowrap">
+                        <p className="font-semibold text-slate-900 text-sm">{pedido.clienteNombre}</p>
+                        <p className="flex items-center gap-1.5 text-slate-500 mt-0.5 font-mono text-xs">
+                          <Phone className="h-3 w-3 text-slate-400 shrink-0" />
+                          <span>{pedido.clienteTelefono}</span>
+                        </p>
+                      </td>
 
-                    <td className="py-3.5 px-4 whitespace-nowrap">
-                      {pedido.metodoPago === "pagomovil" && pedido.pagoMovil ? (
-                        <div className="space-y-0.5">
-                          <p className="text-slate-600">
-                            <strong>Banco:</strong> {pedido.pagoMovil.banco}
-                          </p>
-                          <p className="text-slate-600">
-                            <strong>Ref:</strong>{" "}
-                            <span className="font-mono font-bold text-slate-900 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">
-                              {pedido.pagoMovil.referencia}
-                            </span>
-                          </p>
-                          {pedido.pagoMovil.telefonoEmisor && (
-                            <p className="text-[10px] text-slate-500 font-mono">
-                              Emisor: {pedido.pagoMovil.telefonoEmisor}
+                      <td className="py-3.5 px-4 whitespace-nowrap">
+                        {pedido.metodoPago === "pagomovil" ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+                            <Landmark className="h-3 w-3 shrink-0" />
+                            <span>Pago Móvil</span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            <Banknote className="h-3 w-3 shrink-0" />
+                            <span>Efectivo</span>
+                          </span>
+                        )}
+                      </td>
+
+                      <td className="py-3.5 px-4 whitespace-nowrap">
+                        {pedido.metodoPago === "pagomovil" && pedido.pagoMovil ? (
+                          <div className="space-y-0.5">
+                            <p className="text-slate-600">
+                              <strong>Banco:</strong> {pedido.pagoMovil.banco}
                             </p>
+                            <p className="text-slate-600">
+                              <strong>Ref:</strong>{" "}
+                              <span className="font-mono font-bold text-slate-900 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">
+                                {pedido.pagoMovil.referencia}
+                              </span>
+                            </p>
+                            {pedido.pagoMovil.telefonoEmisor && (
+                              <p className="text-[10px] text-slate-500 font-mono">
+                                Emisor: {pedido.pagoMovil.telefonoEmisor}
+                              </p>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-slate-400">Pago en efectivo al entregar/retirar</span>
+                        )}
+                      </td>
+
+                      <td className="py-3.5 px-4 whitespace-nowrap">
+                        <p className="font-bold text-sm text-slate-900">
+                          {formatCurrency(pedido.total)}
+                        </p>
+                        <p className="text-[11px] text-slate-500">
+                          {pedido.items.length} producto{pedido.items.length !== 1 && "s"}
+                        </p>
+                      </td>
+
+                      {/* Estado: Badge limpio (NO selector editable en la tabla) */}
+                      <td className="py-3.5 px-4 whitespace-nowrap">
+                        <span
+                          className={`inline-block text-[11px] font-semibold px-2.5 py-1 rounded-md border ${
+                            pedido.estado === "verificado"
+                              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                              : pedido.estado === "entregado"
+                              ? "bg-blue-50 text-blue-700 border-blue-200"
+                              : pedido.estado === "cancelado"
+                              ? "bg-rose-50 text-rose-700 border-rose-200"
+                              : "bg-amber-50 text-amber-700 border-amber-200"
+                          }`}
+                        >
+                          {estadoLabel[pedido.estado] || pedido.estado}
+                        </span>
+                      </td>
+
+                      {/* Acciones */}
+                      <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                        <div className="flex items-center justify-end gap-2">
+                          {/* Botón WhatsApp: SOLO aparece tras verificar o en efectivo, y desaparece tras ser notificado */}
+                          {puedeEnviarWhatsApp && (
+                            pedido.notificadoWhatsApp ? (
+                              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-800 bg-emerald-50/80 px-2 py-0.5 rounded-md border border-emerald-200">
+                                <WhatsAppIcon className="w-3 h-3 text-[#25D366]" />
+                                <span>Notificado</span>
+                              </span>
+                            ) : (
+                              <a
+                                href={getPedidoWhatsAppUrl(pedido)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={() => marcarNotificadoWhatsApp(pedido.id)}
+                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold text-white bg-[#25D366] hover:bg-[#20bd5a] transition-all cursor-pointer shadow-xs"
+                                title="Enviar confirmación oficial por WhatsApp"
+                              >
+                                <WhatsAppIcon className="h-3 w-3" />
+                                <span>WhatsApp</span>
+                              </a>
+                            )
                           )}
+
+                          {/* Botón Detalle */}
+                          <button
+                            type="button"
+                            onClick={() => setPedidoDetalle(pedido)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold text-slate-700 hover:bg-slate-100 border border-slate-200 transition-colors cursor-pointer"
+                            title="Ver información completa y gestionar orden"
+                          >
+                            <Eye className="h-3 w-3" />
+                            <span>Detalle</span>
+                          </button>
                         </div>
-                      ) : (
-                        <span className="text-slate-400">Pago en efectivo al retirar</span>
-                      )}
-                    </td>
-
-                    <td className="py-3.5 px-4 whitespace-nowrap">
-                      <p className="font-bold text-sm text-slate-900">
-                        {formatCurrency(pedido.total)}
-                      </p>
-                      <p className="text-[11px] text-slate-500">
-                        {pedido.items.length} producto{pedido.items.length !== 1 && "s"}
-                      </p>
-                    </td>
-
-                    <td className="py-3.5 px-4 whitespace-nowrap">
-                      {/* Selector de estado editable con posibilidad de revertir/deshacer cualquier acción */}
-                      <select
-                        value={pedido.estado}
-                        onChange={(e) =>
-                          cambiarEstado(
-                            pedido.id,
-                            e.target.value as
-                              | "pendiente_verificacion"
-                              | "verificado"
-                              | "entregado"
-                              | "cancelado"
-                          )
-                        }
-                        className={`text-[11px] font-semibold px-2 py-1 rounded border cursor-pointer focus:outline-none focus:ring-1 focus:ring-amber-500 ${
-                          pedido.estado === "verificado"
-                            ? "bg-emerald-50 text-emerald-850 border-emerald-300"
-                            : pedido.estado === "entregado"
-                            ? "bg-blue-50 text-blue-850 border-blue-300"
-                            : pedido.estado === "cancelado"
-                            ? "bg-rose-50 text-rose-850 border-rose-300"
-                            : "bg-amber-50 text-amber-850 border-amber-300"
-                        }`}
-                        title="Puedes cambiar o deshacer el estado en cualquier momento"
-                      >
-                        <option value="pendiente_verificacion">Por Verificar</option>
-                        <option value="verificado">Verificado</option>
-                        <option value="entregado">Entregado</option>
-                        <option value="cancelado">Cancelado</option>
-                      </select>
-                    </td>
-
-                    <td className="py-3.5 px-4 text-right whitespace-nowrap">
-                      <div className="flex items-center justify-end gap-1.5">
-                        {/* Botón directo de WhatsApp para la orden */}
-                        <a
-                          href={getPedidoWhatsAppUrl(pedido)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-semibold text-white bg-[#25D366] hover:bg-[#20bd5a] transition-all cursor-pointer shadow-xs"
-                          title="Enviar mensaje de comprobación por WhatsApp al cliente"
-                        >
-                          <WhatsAppIcon className="h-3.5 w-3.5" />
-                          <span>WhatsApp</span>
-                        </a>
-
-                        <button
-                          type="button"
-                          onClick={() => setPedidoDetalle(pedido)}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-semibold text-slate-700 hover:bg-slate-100 border border-slate-200 transition-colors cursor-pointer"
-                          title="Ver detalle completo de la orden"
-                        >
-                          <Eye className="h-3 w-3" />
-                          <span>Detalle</span>
-                        </button>
-
-                        {pedido.estado === "pendiente_verificacion" && (
-                          <button
-                            type="button"
-                            onClick={() => cambiarEstado(pedido.id, "verificado", true)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-colors cursor-pointer"
-                            title="Validar comprobante de Pago Móvil y notificar por WhatsApp"
-                          >
-                            <CheckCircle2 className="h-3 w-3" />
-                            <span>Validar</span>
-                          </button>
-                        )}
-
-                        {pedido.estado === "verificado" && (
-                          <button
-                            type="button"
-                            onClick={() => cambiarEstado(pedido.id, "entregado")}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 transition-colors cursor-pointer"
-                            title="Marcar pedido como entregado"
-                          >
-                            <span>Entregar</span>
-                          </button>
-                        )}
-
-                        {pedido.estado === "cancelado" && (
-                          <button
-                            type="button"
-                            onClick={() => cambiarEstado(pedido.id, "pendiente_verificacion")}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 transition-colors cursor-pointer"
-                            title="Deshacer cancelación y reactivar orden"
-                          >
-                            <span>Reactivar</span>
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           )}
         </div>
       </div>
 
-      {/* Modal Detalle de Pedido (Viewport safe max-h-[85vh] y rounded-md) */}
+      {/* Modal Detalle de Pedido y Acciones Reversibles */}
       {pedidoDetalle && (
         <Dialog open={!!pedidoDetalle} onOpenChange={() => setPedidoDetalle(null)}>
-          <DialogContent className="max-w-md rounded-md max-h-[85vh] overflow-y-auto">
+          <DialogContent className="max-w-md rounded-md max-h-[85vh] overflow-y-auto font-sans">
             <DialogHeader className="pb-2 border-b border-slate-200">
-              <DialogTitle className="flex items-center justify-between text-base font-bold text-slate-900">
-                <span>Detalle de Orden {pedidoDetalle.id}</span>
+              <div className="flex items-center justify-between">
+                <DialogTitle className="text-base font-bold text-slate-900">
+                  Orden {pedidoDetalle.id}
+                </DialogTitle>
                 <span
-                  className={`text-[11px] font-semibold px-2 py-0.5 rounded ${
+                  className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-md border ${
                     pedidoDetalle.estado === "verificado"
                       ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                       : pedidoDetalle.estado === "entregado"
                       ? "bg-blue-50 text-blue-700 border border-blue-200"
+                      : pedidoDetalle.estado === "cancelado"
+                      ? "bg-rose-50 text-rose-700 border border-rose-200"
                       : "bg-amber-50 text-amber-700 border border-amber-200"
                   }`}
                 >
                   {estadoLabel[pedidoDetalle.estado] || pedidoDetalle.estado}
                 </span>
-              </DialogTitle>
+              </div>
             </DialogHeader>
 
             <div className="space-y-3.5 text-xs pt-1">
               {/* Datos del Cliente */}
               <div className="p-3 bg-slate-50 rounded-md border border-slate-200 space-y-1.5">
                 <p className="font-semibold text-slate-900 text-sm">{pedidoDetalle.clienteNombre}</p>
-                <p className="flex items-center gap-1.5 text-slate-600">
+                <p className="flex items-center gap-1.5 text-slate-600 font-mono">
                   <Phone className="h-3.5 w-3.5 text-slate-400" />
                   <span>{pedidoDetalle.clienteTelefono}</span>
                 </p>
@@ -399,7 +389,7 @@ export default function AdminPedidosPage() {
               </div>
 
               {/* Comprobante de Pago Móvil */}
-              {pedidoDetalle.metodoPago === "pagomovil" && pedidoDetalle.pagoMovil && (
+              {pedidoDetalle.metodoPago === "pagomovil" && pedidoDetalle.pagoMovil ? (
                 <div className="p-3 bg-blue-50/70 border border-blue-200 rounded-md text-blue-900 space-y-1">
                   <p className="font-bold flex items-center gap-1.5 text-xs">
                     <Landmark className="h-4 w-4 text-blue-700" />
@@ -419,11 +409,24 @@ export default function AdminPedidosPage() {
                     </p>
                   )}
                 </div>
+              ) : (
+                <div className="p-3 bg-slate-50 border border-slate-200 rounded-md text-slate-700 space-y-1">
+                  <p className="font-bold flex items-center gap-1.5 text-xs">
+                    <Banknote className="h-4 w-4 text-slate-600" />
+                    <span>Método de Pago: Efectivo</span>
+                  </p>
+                  <p className="text-[11px] text-slate-500">
+                    El cliente abonará el total en efectivo al recibir o retirar en salón.
+                  </p>
+                </div>
               )}
 
               {/* Lista de Productos Comprados */}
               <div className="space-y-1.5 pt-1 border-t border-slate-200">
-                <p className="font-semibold text-slate-900">Productos ({pedidoDetalle.items.length})</p>
+                <p className="font-semibold text-slate-900 flex items-center gap-1.5">
+                  <Package className="h-3.5 w-3.5 text-slate-400" />
+                  <span>Productos ({pedidoDetalle.items.length}):</span>
+                </p>
                 <div className="divide-y divide-slate-100 max-h-36 overflow-y-auto">
                   {pedidoDetalle.items.map((it, idx) => (
                     <div key={idx} className="py-2 flex items-center justify-between">
@@ -437,127 +440,114 @@ export default function AdminPedidosPage() {
                 </div>
               </div>
 
-              {/* Total y Botones de Acción / Reversibilidad */}
-              <div className="pt-2 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              {/* Notificación WhatsApp en Modal */}
+              <div className="p-3 bg-emerald-50/50 rounded-md border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <p className="font-semibold text-slate-900 flex items-center gap-1.5">
+                    <WhatsAppIcon className="w-3.5 h-3.5 text-[#25D366]" />
+                    <span>Notificación por WhatsApp:</span>
+                  </p>
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    {pedidoDetalle.notificadoWhatsApp
+                      ? "Ya se notificó la comprobación/contacto al cliente."
+                      : "Envía el mensaje predeterminado directamente."}
+                  </p>
+                </div>
+                {pedidoDetalle.notificadoWhatsApp ? (
+                  <span className="text-[11px] font-semibold text-emerald-800 bg-emerald-100 px-2.5 py-1 rounded-md">
+                    ✓ Ya notificado
+                  </span>
+                ) : (
+                  <a
+                    href={getPedidoWhatsAppUrl(pedidoDetalle)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => marcarNotificadoWhatsApp(pedidoDetalle.id)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold text-white bg-[#25D366] hover:bg-[#20bd5a] transition-all shadow-xs shrink-0"
+                  >
+                    <WhatsAppIcon className="w-3.5 h-3.5" />
+                    <span>Abrir WhatsApp</span>
+                  </a>
+                )}
+              </div>
+
+              {/* Total y Botones de Acción Reversibles */}
+              <div className="pt-3 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                   <p className="text-[11px] text-slate-500">Monto total:</p>
                   <p className="text-base font-bold text-slate-900">{formatCurrency(pedidoDetalle.total)}</p>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
-                  <a
-                    href={getPedidoWhatsAppUrl(pedidoDetalle)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold text-white bg-[#25D366] hover:bg-[#20bd5a] transition-all cursor-pointer shadow-xs"
-                    title="Notificar o conversar con el cliente por WhatsApp"
-                  >
-                    <WhatsAppIcon className="h-3.5 w-3.5" />
-                    <span>WhatsApp</span>
-                  </a>
-
                   {pedidoDetalle.estado === "pendiente_verificacion" && (
                     <Button
-                      onClick={() => cambiarEstado(pedidoDetalle.id, "verificado", true)}
+                      size="sm"
+                      onClick={() => cambiarEstado(pedidoDetalle.id, "verificado")}
                       className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-md text-xs font-semibold"
                     >
+                      <Check className="h-3.5 w-3.5 mr-1" />
                       Marcar Pago Verificado
                     </Button>
                   )}
+
                   {pedidoDetalle.estado === "verificado" && (
-                    <Button
-                      onClick={() => cambiarEstado(pedidoDetalle.id, "entregado")}
-                      className="bg-blue-600 hover:bg-blue-700 text-white rounded-md text-xs font-semibold"
-                    >
-                      Marcar como Entregado
-                    </Button>
+                    <>
+                      <Button
+                        size="sm"
+                        onClick={() => cambiarEstado(pedidoDetalle.id, "entregado")}
+                        className="bg-blue-600 hover:bg-blue-700 text-white rounded-md text-xs font-semibold"
+                      >
+                        Marcar como Entregado
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => cambiarEstado(pedidoDetalle.id, "pendiente_verificacion")}
+                        className="border-amber-200 text-amber-700 hover:bg-amber-50 rounded-md text-xs"
+                        title="Deshacer si se verificó por error"
+                      >
+                        <RotateCcw className="h-3.5 w-3.5 mr-1" />
+                        Revertir a Pendiente
+                      </Button>
+                    </>
                   )}
-                  {pedidoDetalle.estado !== "pendiente_verificacion" && (
+
+                  {pedidoDetalle.estado === "entregado" && (
                     <Button
                       variant="outline"
-                      onClick={() => cambiarEstado(pedidoDetalle.id, "pendiente_verificacion")}
+                      size="sm"
+                      onClick={() => cambiarEstado(pedidoDetalle.id, "verificado")}
                       className="border-slate-300 text-slate-700 hover:bg-slate-50 rounded-md text-xs"
-                      title="Deshacer y devolver a pendiente de verificación"
+                      title="Reabrir si se marcó como entregado por error"
                     >
-                      Revertir a Pendiente
+                      <RotateCcw className="h-3.5 w-3.5 mr-1" />
+                      Revertir a Verificado
+                    </Button>
+                  )}
+
+                  {pedidoDetalle.estado === "cancelado" && (
+                    <Button
+                      size="sm"
+                      onClick={() => cambiarEstado(pedidoDetalle.id, "pendiente_verificacion")}
+                      className="bg-amber-600 hover:bg-amber-700 text-white rounded-md text-xs font-semibold"
+                    >
+                      <RotateCcw className="h-3.5 w-3.5 mr-1" />
+                      Reactivar Orden
+                    </Button>
+                  )}
+
+                  {pedidoDetalle.estado !== "cancelado" && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => cambiarEstado(pedidoDetalle.id, "cancelado")}
+                      className="text-rose-700 hover:bg-rose-50 border-rose-200 rounded-md text-xs"
+                    >
+                      <X className="h-3.5 w-3.5 mr-1" />
+                      Cancelar Orden
                     </Button>
                   )}
                 </div>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
-
-      {/* Modal Dialog para Notificación de Pedido por WhatsApp */}
-      {modalWhatsAppPedido && (
-        <Dialog open={!!modalWhatsAppPedido} onOpenChange={() => setModalWhatsAppPedido(null)}>
-          <DialogContent className="max-w-md rounded-md max-h-[85vh] overflow-y-auto">
-            <DialogHeader className="pb-2 border-b border-slate-200">
-              <DialogTitle className="flex items-center gap-2 text-base font-bold text-slate-900">
-                <div className="w-8 h-8 rounded-full bg-[#25D366]/20 text-[#25D366] flex items-center justify-center shrink-0">
-                  <WhatsAppIcon className="w-4 h-4 text-[#25D366]" />
-                </div>
-                <div>
-                  <p className="leading-tight">Pago Verificado</p>
-                  <p className="text-[11px] font-normal text-slate-500">
-                    Notificar verificación de compra por WhatsApp
-                  </p>
-                </div>
-              </DialogTitle>
-            </DialogHeader>
-
-            <div className="space-y-3.5 pt-2 text-xs">
-              <div className="p-3 bg-slate-50 rounded-md border border-slate-200 space-y-1">
-                <p className="font-semibold text-slate-900 text-sm">
-                  {modalWhatsAppPedido.clienteNombre}
-                </p>
-                <p className="text-slate-600 font-mono">
-                  Teléfono: {modalWhatsAppPedido.clienteTelefono}
-                </p>
-                <p className="text-slate-600">
-                  <strong>Orden:</strong> {modalWhatsAppPedido.id} &bull; <strong>Total:</strong> {formatCurrency(modalWhatsAppPedido.total)}
-                </p>
-                {modalWhatsAppPedido.pagoMovil && (
-                  <div className="mt-2 pt-2 border-t border-slate-200 text-slate-700">
-                    <p className="font-semibold text-slate-800">Comprobante Pago Móvil:</p>
-                    <p>Banco: {modalWhatsAppPedido.pagoMovil.banco} &bull; Ref: <strong className="font-mono">{modalWhatsAppPedido.pagoMovil.referencia}</strong></p>
-                    {modalWhatsAppPedido.pagoMovil.telefonoEmisor && (
-                      <p className="font-mono text-slate-500">Teléfono emisor: {modalWhatsAppPedido.pagoMovil.telefonoEmisor}</p>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <p className="font-semibold text-slate-800 mb-1">
-                  Mensaje preparado para WhatsApp:
-                </p>
-                <pre className="p-3 bg-slate-900 text-slate-100 rounded-md text-[11px] font-sans whitespace-pre-wrap leading-relaxed max-h-44 overflow-y-auto">
-                  {getPedidoWhatsAppMessage(modalWhatsAppPedido)}
-                </pre>
-              </div>
-
-              <div className="pt-2 border-t border-slate-200 flex items-center justify-between gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setModalWhatsAppPedido(null)}
-                  className="rounded-md text-xs border-slate-300"
-                >
-                  Cerrar
-                </Button>
-
-                <a
-                  href={getPedidoWhatsAppUrl(modalWhatsAppPedido)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={() => setModalWhatsAppPedido(null)}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-md text-xs font-bold text-white bg-[#25D366] hover:bg-[#20bd5a] transition-all shadow-sm"
-                >
-                  <WhatsAppIcon className="w-4 h-4" />
-                  <span>Abrir WhatsApp y Enviar</span>
-                </a>
               </div>
             </div>
           </DialogContent>

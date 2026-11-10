@@ -143,8 +143,11 @@ export function BookingSummaryForm() {
 
     let hasErrors = false;
 
+    let firstErrorId: string | null = null;
+
     if (!nombreRes.isValid) {
       setNombreError(nombreRes.error || "Nombre inválido");
+      firstErrorId = "clienteNombre";
       hasErrors = true;
     } else {
       setNombreError(null);
@@ -153,6 +156,7 @@ export function BookingSummaryForm() {
 
     if (!telefonoRes.isValid) {
       setTelefonoError(telefonoRes.error || "Teléfono inválido");
+      if (!firstErrorId) firstErrorId = "clienteTelefono";
       hasErrors = true;
     } else {
       setTelefonoError(null);
@@ -163,6 +167,7 @@ export function BookingSummaryForm() {
     if (metodoPago === "pagomovil") {
       if (!banco) {
         setBancoError("Selecciona el banco desde el que realizaste el Pago Móvil.");
+        if (!firstErrorId) firstErrorId = "bancoPago";
         hasErrors = true;
       } else {
         setBancoError(null);
@@ -170,7 +175,8 @@ export function BookingSummaryForm() {
 
       const refClean = referencia.replace(/\D/g, "");
       if (!refClean || refClean.length !== 8) {
-        setReferenciaError("El número de referencia debe contener exactamente 8 dígitos numéricos.");
+        setReferenciaError("El número de referencia debe contener 8 dígitos numéricos.");
+        if (!firstErrorId) firstErrorId = "referenciaPago";
         hasErrors = true;
       } else {
         setReferenciaError(null);
@@ -178,11 +184,13 @@ export function BookingSummaryForm() {
 
       if (!telefonoEmisor.trim()) {
         setTelefonoEmisorError("El teléfono emisor del Pago Móvil es obligatorio.");
+        if (!firstErrorId) firstErrorId = "telefonoEmisorPago";
         hasErrors = true;
       } else {
         const telEmisorRes = validatePhone(telefonoEmisor);
         if (!telEmisorRes.isValid) {
           setTelefonoEmisorError(telEmisorRes.error || "Número de teléfono emisor inválido.");
+          if (!firstErrorId) firstErrorId = "telefonoEmisorPago";
           hasErrors = true;
         } else {
           setTelefonoEmisorError(null);
@@ -192,6 +200,14 @@ export function BookingSummaryForm() {
     }
 
     if (hasErrors) {
+      if (firstErrorId) {
+        const el = document.getElementById(firstErrorId);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+          el.focus();
+          return;
+        }
+      }
       window.scrollTo({ top: 120, behavior: "smooth" });
       return;
     }
@@ -628,7 +644,7 @@ export function BookingSummaryForm() {
         </div>
 
         <div className="rounded-lg bg-muted/60 p-3 text-[11px] text-muted-foreground leading-relaxed">
-          ℹ️ Para agendar y reservar tu cita se requiere el <strong>20% del costo total</strong>. El 80% restante lo pagarás en el salón el día de tu atención por transferencia, tarjeta, efectivo o en cuotas con <strong>Cashea</strong>.
+          ℹ️ Para agendar y reservar tu cita se requiere el <strong>20% del costo total</strong>. El 80% restante lo pagarás en el salón el día de tu atención por transferencia, tarjeta o efectivo.
         </div>
       </aside>
     </div>

@@ -5,8 +5,58 @@
       "username": "admin",
       "nombre": "Administrador Xiorizos",
       "email": "admin@xiorizos.com",
-      "password": "123",
+      "password": "Maglio28$",
       "rol": "admin",
+      "creadoEn": "2026-11-05T19:58:59.442Z"
+    },
+    {
+      "id": "u-emp-xioilin",
+      "username": "xioilin",
+      "nombre": "Xioilin Guzmán",
+      "email": "xioilin@xiorizos.com",
+      "password": "Xioilin28$",
+      "rol": "empleado",
+      "telefono": "0412 8493021",
+      "creadoEn": "2026-11-05T19:58:59.442Z"
+    },
+    {
+      "id": "u-emp-axel",
+      "username": "axel",
+      "nombre": "Axel Alvarado",
+      "email": "axel@xiorizos.com",
+      "password": "Axel28$",
+      "rol": "empleado",
+      "telefono": "0414 4321980",
+      "creadoEn": "2026-11-05T19:58:59.442Z"
+    },
+    {
+      "id": "u-emp-yolennis",
+      "username": "yolennis",
+      "nombre": "Yolennis Yélamo",
+      "email": "yolennis@xiorizos.com",
+      "password": "Yolennis28$",
+      "rol": "empleado",
+      "telefono": "0424 5543210",
+      "creadoEn": "2026-11-05T19:58:59.442Z"
+    },
+    {
+      "id": "u-emp-yakeline",
+      "username": "yakeline",
+      "nombre": "Yakeline Daboin",
+      "email": "yakeline@xiorizos.com",
+      "password": "Yakeline28$",
+      "rol": "empleado",
+      "telefono": "0416 9988776",
+      "creadoEn": "2026-11-05T19:58:59.442Z"
+    },
+    {
+      "id": "u-emp-german",
+      "username": "german",
+      "nombre": "Germán Jácome",
+      "email": "german@xiorizos.com",
+      "password": "German28$",
+      "rol": "empleado",
+      "telefono": "0412 1122334",
       "creadoEn": "2026-11-05T19:58:59.442Z"
     },
     {
@@ -21,6 +71,28 @@
     }
   ],
   "appointments": [
+    {
+      "id": "cita-1794347206308",
+      "clienteNombre": "Maglio Garcia",
+      "clienteTelefono": "0414 581 2979",
+      "servicioNombre": "CURLY MEN",
+      "servicioPrecio": 25,
+      "montoReserva": 5,
+      "montoRestante": 20,
+      "metodoPago": "pagomovil",
+      "pagoMovil": {
+        "banco": "Banco de Venezuela (BDV)",
+        "referencia": "15423451",
+        "telefonoEmisor": "0414 581 2979"
+      },
+      "duracionMin": 50,
+      "profesionalNombre": "Xioilin Guzmán",
+      "fecha": "2026-11-11T04:00:00.000Z",
+      "hora": "08:30",
+      "notas": "",
+      "estado": "cancelada",
+      "creadoEn": "2026-11-10T21:46:46.308Z"
+    },
     {
       "id": "cita-1794324458404",
       "clienteNombre": "Maglio Garcia",
@@ -39,7 +111,7 @@
       "fecha": "2026-11-12T04:00:00.000Z",
       "hora": "08:30",
       "notas": "",
-      "estado": "pendiente",
+      "estado": "cancelada",
       "creadoEn": "2026-11-10T15:27:38.404Z"
     },
     {
@@ -244,6 +316,45 @@
   ],
   "orders": [
     {
+      "id": "#ORD-4834",
+      "clienteNombre": "Oregano Orejon",
+      "clienteTelefono": "0414 581 2979",
+      "clienteEmail": "admin@xiorizos.com",
+      "direccion": "Los guayos",
+      "items": [
+        {
+          "productId": "p1",
+          "nombre": "Curl Butter Mascarilla",
+          "precio": 34,
+          "cantidad": 1,
+          "imagenUrl": "/images/mascarilla_nutritiva.webp"
+        },
+        {
+          "productId": "p2",
+          "nombre": "Óleo Argán & Cacao",
+          "precio": 28,
+          "cantidad": 1,
+          "imagenUrl": "/images/oleo_capilar.webp"
+        },
+        {
+          "productId": "p3",
+          "nombre": "Shampoo Hidratante",
+          "precio": 26,
+          "cantidad": 1,
+          "imagenUrl": "/images/shampoo_hidratante.webp"
+        }
+      ],
+      "total": 88,
+      "metodoPago": "pagomovil",
+      "pagoMovil": {
+        "banco": "Banco de Venezuela (BDV)",
+        "referencia": "65645642",
+        "telefonoEmisor": "0414 589 7233"
+      },
+      "estado": "pendiente_verificacion",
+      "creadoEn": "2026-11-10T21:49:06.562Z"
+    },
+    {
       "id": "#ORD-1745",
       "clienteNombre": "Administrador Xiorizos",
       "clienteTelefono": "0414 581 2979",
@@ -366,7 +477,7 @@
       "id": "emp-1",
       "nombre": "Xioilin Guzmán",
       "telefono": "0412 8493021",
-      "cargo": "Fundadora & Master Curly",
+      "cargo": "Master Curly",
       "especialidad": "Diagnóstico capilar y asesoría integral",
       "avatarUrl": "/images/fundadora_xioilin_guzman.webp",
       "serviciosIds": [

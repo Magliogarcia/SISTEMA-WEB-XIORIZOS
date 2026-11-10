@@ -17,8 +17,9 @@ import {
 
 // Horario oficial del salón Xiorizos:
 // Martes a Sábado de 8:30 a.m. a 5:30 p.m.
+// Receso de almuerzo: 12:00 m. a 12:30 p.m. (Desactivado)
 // Domingos y Lunes cerrado.
-const turnosManana = ["08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30"];
+const turnosManana = ["08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30"];
 const turnosTarde = ["13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00"];
 
 export function BookingCalendar() {
@@ -219,7 +220,7 @@ export function BookingCalendar() {
                 <div>
                   <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
                     <Sun className="h-3.5 w-3.5 text-amber-500" />
-                    <span>Turno Mañana (8:30 a.m. - 12:30 p.m.)</span>
+                    <span>Turno Mañana (8:30 a.m. - 11:30 a.m.)</span>
                   </div>
                   <div className="grid grid-cols-3 gap-2">
                     {turnosManana.map((slot) => {
@@ -245,6 +246,16 @@ export function BookingCalendar() {
                       );
                     })}
                   </div>
+                </div>
+
+                {/* Receso de Almuerzo */}
+                <div className="rounded-md bg-amber-50/70 border border-amber-200/80 px-3 py-2 text-xs text-amber-900 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                  <span className="font-semibold flex items-center gap-1.5">
+                    <span>🍽️</span> Receso de almuerzo del personal:
+                  </span>
+                  <span className="text-[11px] font-mono text-amber-800">
+                    12:00 m. a 12:30 p.m. (Pausa operativa)
+                  </span>
                 </div>
 
                 {/* Turno Tarde */}

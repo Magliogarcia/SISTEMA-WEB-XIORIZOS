@@ -8,11 +8,14 @@ import {
   Clock,
   Phone,
   RefreshCw,
-  Scissors,
   RotateCcw,
   Landmark,
   Banknote,
-  Send,
+  Eye,
+  FileText,
+  User,
+  ShieldCheck,
+  CheckCircle2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,6 +25,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { formatDate, formatCurrency } from "@/lib/utils";
+import { normalizeName } from "@/lib/booking-availability";
+import { useAuthStore } from "@/store/auth-store";
 import type { DBAppointment } from "@/lib/db";
 
 function WhatsAppIcon({ className = "w-3.5 h-3.5" }: { className?: string }) {
@@ -43,28 +48,30 @@ function normalizePhoneForWhatsApp(phone: string): string {
 }
 
 function getCitaWhatsAppMessage(cita: DBAppointment): string {
-  const reserva = cita.montoReserva || Math.round(cita.servicioPrecio * 0.2 * 100) / 100;
-  const restante = cita.montoRestante || Math.round((cita.servicioPrecio - reserva) * 100) / 100;
-
-  let detalleAbono = "";
-  if (cita.metodoPago === "pagomovil" && cita.pagoMovil) {
-    detalleAbono = `Hemos verificado con éxito tu abono del 20% ($${reserva.toFixed(2)}) por Pago Móvil (Banco: ${cita.pagoMovil.banco}, Ref: ${cita.pagoMovil.referencia}).`;
-  } else {
-    detalleAbono = `Hemos comprobado y registrado tu abono de reserva del 20% ($${reserva.toFixed(2)}).`;
+  if (cita.metodoPago === "efectivo") {
+    return (
+      `¡Hola ${cita.clienteNombre}! 👋 Te saludamos desde *Estudio Xiorizos* en Naguanagua.\n\n` +
+      `Hemos registrado tu reserva de cita con método de pago en efectivo en salón:\n` +
+      `📅 *Fecha:* ${formatDate(new Date(cita.fecha))}\n` +
+      `⏰ *Hora:* ${cita.hora}\n` +
+      `✂️ *Servicio:* ${cita.servicioNombre}\n` +
+      `👤 *Especialista:* ${cita.profesionalNombre}\n` +
+      `📍 *Lugar:* Planta Baja, Torre Anexa, Centro Científico Metropolitano del Norte, Naguanagua, Edo. Carabobo.\n\n` +
+      `Nos ponemos en contacto contigo para verificar los detalles y dejar tu turno reservado. ¡Te esperamos con mucho amor para consentir tus rizos! 🌿✨`
+    );
   }
 
+  // Pago Móvil confirmado
   return (
-    `¡Hola ${cita.clienteNombre}! 👋 Te saludamos de *Estudio Xiorizos* en Naguanagua.\n\n` +
-    `✅ *¡Tu pago de reserva ha sido comprobado con éxito!*\n` +
-    `${detalleAbono}\n\n` +
-    `✨ *Tu cita ha sido CONFIRMADA oficialmente:*\n` +
+    `¡Hola ${cita.clienteNombre}! 👋 Te saludamos desde *Estudio Xiorizos* en Naguanagua.\n\n` +
+    `✅ *¡Tu abono de reserva ha sido verificado con éxito!*\n\n` +
+    `✨ *Tu cita está CONFIRMADA:*\n` +
     `📅 *Fecha:* ${formatDate(new Date(cita.fecha))}\n` +
     `⏰ *Hora:* ${cita.hora}\n` +
     `✂️ *Servicio:* ${cita.servicioNombre}\n` +
     `👤 *Especialista:* ${cita.profesionalNombre}\n` +
-    `💵 *Monto restante a pagar en el salón (80%):* $${restante.toFixed(2)}\n` +
     `📍 *Lugar:* Planta Baja, Torre Anexa, Centro Científico Metropolitano del Norte, Naguanagua, Edo. Carabobo.\n\n` +
-    `¡Te esperamos con mucho amor para cuidar y consentir tus rizos! 🌿✨ Si necesitas reprogramar con anticipación, por favor escríbenos por aquí.`
+    `¡Te esperamos con muchas ganas para cuidar y consentir tus rizos! 🌿✨`
   );
 }
 
@@ -77,7 +84,10 @@ function getCitaWhatsAppUrl(cita: DBAppointment): string {
 export default function AdminCitasPage() {
   const [citas, setCitas] = useState<DBAppointment[]>([]);
   const [cargando, setCargando] = useState(true);
-  const [modalWhatsAppCita, setModalWhatsAppCita] = useState<DBAppointment | null>(null);
+  const [citaDetalle, setCitaDetalle] = useState<DBAppointment | null>(null);
+
+  const user = useAuthStore((state) => state.user);
+  const esAdmin = user?.rol === "admin";
 
   async function cargarCitas() {
     setCargando(true);
@@ -100,8 +110,7 @@ export default function AdminCitasPage() {
 
   async function cambiarEstado(
     id: string,
-    nuevoEstado: "pendiente" | "confirmada" | "completada" | "cancelada",
-    abrirWhatsAppModal = false
+    nuevoEstado: "pendiente" | "confirmada" | "completada" | "cancelada"
   ) {
     try {
       const res = await fetch("/api/citas", {
@@ -114,14 +123,30 @@ export default function AdminCitasPage() {
         setCitas((prev) =>
           prev.map((c) => (c.id === id ? { ...c, estado: nuevoEstado } : c))
         );
-        // Notificar en vivo a la barra de notificaciones para que se actualice inmediatamente
+        if (citaDetalle?.id === id) {
+          setCitaDetalle((prev) => (prev ? { ...prev, estado: nuevoEstado } : null));
+        }
         window.dispatchEvent(new CustomEvent("xiorizos-admin-update"));
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
 
-        if (abrirWhatsAppModal) {
-          const citaActualizada = citas.find((c) => c.id === id);
-          if (citaActualizada) {
-            setModalWhatsAppCita({ ...citaActualizada, estado: nuevoEstado });
-          }
+  async function marcarNotificadoWhatsApp(id: string) {
+    try {
+      const res = await fetch("/api/citas", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, notificadoWhatsApp: true }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setCitas((prev) =>
+          prev.map((c) => (c.id === id ? { ...c, notificadoWhatsApp: true } : c))
+        );
+        if (citaDetalle?.id === id) {
+          setCitaDetalle((prev) => (prev ? { ...prev, notificadoWhatsApp: true } : null));
         }
       }
     } catch (err) {
@@ -129,16 +154,28 @@ export default function AdminCitasPage() {
     }
   }
 
+  // Filtrado: los empleados solo ven las citas donde ellos son el profesional asignado
+  const citasFiltradas = esAdmin
+    ? citas
+    : citas.filter((c) => {
+        const profNorm = normalizeName(c.profesionalNombre);
+        const userNorm = normalizeName(user?.nombre || "");
+        const userFirst = userNorm.split(" ")[0];
+        return profNorm.includes(userFirst) || userNorm.includes(profNorm);
+      });
+
   return (
     <div className="space-y-6 font-sans">
       {/* Encabezado */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-slate-200">
         <div>
           <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-            Agenda de Citas
+            {esAdmin ? "Agenda de Citas" : "Mis Citas Agendadas"}
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Control de reservas de clientes, especialistas asignados y confirmación de turnos.
+            {esAdmin
+              ? "Control de turnos, confirmación de abonos y asignación de especialistas."
+              : `Turnos asignados a ${user?.nombre || "tu agenda de trabajo"}.`}
           </p>
         </div>
         <Button
@@ -152,43 +189,47 @@ export default function AdminCitasPage() {
         </Button>
       </div>
 
-      {/* Contenedor de Tabla con anchos fijos y sin saltos de línea antiestéticos */}
+      {/* Contenedor de Tabla con bordes limpios (rounded-md) */}
       <div className="rounded-md border border-slate-200 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)] overflow-hidden">
         <div className="p-4 border-b border-slate-200 flex items-center justify-between">
           <h2 className="text-sm font-bold text-slate-900">
-            Citas registradas ({citas.length})
+            {esAdmin
+              ? `Citas registradas (${citasFiltradas.length})`
+              : `Mis citas asignadas (${citasFiltradas.length})`}
           </h2>
         </div>
 
         <div className="overflow-x-auto">
           {cargando ? (
             <div className="py-12 text-center text-xs text-slate-500">Cargando citas...</div>
-          ) : citas.length === 0 ? (
+          ) : citasFiltradas.length === 0 ? (
             <div className="py-12 text-center text-xs text-slate-500">
-              No hay citas registradas en el sistema aún.
+              No hay citas registradas para mostrar.
             </div>
           ) : (
             <table className="w-full text-left border-collapse min-w-[980px]">
               <thead>
                 <tr className="border-b border-slate-200 bg-slate-50/70 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-                  <th className="py-3 px-4 min-w-[200px] whitespace-nowrap">Cliente & Contacto</th>
-                  <th className="py-3 px-4 min-w-[170px]">Servicio & Total</th>
-                  <th className="py-3 px-4 min-w-[200px] whitespace-nowrap">Reserva (20%) & Pago</th>
+                  <th className="py-3 px-4 min-w-[190px] whitespace-nowrap">Cliente & Contacto</th>
+                  <th className="py-3 px-4 min-w-[160px]">Servicio & Abono</th>
                   <th className="py-3 px-4 min-w-[140px] whitespace-nowrap">Especialista</th>
-                  <th className="py-3 px-4 min-w-[160px] whitespace-nowrap">Fecha & Hora</th>
-                  <th className="py-3 px-4 min-w-[140px]">Notas</th>
-                  <th className="py-3 px-4 min-w-[130px] whitespace-nowrap">Estado</th>
-                  <th className="py-3 px-4 min-w-[220px] text-right whitespace-nowrap">Acciones</th>
+                  <th className="py-3 px-4 min-w-[150px] whitespace-nowrap">Fecha & Hora</th>
+                  <th className="py-3 px-4 min-w-[180px]">Notas</th>
+                  <th className="py-3 px-4 min-w-[120px] whitespace-nowrap">Estado</th>
+                  <th className="py-3 px-4 min-w-[200px] text-right whitespace-nowrap">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-xs">
-                {citas.map((cita) => {
+                {citasFiltradas.map((cita) => {
                   const reserva = cita.montoReserva || Math.round(cita.servicioPrecio * 0.2 * 100) / 100;
-                  const restante = cita.montoRestante || Math.round((cita.servicioPrecio - reserva) * 100) / 100;
+
+                  // Condición de WhatsApp: solo si está confirmada o es efectivo
+                  const puedeEnviarWhatsApp =
+                    cita.estado === "confirmada" || cita.metodoPago === "efectivo";
 
                   return (
                     <tr key={cita.id} className="hover:bg-slate-50/80 transition-colors">
-                      {/* Cliente y Teléfono sin saltos de línea cortados */}
+                      {/* Cliente y Teléfono */}
                       <td className="py-3.5 px-4 whitespace-nowrap">
                         <p className="font-semibold text-slate-900 text-sm tracking-tight">{cita.clienteNombre}</p>
                         <p className="flex items-center gap-1.5 text-slate-600 mt-0.5 text-xs font-mono font-medium">
@@ -197,43 +238,13 @@ export default function AdminCitasPage() {
                         </p>
                       </td>
 
-                      {/* Servicio y Precio */}
+                      {/* Servicio y Abono */}
                       <td className="py-3.5 px-4">
-                        <p className="font-semibold text-slate-800 text-xs sm:text-sm">{cita.servicioNombre}</p>
-                        <p className="text-slate-500 font-medium">Total: {formatCurrency(cita.servicioPrecio)}</p>
-                      </td>
-
-                      {/* Abono 20% y Estado de Pago */}
-                      <td className="py-3.5 px-4 whitespace-nowrap">
-                        <div className="space-y-0.5">
-                          <div className="flex items-center gap-1.5">
-                            <span className="font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 text-[11px]">
-                              Abono 20%: {formatCurrency(reserva)}
-                            </span>
-                            <span className="text-[10px] text-slate-500">
-                              (Resta: {formatCurrency(restante)})
-                            </span>
-                          </div>
-                          {cita.metodoPago === "pagomovil" && cita.pagoMovil ? (
-                            <div className="space-y-0.5 text-[11px] text-slate-600">
-                              <p className="flex items-center gap-1">
-                                <Landmark className="h-3 w-3 text-blue-600 shrink-0" />
-                                <span>
-                                  {cita.pagoMovil.banco} &bull; Ref: <strong className="font-mono text-slate-900 bg-slate-100 px-1 rounded">{cita.pagoMovil.referencia}</strong>
-                                </span>
-                              </p>
-                              {cita.pagoMovil.telefonoEmisor && (
-                                <p className="text-[10px] text-slate-500 font-mono">
-                                  Emisor: {cita.pagoMovil.telefonoEmisor}
-                                </p>
-                              )}
-                            </div>
-                          ) : (
-                            <p className="text-[11px] text-slate-500 flex items-center gap-1">
-                              <Banknote className="h-3 w-3 text-slate-400 shrink-0" />
-                              <span>Efectivo en recepción</span>
-                            </p>
-                          )}
+                        <p className="font-semibold text-slate-800 text-xs">{cita.servicioNombre}</p>
+                        <div className="flex items-center gap-1.5 text-slate-500 mt-0.5">
+                          <span>Total: {formatCurrency(cita.servicioPrecio)}</span>
+                          <span className="text-slate-300">&bull;</span>
+                          <span className="text-emerald-700 font-semibold">20%: {formatCurrency(reserva)}</span>
                         </div>
                       </td>
 
@@ -242,229 +253,315 @@ export default function AdminCitasPage() {
                         {cita.profesionalNombre}
                       </td>
 
-                    {/* Fecha y Hora en una sola línea armónica */}
-                    <td className="py-3.5 px-4 whitespace-nowrap">
-                      <p className="font-medium text-slate-800">
-                        {formatDate(new Date(cita.fecha))}
-                      </p>
-                      <p className="font-bold text-slate-900 flex items-center gap-1.5 mt-0.5 text-xs font-mono">
-                        <Clock className="h-3 w-3 text-slate-400" />
-                        <span>{cita.hora}</span>
-                      </p>
-                    </td>
+                      {/* Fecha y Hora */}
+                      <td className="py-3.5 px-4 whitespace-nowrap">
+                        <p className="font-medium text-slate-800">
+                          {formatDate(new Date(cita.fecha))}
+                        </p>
+                        <p className="font-bold text-slate-900 flex items-center gap-1.5 mt-0.5 text-xs font-mono">
+                          <Clock className="h-3 w-3 text-slate-400" />
+                          <span>{cita.hora}</span>
+                        </p>
+                      </td>
 
-                    {/* Notas */}
-                    <td className="py-3.5 px-4 max-w-[200px] text-slate-500 truncate" title={cita.notas}>
-                      {cita.notas || "Sin notas"}
-                    </td>
-
-                    {/* Estado con Selector / Indicador */}
-                    <td className="py-3.5 px-4 whitespace-nowrap">
-                      <select
-                        value={cita.estado}
-                        onChange={(e) =>
-                          cambiarEstado(
-                            cita.id,
-                            e.target.value as "pendiente" | "confirmada" | "completada" | "cancelada"
-                          )
-                        }
-                        className={`text-xs font-semibold px-2 py-1 rounded border cursor-pointer focus:outline-none focus:ring-1 focus:ring-slate-400 ${
-                          cita.estado === "confirmada"
-                            ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                            : cita.estado === "completada"
-                            ? "bg-blue-50 text-blue-700 border-blue-200"
-                            : cita.estado === "cancelada"
-                            ? "bg-rose-50 text-rose-700 border-rose-200"
-                            : "bg-amber-50 text-amber-700 border-amber-200"
-                        }`}
-                      >
-                        <option value="pendiente">Pendiente</option>
-                        <option value="confirmada">Confirmada</option>
-                        <option value="completada">Completada</option>
-                        <option value="cancelada">Cancelada</option>
-                      </select>
-                    </td>
-
-                    {/* Acciones reversibles para cualquier estado */}
-                    <td className="py-3.5 px-4 text-right whitespace-nowrap">
-                      <div className="flex items-center justify-end gap-1.5">
-                        {/* Botón directo de WhatsApp para contactar o notificar al cliente */}
-                        <a
-                          href={getCitaWhatsAppUrl(cita)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-semibold text-white bg-[#25D366] hover:bg-[#20bd5a] transition-all cursor-pointer shadow-xs"
-                          title="Enviar mensaje de confirmación oficial al WhatsApp del cliente"
+                      {/* Notas: Truncado estricto para no colisionar con el siguiente campo */}
+                      <td className="py-3.5 px-4 max-w-[180px]">
+                        <p
+                          className="truncate text-slate-600 cursor-help"
+                          title={cita.notas || "Sin notas"}
                         >
-                          <WhatsAppIcon className="h-3.5 w-3.5" />
-                          <span>WhatsApp</span>
-                        </a>
+                          {cita.notas || <span className="text-slate-400 italic">Sin notas</span>}
+                        </p>
+                      </td>
 
-                        {cita.estado === "pendiente" && (
-                          <>
-                            <button
-                              type="button"
-                              onClick={() => cambiarEstado(cita.id, "confirmada", true)}
-                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-colors cursor-pointer"
-                              title="Confirmar cita y enviar WhatsApp"
-                            >
-                              <Check className="h-3 w-3" />
-                              <span>Confirmar</span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => cambiarEstado(cita.id, "cancelada")}
-                              className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold text-rose-700 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-colors cursor-pointer"
-                              title="Cancelar cita"
-                            >
-                              <X className="h-3 w-3" />
-                              <span>Cancelar</span>
-                            </button>
-                          </>
-                        )}
+                      {/* Estado: Badge limpio (NO selector editable en tabla) */}
+                      <td className="py-3.5 px-4 whitespace-nowrap">
+                        <span
+                          className={`inline-block text-[11px] font-semibold px-2.5 py-1 rounded-md border ${
+                            cita.estado === "confirmada"
+                              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                              : cita.estado === "completada"
+                              ? "bg-blue-50 text-blue-700 border-blue-200"
+                              : cita.estado === "cancelada"
+                              ? "bg-rose-50 text-rose-700 border-rose-200"
+                              : "bg-amber-50 text-amber-700 border-amber-200"
+                          }`}
+                        >
+                          {cita.estado === "confirmada"
+                            ? "Confirmada"
+                            : cita.estado === "completada"
+                            ? "Completada"
+                            : cita.estado === "cancelada"
+                            ? "Cancelada"
+                            : "Pendiente"}
+                        </span>
+                      </td>
 
-                        {cita.estado === "confirmada" && (
-                          <>
-                            <button
-                              type="button"
-                              onClick={() => cambiarEstado(cita.id, "completada")}
-                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 transition-colors cursor-pointer"
-                              title="Marcar como atendida/completada"
-                            >
-                              <CalendarCheck className="h-3 w-3" />
-                              <span>Completada</span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => cambiarEstado(cita.id, "pendiente")}
-                              className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold text-amber-700 hover:bg-amber-50 border border-transparent hover:border-amber-200 transition-colors cursor-pointer"
-                              title="Revertir a Pendiente"
-                            >
-                              <RotateCcw className="h-3 w-3" />
-                              <span>Pendiente</span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => cambiarEstado(cita.id, "cancelada")}
-                              className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold text-rose-700 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-colors cursor-pointer"
-                              title="Cancelar cita"
-                            >
-                              <X className="h-3 w-3" />
-                              <span>Cancelar</span>
-                            </button>
-                          </>
-                        )}
+                      {/* Acciones */}
+                      <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                        <div className="flex items-center justify-end gap-2">
+                          {/* Botón WhatsApp: SOLO aparece tras confirmar o en efectivo, y desaparece tras ser notificado */}
+                          {puedeEnviarWhatsApp && (
+                            cita.notificadoWhatsApp ? (
+                              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-800 bg-emerald-50/80 px-2 py-0.5 rounded-md border border-emerald-200">
+                                <WhatsAppIcon className="w-3 h-3 text-[#25D366]" />
+                                <span>Notificado</span>
+                              </span>
+                            ) : (
+                              <a
+                                href={getCitaWhatsAppUrl(cita)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={() => marcarNotificadoWhatsApp(cita.id)}
+                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold text-white bg-[#25D366] hover:bg-[#20bd5a] transition-all cursor-pointer shadow-xs"
+                                title="Enviar confirmación oficial por WhatsApp"
+                              >
+                                <WhatsAppIcon className="h-3 w-3" />
+                                <span>WhatsApp</span>
+                              </a>
+                            )
+                          )}
 
-                        {cita.estado === "cancelada" && (
+                          {/* Botón único de Detalle y Gestión para evitar redundancia */}
                           <button
                             type="button"
-                            onClick={() => cambiarEstado(cita.id, "confirmada", true)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1 rounded text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-colors cursor-pointer"
-                            title="Deshacer cancelación y reactivar la cita"
+                            onClick={() => setCitaDetalle(cita)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold text-slate-700 hover:bg-slate-100 border border-slate-200 transition-colors cursor-pointer"
+                            title="Ver información completa y gestionar cita"
                           >
-                            <RotateCcw className="h-3 w-3" />
-                            <span>Reactivar cita</span>
+                            <Eye className="h-3 w-3" />
+                            <span>Detalle</span>
                           </button>
-                        )}
-
-                        {cita.estado === "completada" && (
-                          <button
-                            type="button"
-                            onClick={() => cambiarEstado(cita.id, "confirmada")}
-                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold text-slate-700 hover:bg-slate-100 border border-slate-200 transition-colors cursor-pointer"
-                            title="Reabrir cita"
-                          >
-                            <RotateCcw className="h-3 w-3" />
-                            <span>Reabrir</span>
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
             </table>
           )}
         </div>
       </div>
 
-      {/* Modal Dialog para Notificación de Cita por WhatsApp */}
-      {modalWhatsAppCita && (
-        <Dialog open={!!modalWhatsAppCita} onOpenChange={() => setModalWhatsAppCita(null)}>
-          <DialogContent className="max-w-md rounded-md max-h-[85vh] overflow-y-auto">
-            <DialogHeader className="pb-2 border-b border-slate-200">
-              <DialogTitle className="flex items-center gap-2 text-base font-bold text-slate-900">
-                <div className="w-8 h-8 rounded-full bg-[#25D366]/20 text-[#25D366] flex items-center justify-center shrink-0">
-                  <WhatsAppIcon className="w-4 h-4 text-[#25D366]" />
-                </div>
-                <div>
-                  <p className="leading-tight">Cita Confirmada</p>
-                  <p className="text-[11px] font-normal text-slate-500">
-                    Notificar comprobación de abono por WhatsApp
-                  </p>
-                </div>
-              </DialogTitle>
+      {/* Modal Detalle Completo y Gestión de la Cita */}
+      {citaDetalle && (
+        <Dialog open={!!citaDetalle} onOpenChange={() => setCitaDetalle(null)}>
+          <DialogContent className="max-w-lg rounded-md max-h-[85vh] overflow-y-auto font-sans">
+            <DialogHeader className="pb-3 border-b border-slate-200">
+              <div className="flex items-center justify-between">
+                <DialogTitle className="text-base font-bold text-slate-900">
+                  Detalle de Cita
+                </DialogTitle>
+                <span
+                  className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-md border ${
+                    citaDetalle.estado === "confirmada"
+                      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                      : citaDetalle.estado === "completada"
+                      ? "bg-blue-50 text-blue-700 border-blue-200"
+                      : citaDetalle.estado === "cancelada"
+                      ? "bg-rose-50 text-rose-700 border-rose-200"
+                      : "bg-amber-50 text-amber-700 border-amber-200"
+                  }`}
+                >
+                  {citaDetalle.estado === "confirmada"
+                    ? "Confirmada"
+                    : citaDetalle.estado === "completada"
+                    ? "Completada"
+                    : citaDetalle.estado === "cancelada"
+                    ? "Cancelada"
+                    : "Pendiente"}
+                </span>
+              </div>
             </DialogHeader>
 
-            <div className="space-y-3.5 pt-2 text-xs">
-              <div className="p-3 bg-slate-50 rounded-md border border-slate-200 space-y-1">
-                <p className="font-semibold text-slate-900 text-sm">
-                  {modalWhatsAppCita.clienteNombre}
+            <div className="space-y-4 pt-2 text-xs">
+              {/* Tarjeta de Cliente y Contacto */}
+              <div className="p-3.5 bg-slate-50 rounded-md border border-slate-200 space-y-1.5">
+                <p className="font-semibold text-slate-900 text-sm">{citaDetalle.clienteNombre}</p>
+                <p className="flex items-center gap-1.5 text-slate-600 font-mono">
+                  <Phone className="h-3.5 w-3.5 text-slate-400" />
+                  <span>{citaDetalle.clienteTelefono}</span>
                 </p>
-                <p className="text-slate-600 font-mono">
-                  Teléfono: {modalWhatsAppCita.clienteTelefono}
-                </p>
-                <p className="text-slate-600">
-                  <strong>Servicio:</strong> {modalWhatsAppCita.servicioNombre}
-                </p>
-                <p className="text-slate-600">
-                  <strong>Fecha y Hora:</strong> {formatDate(new Date(modalWhatsAppCita.fecha))} a las {modalWhatsAppCita.hora}
-                </p>
-                <p className="text-slate-600">
-                  <strong>Especialista:</strong> {modalWhatsAppCita.profesionalNombre}
-                </p>
-                {modalWhatsAppCita.pagoMovil && (
-                  <div className="mt-2 pt-2 border-t border-slate-200 text-slate-700">
-                    <p className="font-semibold text-slate-800">Comprobante Pago Móvil:</p>
-                    <p>Banco: {modalWhatsAppCita.pagoMovil.banco} &bull; Ref: <strong className="font-mono">{modalWhatsAppCita.pagoMovil.referencia}</strong></p>
-                    {modalWhatsAppCita.pagoMovil.telefonoEmisor && (
-                      <p className="font-mono text-slate-500">Teléfono emisor: {modalWhatsAppCita.pagoMovil.telefonoEmisor}</p>
+                <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-200 text-slate-700">
+                  <p><strong>Servicio:</strong> {citaDetalle.servicioNombre}</p>
+                  <p><strong>Especialista:</strong> {citaDetalle.profesionalNombre}</p>
+                  <p><strong>Fecha:</strong> {formatDate(new Date(citaDetalle.fecha))}</p>
+                  <p><strong>Hora:</strong> {citaDetalle.hora}</p>
+                </div>
+              </div>
+
+              {/* Información de Pago y Reserva */}
+              <div className="p-3.5 bg-slate-50 rounded-md border border-slate-200 space-y-1.5 text-slate-700">
+                <div className="flex items-center justify-between pb-1 border-b border-slate-200">
+                  <span className="font-semibold text-slate-900">Método de Abono:</span>
+                  <span className="font-medium flex items-center gap-1">
+                    {citaDetalle.metodoPago === "pagomovil" ? (
+                      <>
+                        <Landmark className="h-3.5 w-3.5 text-blue-600" />
+                        <span>Pago Móvil</span>
+                      </>
+                    ) : (
+                      <>
+                        <Banknote className="h-3.5 w-3.5 text-slate-600" />
+                        <span>Efectivo en Salón</span>
+                      </>
+                    )}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                  <div>
+                    <span className="text-slate-500">Total Servicio:</span>
+                    <p className="font-bold text-slate-900">{formatCurrency(citaDetalle.servicioPrecio)}</p>
+                  </div>
+                  <div>
+                    <span className="text-slate-500">Abono 20%:</span>
+                    <p className="font-bold text-emerald-700">
+                      {formatCurrency(citaDetalle.montoReserva || citaDetalle.servicioPrecio * 0.2)}
+                    </p>
+                  </div>
+                </div>
+
+                {citaDetalle.metodoPago === "pagomovil" && citaDetalle.pagoMovil && (
+                  <div className="mt-2 pt-2 border-t border-slate-200 space-y-1">
+                    <p><strong>Banco Emisor:</strong> {citaDetalle.pagoMovil.banco}</p>
+                    <p>
+                      <strong>Número de Referencia:</strong>{" "}
+                      <span className="font-mono font-bold bg-white px-2 py-0.5 rounded border border-slate-200">
+                        {citaDetalle.pagoMovil.referencia}
+                      </span>
+                    </p>
+                    {citaDetalle.pagoMovil.telefonoEmisor && (
+                      <p><strong>Teléfono Emisor:</strong> {citaDetalle.pagoMovil.telefonoEmisor}</p>
                     )}
                   </div>
                 )}
               </div>
 
-              <div>
-                <p className="font-semibold text-slate-800 mb-1">
-                  Mensaje preparado para WhatsApp:
+              {/* Notas del Cliente completas (sin recortar) */}
+              <div className="p-3 bg-slate-50 rounded-md border border-slate-200">
+                <p className="font-semibold text-slate-900 mb-1 flex items-center gap-1.5">
+                  <FileText className="h-3.5 w-3.5 text-slate-400" />
+                  <span>Notas o indicaciones del cliente:</span>
                 </p>
-                <pre className="p-3 bg-slate-900 text-slate-100 rounded-md text-[11px] font-sans whitespace-pre-wrap leading-relaxed max-h-44 overflow-y-auto">
-                  {getCitaWhatsAppMessage(modalWhatsAppCita)}
-                </pre>
+                <p className="text-slate-700 whitespace-pre-wrap leading-relaxed">
+                  {citaDetalle.notas ? citaDetalle.notas : <span className="text-slate-400 italic">No se indicaron notas adicionales.</span>}
+                </p>
               </div>
 
-              <div className="pt-2 border-t border-slate-200 flex items-center justify-between gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setModalWhatsAppCita(null)}
-                  className="rounded-md text-xs border-slate-300"
-                >
-                  Cerrar
-                </Button>
-
-                <a
-                  href={getCitaWhatsAppUrl(modalWhatsAppCita)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={() => setModalWhatsAppCita(null)}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-md text-xs font-bold text-white bg-[#25D366] hover:bg-[#20bd5a] transition-all shadow-sm"
-                >
-                  <WhatsAppIcon className="w-4 h-4" />
-                  <span>Abrir WhatsApp y Enviar</span>
-                </a>
+              {/* Notificación por WhatsApp dentro del Modal */}
+              <div className="p-3 bg-emerald-50/50 rounded-md border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <p className="font-semibold text-slate-900 flex items-center gap-1.5">
+                    <WhatsAppIcon className="w-3.5 h-3.5 text-[#25D366]" />
+                    <span>Notificación por WhatsApp:</span>
+                  </p>
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    {citaDetalle.notificadoWhatsApp
+                      ? "Ya se envió mensaje de confirmación/contacto al cliente."
+                      : "Puedes enviar el mensaje oficial predeterminado directamente."}
+                  </p>
+                </div>
+                {citaDetalle.notificadoWhatsApp ? (
+                  <span className="text-[11px] font-semibold text-emerald-800 bg-emerald-100 px-2.5 py-1 rounded-md">
+                    ✓ Ya notificado
+                  </span>
+                ) : (
+                  <a
+                    href={getCitaWhatsAppUrl(citaDetalle)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => marcarNotificadoWhatsApp(citaDetalle.id)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold text-white bg-[#25D366] hover:bg-[#20bd5a] transition-all shadow-xs shrink-0"
+                  >
+                    <WhatsAppIcon className="w-3.5 h-3.5" />
+                    <span>Abrir WhatsApp</span>
+                  </a>
+                )}
               </div>
+
+              {/* Botones de Acción Reversibles */}
+              {esAdmin && (
+                <div className="pt-3 border-t border-slate-200 flex flex-wrap items-center justify-end gap-2">
+                  {citaDetalle.estado === "pendiente" && (
+                    <>
+                      <Button
+                        size="sm"
+                        onClick={() => cambiarEstado(citaDetalle.id, "confirmada")}
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-md text-xs font-semibold"
+                      >
+                        <Check className="h-3.5 w-3.5 mr-1" />
+                        Confirmar Cita
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => cambiarEstado(citaDetalle.id, "cancelada")}
+                        className="text-rose-700 hover:bg-rose-50 border-rose-200 rounded-md text-xs"
+                      >
+                        <X className="h-3.5 w-3.5 mr-1" />
+                        Cancelar Cita
+                      </Button>
+                    </>
+                  )}
+
+                  {citaDetalle.estado === "confirmada" && (
+                    <>
+                      <Button
+                        size="sm"
+                        onClick={() => cambiarEstado(citaDetalle.id, "completada")}
+                        className="bg-blue-600 hover:bg-blue-700 text-white rounded-md text-xs font-semibold"
+                      >
+                        <CalendarCheck className="h-3.5 w-3.5 mr-1" />
+                        Marcar Atendida
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => cambiarEstado(citaDetalle.id, "pendiente")}
+                        className="text-amber-700 hover:bg-amber-50 border-amber-200 rounded-md text-xs"
+                        title="Revertir por si se confirmó por error"
+                      >
+                        <RotateCcw className="h-3.5 w-3.5 mr-1" />
+                        Revertir a Pendiente
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => cambiarEstado(citaDetalle.id, "cancelada")}
+                        className="text-rose-700 hover:bg-rose-50 border-rose-200 rounded-md text-xs"
+                      >
+                        Cancelar
+                      </Button>
+                    </>
+                  )}
+
+                  {citaDetalle.estado === "completada" && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => cambiarEstado(citaDetalle.id, "confirmada")}
+                      className="border-slate-300 text-slate-700 hover:bg-slate-50 rounded-md text-xs"
+                      title="Reabrir si se marcó por error"
+                    >
+                      <RotateCcw className="h-3.5 w-3.5 mr-1" />
+                      Revertir a Confirmada
+                    </Button>
+                  )}
+
+                  {citaDetalle.estado === "cancelada" && (
+                    <Button
+                      size="sm"
+                      onClick={() => cambiarEstado(citaDetalle.id, "confirmada")}
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-md text-xs font-semibold"
+                      title="Deshacer cancelación"
+                    >
+                      <RotateCcw className="h-3.5 w-3.5 mr-1" />
+                      Reactivar Cita
+                    </Button>
+                  )}
+                </div>
+              )}
             </div>
           </DialogContent>
         </Dialog>

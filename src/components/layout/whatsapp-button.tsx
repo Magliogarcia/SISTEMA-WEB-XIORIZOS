@@ -1,16 +1,22 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useCartStore } from "@/store/cart-store";
 
 export function WhatsAppButton() {
   const isCartOpen = useCartStore((state) => state.isOpen);
+  const [mounted, setMounted] = useState(false);
 
-  if (isCartOpen) return null;
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted || isCartOpen) return null;
 
   return (
     <aside
       aria-label="Atención al cliente por WhatsApp"
-      className="fixed bottom-6 right-6 z-40 flex items-center group"
+      className="fixed bottom-6 right-6 z-30 flex items-center group transition-all duration-200"
     >
       <span className="hidden sm:inline-block mr-3 bg-white text-on-surface text-xs font-semibold px-3 py-1.5 rounded-full shadow-lg border border-surface-container opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
         ¿Dudas? Escríbenos por WhatsApp

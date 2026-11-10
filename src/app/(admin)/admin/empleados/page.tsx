@@ -264,15 +264,21 @@ export default function AdminEmpleadosPage() {
                   <div>
                     <div className="flex items-center gap-2">
                       <h3 className="font-semibold text-sm text-slate-900">{emp.nombre}</h3>
-                      <span
-                        className={`text-[11px] font-semibold px-2 py-0.5 rounded ${
-                          emp.activo !== false
-                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                            : "bg-rose-50 text-rose-700 border border-rose-200"
-                        }`}
-                      >
-                        {emp.activo !== false ? "Operativo en Agenda" : "Inoperativo"}
-                      </span>
+                      {emp.nombre.toLowerCase().includes("germán") || emp.cargo.toLowerCase().includes("gerente") || emp.serviciosIds.length === 0 ? (
+                        <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200">
+                          Rol Gerencial (No Agendable)
+                        </span>
+                      ) : (
+                        <span
+                          className={`text-[11px] font-semibold px-2 py-0.5 rounded-md ${
+                            emp.activo !== false
+                              ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                              : "bg-rose-50 text-rose-700 border border-rose-200"
+                          }`}
+                        >
+                          {emp.activo !== false ? "Operativo en Agenda" : "Inoperativo"}
+                        </span>
+                      )}
                     </div>
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500 mt-0.5">
                       <span className="flex items-center gap-1 text-slate-700 font-medium">
@@ -293,7 +299,7 @@ export default function AdminEmpleadosPage() {
                       )}
                     </div>
                     {emp.activo === false && emp.motivoInoperativo && (
-                      <p className="text-xs text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 mt-1.5 w-fit">
+                      <p className="text-xs text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200 mt-1.5 w-fit">
                         Motivo: {emp.motivoInoperativo}
                       </p>
                     )}
@@ -302,32 +308,38 @@ export default function AdminEmpleadosPage() {
 
                 {/* Acciones y Toggle */}
                 <div className="flex items-center gap-2 self-end sm:self-auto">
-                  <button
-                    type="button"
-                    onClick={() => toggleEstado(emp)}
-                    className={`inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-semibold border transition-colors cursor-pointer ${
-                      emp.activo !== false
-                        ? "text-amber-700 bg-amber-50 hover:bg-amber-100 border-amber-200"
-                        : "text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border-emerald-200"
-                    }`}
-                    title={
-                      emp.activo !== false
-                        ? "Hacer clic para marcar como Inoperativo (ocultar de la agenda del cliente)"
-                        : "Hacer clic para activar y habilitar en la agenda del cliente"
-                    }
-                  >
-                    {emp.activo !== false ? (
-                      <>
-                        <XCircle className="h-3 w-3 text-amber-600" />
-                        <span>Desactivar</span>
-                      </>
-                    ) : (
-                      <>
-                        <CheckCircle2 className="h-3 w-3 text-emerald-600" />
-                        <span>Activar en Agenda</span>
-                      </>
-                    )}
-                  </button>
+                  {emp.nombre.toLowerCase().includes("germán") || emp.cargo.toLowerCase().includes("gerente") || emp.serviciosIds.length === 0 ? (
+                    <span className="text-xs text-slate-400 font-medium italic">
+                      Administración General
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => toggleEstado(emp)}
+                      className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold border transition-colors cursor-pointer ${
+                        emp.activo !== false
+                          ? "text-amber-700 bg-amber-50 hover:bg-amber-100 border-amber-200"
+                          : "text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border-emerald-200"
+                      }`}
+                      title={
+                        emp.activo !== false
+                          ? "Hacer clic para marcar como Inoperativo (ocultar de la agenda del cliente)"
+                          : "Hacer clic para activar y habilitar en la agenda del cliente"
+                      }
+                    >
+                      {emp.activo !== false ? (
+                        <>
+                          <XCircle className="h-3 w-3 text-amber-600" />
+                          <span>Desactivar</span>
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle2 className="h-3 w-3 text-emerald-600" />
+                          <span>Activar en Agenda</span>
+                        </>
+                      )}
+                    </button>
+                  )}
 
                   <button
                     type="button"

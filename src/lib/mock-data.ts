@@ -326,7 +326,7 @@ export const realStaffMembers: RealStaffMember[] = [
   {
     id: "st1",
     nombre: "Xioilin Guzmán",
-    cargo: "Fundadora & Master Curly",
+    cargo: "Master Curly",
     descripcion: "Pionera en el cuidado de rizos, ondas y cabello afro en Valencia con amplia trayectoria en asesoría y salud capilar.",
     imagenUrl: "/images/fundadora_xioilin_guzman.webp",
     especialidad: "Diagnóstico capilar y asesoría integral",

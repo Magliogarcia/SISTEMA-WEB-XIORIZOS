@@ -34,10 +34,14 @@ const menuItems = [
 ];
 
 export function AdminTopbar() {
+  const user = useAuthStore((state) => state.user);
   const [open, setOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
-  const user = useAuthStore((state) => state.user);
+  const esAdmin = user?.rol === "admin";
+  const visibleMenuItems = esAdmin
+    ? menuItems
+    : [{ href: "/admin/citas", label: "Mis Citas Agendadas", icon: CalendarCheck }];
 
   // Estados de notificaciones en vivo
   const [citasPendientes, setCitasPendientes] = useState(0);
@@ -127,7 +131,7 @@ export function AdminTopbar() {
             <SheetTitle className="text-left font-bold text-primary">Xiorizos Admin</SheetTitle>
           </SheetHeader>
           <nav className="space-y-1 p-3">
-            {menuItems.map((item) => {
+            {visibleMenuItems.map((item) => {
               const Icon = item.icon;
               return (
                 <Link
@@ -286,7 +290,9 @@ export function AdminTopbar() {
             <p className="text-xs font-semibold text-slate-900 leading-none">
               {user?.nombre ?? "Administrador"}
             </p>
-            <p className="text-[10px] text-slate-500 mt-0.5">admin</p>
+            <p className="text-[10px] text-slate-500 mt-0.5">
+              {user?.rol === "admin" ? "Administrador" : "Especialista"}
+            </p>
           </div>
         </div>
       </div>
