@@ -5,6 +5,7 @@ import {
   Check,
   X,
   CalendarCheck,
+  AlertTriangle,
   Clock,
   Phone,
   RefreshCw,
@@ -75,6 +76,27 @@ function getCitaWhatsAppMessage(cita: DBAppointment): string {
   );
 }
 
+function getCitaPagoErroneoWhatsAppMessage(cita: DBAppointment): string {
+  const reserva = cita.montoReserva || Math.round(cita.servicioPrecio * 0.2 * 100) / 100;
+  return (
+    `¡Hola ${cita.clienteNombre}! 👋 Te saludamos desde *Estudio Xiorizos* en Naguanagua.\n\n` +
+    `Estuvimos revisando tu reserva para el *${formatDate(new Date(cita.fecha))}* a las *${cita.hora}*, pero no pudimos comprobar el abono del 20% ($${reserva.toFixed(2)}) porque los datos bancarios ingresados presentan alguna inconsistencia.\n\n` +
+    `Por favor, reenvíanos los datos correctos por aquí o comparte una captura del comprobante bancario para verificarlo y dejar tu turno confirmado oficialmente:\n\n` +
+    `📋 *Formato para comprobar tu pago:*\n` +
+    `• Banco emisor:\n` +
+    `• Número de referencia:\n` +
+    `• Teléfono emisor:\n` +
+    `• Monto transferido ($ o Bs.):\n\n` +
+    `¡Quedamos atentos para ayudarte a asegurar tu cita! 🌿✨`
+  );
+}
+
+function getCitaPagoErroneoWhatsAppUrl(cita: DBAppointment): string {
+  const phone = normalizePhoneForWhatsApp(cita.clienteTelefono);
+  const msg = getCitaPagoErroneoWhatsAppMessage(cita);
+  return `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+}
+
 function getCitaWhatsAppUrl(cita: DBAppointment): string {
   const phone = normalizePhoneForWhatsApp(cita.clienteTelefono);
   const msg = getCitaWhatsAppMessage(cita);
@@ -85,6 +107,8 @@ export default function AdminCitasPage() {
   const [citas, setCitas] = useState<DBAppointment[]>([]);
   const [cargando, setCargando] = useState(true);
   const [citaDetalle, setCitaDetalle] = useState<DBAppointment | null>(null);
+  const [mostrarErrorPago, setMostrarErrorPago] = useState(false);
+
 
   const user = useAuthStore((state) => state.user);
   const esAdmin = user?.rol === "admin";
@@ -311,8 +335,8 @@ export default function AdminCitasPage() {
 
       {/* Modal Rediseñado: Detalle Completo y Gestión de la Cita */}
       {citaDetalle && (
-        <Dialog open={!!citaDetalle} onOpenChange={() => setCitaDetalle(null)}>
-          <DialogContent className="max-w-xl rounded-md max-h-[88vh] overflow-y-auto font-sans p-5 sm:p-6">
+        <Dialog open={!!citaDetalle} onOpenChange={() => { setCitaDetalle(null); setMostrarErrorPago(false); }}>
+          <DialogContent className="max-w-xl rounded-sm max-h-[90vh] overflow-y-auto font-sans p-5 sm:p-6 border border-slate-200">
             <DialogHeader className="pb-3 border-b border-slate-200">
               <div className="flex items-center justify-between">
                 <div>
@@ -320,7 +344,7 @@ export default function AdminCitasPage() {
                     Detalle de Cita
                   </DialogTitle>
                   <p className="text-[11px] text-slate-500 font-mono mt-0.5">
-                    ID: {citaDetalle.id} &bull; Agendada: {formatDate(new Date(citaDetalle.creadoEn || citaDetalle.fecha))}
+                    ID: {citaDetalle.id} &bull; Solicitada: {formatDate(new Date(citaDetalle.creadoEn || citaDetalle.fecha))}
                   </p>
                 </div>
                 <span className="inline-flex items-center gap-1.5 text-xs font-semibold">
@@ -358,60 +382,36 @@ export default function AdminCitasPage() {
               </div>
             </DialogHeader>
 
-            <div className="space-y-4 pt-2 text-xs">
-              {/* Tarjeta 1: Cliente y Contacto Directo */}
-              <div className="p-3.5 bg-slate-50 rounded-md border border-slate-200">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                  <div>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Cliente</span>
-                    <p className="font-bold text-slate-900 text-sm mt-0.5">{citaDetalle.clienteNombre}</p>
-                    <p className="flex items-center gap-1.5 text-slate-600 font-mono mt-0.5 text-xs">
-                      <Phone className="h-3.5 w-3.5 text-slate-400" />
-                      <span>{citaDetalle.clienteTelefono}</span>
-                    </p>
-                  </div>
-
-                  {/* Botón WhatsApp */}
-                  {citaDetalle.notificadoWhatsApp ? (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-800 bg-emerald-100/70 px-2.5 py-1 rounded-md self-start sm:self-auto">
-                      <WhatsAppIcon className="w-3.5 h-3.5 text-[#25D366]" />
-                      <span>✓ Notificado por WhatsApp</span>
-                    </span>
-                  ) : (
-                    <a
-                      href={getCitaWhatsAppUrl(citaDetalle)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={() => marcarNotificadoWhatsApp(citaDetalle.id)}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold text-white bg-[#25D366] hover:bg-[#20bd5a] transition-all shadow-xs self-start sm:self-auto shrink-0"
-                      title="Abrir chat en WhatsApp y notificar al cliente"
-                    >
-                      <WhatsAppIcon className="w-3.5 h-3.5" />
-                      <span>Contactar por WhatsApp</span>
-                    </a>
-                  )}
-                </div>
+            <div className="space-y-3.5 pt-2 text-xs divide-y divide-slate-100">
+              {/* Sección 1: Datos del Cliente */}
+              <div className="pt-1">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Cliente</span>
+                <p className="font-bold text-slate-900 text-sm">{citaDetalle.clienteNombre}</p>
+                <p className="flex items-center gap-1.5 text-slate-600 font-mono text-xs mt-0.5">
+                  <Phone className="h-3.5 w-3.5 text-slate-400" />
+                  <span>{citaDetalle.clienteTelefono}</span>
+                </p>
               </div>
 
-              {/* Tarjeta 2: Servicio & Horario */}
-              <div className="p-3.5 bg-slate-50 rounded-md border border-slate-200 space-y-2">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Servicio Agendado</span>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-slate-700 pt-0.5">
+              {/* Sección 2: Servicio & Horario */}
+              <div className="pt-3">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Servicio Agendado</span>
+                <div className="grid grid-cols-2 gap-3 text-slate-700">
                   <div>
-                    <p className="text-slate-500 text-[11px]">Servicio:</p>
-                    <p className="font-semibold text-slate-900 text-xs">{citaDetalle.servicioNombre}</p>
+                    <span className="text-slate-500 text-[11px] block">Servicio:</span>
+                    <p className="font-semibold text-slate-900">{citaDetalle.servicioNombre}</p>
                   </div>
                   <div>
-                    <p className="text-slate-500 text-[11px]">Especialista Asignado:</p>
-                    <p className="font-semibold text-slate-900 text-xs">{citaDetalle.profesionalNombre}</p>
+                    <span className="text-slate-500 text-[11px] block">Especialista:</span>
+                    <p className="font-semibold text-slate-900">{citaDetalle.profesionalNombre}</p>
                   </div>
                   <div>
-                    <p className="text-slate-500 text-[11px]">Fecha:</p>
-                    <p className="font-semibold text-slate-900 text-xs">{formatDate(new Date(citaDetalle.fecha))}</p>
+                    <span className="text-slate-500 text-[11px] block">Fecha:</span>
+                    <p className="font-semibold text-slate-900">{formatDate(new Date(citaDetalle.fecha))}</p>
                   </div>
                   <div>
-                    <p className="text-slate-500 text-[11px]">Horario:</p>
-                    <p className="font-semibold text-slate-900 text-xs flex items-center gap-1">
+                    <span className="text-slate-500 text-[11px] block">Hora:</span>
+                    <p className="font-semibold text-slate-900 flex items-center gap-1">
                       <Clock className="w-3 h-3 text-slate-400" />
                       <span>{citaDetalle.hora}</span>
                       {citaDetalle.duracionMin && <span className="text-slate-500 font-normal">({citaDetalle.duracionMin} min)</span>}
@@ -420,9 +420,9 @@ export default function AdminCitasPage() {
                 </div>
               </div>
 
-              {/* Tarjeta 3: Desglose Financiero y Método de Pago */}
-              <div className="p-3.5 bg-slate-50 rounded-md border border-slate-200 space-y-2.5">
-                <div className="flex items-center justify-between pb-1 border-b border-slate-200">
+              {/* Sección 3: Desglose de Pago */}
+              <div className="pt-3 space-y-2">
+                <div className="flex items-center justify-between">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Desglose de Pago</span>
                   <span className="font-medium text-xs flex items-center gap-1 text-slate-700">
                     {citaDetalle.metodoPago === "pagomovil" ? (
@@ -439,7 +439,7 @@ export default function AdminCitasPage() {
                   </span>
                 </div>
 
-                <div className="grid grid-cols-3 gap-2 text-center py-1 bg-white p-2.5 rounded-md border border-slate-200">
+                <div className="grid grid-cols-3 gap-2 text-center py-2 bg-slate-50 p-2 rounded-sm border border-slate-200">
                   <div>
                     <span className="text-slate-500 text-[10px] block">Total Servicio</span>
                     <p className="font-bold text-slate-900 text-sm mt-0.5">{formatCurrency(citaDetalle.servicioPrecio)}</p>
@@ -451,7 +451,7 @@ export default function AdminCitasPage() {
                     </p>
                   </div>
                   <div>
-                    <span className="text-slate-500 text-[10px] block">Restante en Salón (80%)</span>
+                    <span className="text-slate-500 text-[10px] block">Restante Salón (80%)</span>
                     <p className="font-bold text-slate-700 text-sm mt-0.5">
                       {formatCurrency(citaDetalle.montoRestante || Math.round((citaDetalle.servicioPrecio * 0.8) * 100) / 100)}
                     </p>
@@ -459,11 +459,11 @@ export default function AdminCitasPage() {
                 </div>
 
                 {citaDetalle.metodoPago === "pagomovil" && citaDetalle.pagoMovil && (
-                  <div className="pt-2 border-t border-slate-200 text-slate-700 space-y-1">
+                  <div className="p-2.5 bg-slate-50 rounded-sm border border-slate-200 space-y-1 text-slate-700">
                     <p><strong>Banco:</strong> {citaDetalle.pagoMovil.banco}</p>
                     <p>
                       <strong>Número de Referencia:</strong>{" "}
-                      <span className="font-mono font-bold bg-white px-2 py-0.5 rounded border border-slate-200 text-slate-900">
+                      <span className="font-mono font-bold bg-white px-2 py-0.5 rounded-sm border border-slate-200 text-slate-900">
                         {citaDetalle.pagoMovil.referencia}
                       </span>
                     </p>
@@ -474,99 +474,178 @@ export default function AdminCitasPage() {
                 )}
               </div>
 
-              {/* Tarjeta 4: Notas del Cliente */}
-              <div className="p-3 bg-slate-50 rounded-md border border-slate-200">
-                <p className="font-semibold text-slate-900 mb-1 flex items-center gap-1.5">
-                  <FileText className="h-3.5 w-3.5 text-slate-400" />
-                  <span>Notas o requerimientos:</span>
-                </p>
-                <p className="text-slate-700 whitespace-pre-wrap leading-relaxed">
-                  {citaDetalle.notas ? citaDetalle.notas : <span className="text-slate-400 italic">No se indicaron notas adicionales.</span>}
-                </p>
-              </div>
+              {/* Sección 4: Notas del Cliente */}
+              {citaDetalle.notas && (
+                <div className="pt-3">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Notas o Indicaciones</span>
+                  <p className="text-slate-700 whitespace-pre-wrap leading-relaxed bg-slate-50 p-2.5 rounded-sm border border-slate-200">
+                    {citaDetalle.notas}
+                  </p>
+                </div>
+              )}
 
-              {/* Tarjeta 5: Gestión de Estado (Acciones Reversibles) */}
-              {esAdmin && (
-                <div className="pt-3 border-t border-slate-200 flex flex-wrap items-center justify-end gap-2">
-                  {citaDetalle.estado === "pendiente" && (
-                    <>
+              {/* Sección 5: Opciones de Contacto WhatsApp (AL FINAL DEL MODAL) */}
+              <div className="pt-3 space-y-2">
+                {/* Contacto tras confirmación */}
+                {citaDetalle.estado === "confirmada" && (
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-emerald-50 rounded-sm border border-emerald-200">
+                    <div>
+                      <p className="font-bold text-emerald-950 flex items-center gap-1.5">
+                        <WhatsAppIcon className="w-3.5 h-3.5 text-[#25D366]" />
+                        <span>Confirmación por WhatsApp</span>
+                      </p>
+                      <p className="text-[11px] text-emerald-800 mt-0.5">
+                        {citaDetalle.notificadoWhatsApp
+                          ? "Ya se notificó la confirmación oficial al cliente."
+                          : "Envía el mensaje oficial con fecha, hora y lugar."}
+                      </p>
+                    </div>
+                    {citaDetalle.notificadoWhatsApp ? (
+                      <span className="text-[11px] font-semibold text-emerald-800 bg-emerald-100 px-2.5 py-1 rounded-sm shrink-0">
+                        ✓ Ya notificado
+                      </span>
+                    ) : (
+                      <a
+                        href={getCitaWhatsAppUrl(citaDetalle)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={() => marcarNotificadoWhatsApp(citaDetalle.id)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-xs font-bold text-white bg-[#25D366] hover:bg-[#20bd5a] transition-all shadow-xs shrink-0"
+                      >
+                        <WhatsAppIcon className="w-3.5 h-3.5" />
+                        <span>Abrir WhatsApp</span>
+                      </a>
+                    )}
+                  </div>
+                )}
+
+                {/* Subpanel de Reportar Pago Erróneo (cuando está pendiente) */}
+                {mostrarErrorPago && citaDetalle.estado === "pendiente" && (
+                  <div className="p-3 bg-amber-50 rounded-sm border border-amber-300 space-y-2 animate-in fade-in duration-200">
+                    <p className="font-bold text-amber-950 flex items-center gap-1.5">
+                      <AlertTriangle className="w-4 h-4 text-amber-600" />
+                      <span>Notificar inconsistencia en datos del pago</span>
+                    </p>
+                    <p className="text-[11px] text-amber-900 leading-relaxed">
+                      Se enviará un mensaje directo al WhatsApp del cliente ({citaDetalle.clienteTelefono}) indicando que no se pudo verificar el pago y solicitando los datos con el formato correspondiente o la captura del comprobante.
+                    </p>
+                    <div className="flex items-center gap-2 pt-1">
+                      <a
+                        href={getCitaPagoErroneoWhatsAppUrl(citaDetalle)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 transition-colors shadow-xs"
+                      >
+                        <WhatsAppIcon className="w-3.5 h-3.5" />
+                        <span>Enviar WhatsApp de datos erróneos</span>
+                      </a>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setMostrarErrorPago(false)}
+                        className="text-slate-700 hover:text-slate-900 hover:bg-white border-slate-300 rounded-sm text-xs"
+                      >
+                        Cerrar aviso
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Botones de Acción de Estado Reversibles */}
+                {esAdmin && (
+                  <div className="pt-2 flex flex-wrap items-center justify-end gap-2">
+                    {citaDetalle.estado === "pendiente" && (
+                      <>
+                        <Button
+                          size="sm"
+                          onClick={() => cambiarEstado(citaDetalle.id, "confirmada")}
+                          className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-sm text-xs font-semibold shadow-xs"
+                        >
+                          <Check className="h-3.5 w-3.5 mr-1" />
+                          Confirmar Cita
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setMostrarErrorPago((prev) => !prev)}
+                          className="text-amber-800 hover:text-amber-950 hover:bg-amber-50 border-amber-300 rounded-sm text-xs font-medium"
+                          title="Enviar WhatsApp al cliente indicando que los datos bancarios fueron erróneos"
+                        >
+                          <AlertTriangle className="h-3.5 w-3.5 mr-1 text-amber-600" />
+                          <span>Datos de pago erróneos</span>
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => cambiarEstado(citaDetalle.id, "cancelada")}
+                          className="text-rose-700 hover:text-rose-900 hover:bg-rose-50 border-rose-300 rounded-sm text-xs font-medium"
+                        >
+                          <X className="h-3.5 w-3.5 mr-1" />
+                          Cancelar Cita
+                        </Button>
+                      </>
+                    )}
+
+                    {citaDetalle.estado === "confirmada" && (
+                      <>
+                        <Button
+                          size="sm"
+                          onClick={() => cambiarEstado(citaDetalle.id, "completada")}
+                          className="bg-blue-600 hover:bg-blue-700 text-white rounded-sm text-xs font-semibold shadow-xs"
+                        >
+                          <CalendarCheck className="h-3.5 w-3.5 mr-1" />
+                          Marcar Atendida
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => cambiarEstado(citaDetalle.id, "pendiente")}
+                          className="text-amber-800 hover:text-amber-950 hover:bg-amber-50 border-amber-300 rounded-sm text-xs font-medium"
+                          title="Revertir si se confirmó por error"
+                        >
+                          <RotateCcw className="h-3.5 w-3.5 mr-1" />
+                          Revertir a Pendiente
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => cambiarEstado(citaDetalle.id, "cancelada")}
+                          className="text-rose-700 hover:text-rose-900 hover:bg-rose-50 border-rose-300 rounded-sm text-xs font-medium"
+                        >
+                          Cancelar Cita
+                        </Button>
+                      </>
+                    )}
+
+                    {citaDetalle.estado === "completada" && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => cambiarEstado(citaDetalle.id, "confirmada")}
+                        className="text-slate-700 hover:text-slate-900 hover:bg-slate-100 border-slate-300 rounded-sm text-xs font-medium"
+                        title="Reabrir si se marcó por error"
+                      >
+                        <RotateCcw className="h-3.5 w-3.5 mr-1" />
+                        Revertir a Confirmada
+                      </Button>
+                    )}
+
+                    {citaDetalle.estado === "cancelada" && (
                       <Button
                         size="sm"
                         onClick={() => cambiarEstado(citaDetalle.id, "confirmada")}
-                        className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-md text-xs font-semibold"
-                      >
-                        <Check className="h-3.5 w-3.5 mr-1" />
-                        Confirmar Cita
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => cambiarEstado(citaDetalle.id, "cancelada")}
-                        className="text-rose-700 hover:bg-rose-50 border-rose-200 rounded-md text-xs"
-                      >
-                        <X className="h-3.5 w-3.5 mr-1" />
-                        Cancelar Cita
-                      </Button>
-                    </>
-                  )}
-
-                  {citaDetalle.estado === "confirmada" && (
-                    <>
-                      <Button
-                        size="sm"
-                        onClick={() => cambiarEstado(citaDetalle.id, "completada")}
-                        className="bg-blue-600 hover:bg-blue-700 text-white rounded-md text-xs font-semibold"
-                      >
-                        <CalendarCheck className="h-3.5 w-3.5 mr-1" />
-                        Marcar Atendida
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => cambiarEstado(citaDetalle.id, "pendiente")}
-                        className="text-amber-700 hover:bg-amber-50 border-amber-200 rounded-md text-xs"
-                        title="Revertir por si se confirmó por error"
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-sm text-xs font-semibold shadow-xs"
+                        title="Deshacer cancelación"
                       >
                         <RotateCcw className="h-3.5 w-3.5 mr-1" />
-                        Revertir a Pendiente
+                        Reactivar Cita
                       </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => cambiarEstado(citaDetalle.id, "cancelada")}
-                        className="text-rose-700 hover:bg-rose-50 border-rose-200 rounded-md text-xs"
-                      >
-                        Cancelar Cita
-                      </Button>
-                    </>
-                  )}
-
-                  {citaDetalle.estado === "completada" && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => cambiarEstado(citaDetalle.id, "confirmada")}
-                      className="border-slate-300 text-slate-700 hover:bg-slate-50 rounded-md text-xs"
-                      title="Reabrir si se marcó por error"
-                    >
-                      <RotateCcw className="h-3.5 w-3.5 mr-1" />
-                      Revertir a Confirmada
-                    </Button>
-                  )}
-
-                  {citaDetalle.estado === "cancelada" && (
-                    <Button
-                      size="sm"
-                      onClick={() => cambiarEstado(citaDetalle.id, "confirmada")}
-                      className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-md text-xs font-semibold"
-                      title="Deshacer cancelación"
-                    >
-                      <RotateCcw className="h-3.5 w-3.5 mr-1" />
-                      Reactivar Cita
-                    </Button>
-                  )}
-                </div>
-              )}
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </DialogContent>
         </Dialog>

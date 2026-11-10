@@ -45,7 +45,7 @@ export default function AdminDashboardPage() {
         </div>
 
         <div className="flex items-center gap-2 self-start sm:self-auto">
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-medium">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-medium">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
             <span>Sistema Operativo</span>
           </span>
@@ -90,9 +90,9 @@ export default function AdminDashboardPage() {
 
       {/* Accesos de Estado del Salón */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="flex items-center justify-between p-4 rounded-md border border-slate-200 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+        <div className="flex items-center justify-between p-4 rounded-sm border border-slate-200 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-md bg-slate-100 flex items-center justify-center text-slate-700 border border-slate-200 shrink-0">
+            <div className="w-10 h-10 rounded-sm bg-slate-100 flex items-center justify-center text-slate-700 border border-slate-200 shrink-0">
               <UserCheck className="h-5 w-5" />
             </div>
             <div>
@@ -102,14 +102,14 @@ export default function AdminDashboardPage() {
               </p>
             </div>
           </div>
-          <Button asChild variant="outline" size="sm" className="rounded-md text-xs font-medium border-slate-200 hover:bg-slate-50">
+          <Button asChild variant="outline" size="sm" className="rounded-sm text-xs font-medium border-slate-200 hover:bg-slate-50">
             <Link href="/admin/empleados">Gestionar</Link>
           </Button>
         </div>
 
-        <div className="flex items-center justify-between p-4 rounded-md border border-slate-200 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+        <div className="flex items-center justify-between p-4 rounded-sm border border-slate-200 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-md bg-slate-100 flex items-center justify-center text-slate-700 border border-slate-200 shrink-0">
+            <div className="w-10 h-10 rounded-sm bg-slate-100 flex items-center justify-center text-slate-700 border border-slate-200 shrink-0">
               <Package className="h-5 w-5" />
             </div>
             <div>
@@ -119,7 +119,7 @@ export default function AdminDashboardPage() {
               </p>
             </div>
           </div>
-          <Button asChild variant="outline" size="sm" className="rounded-md text-xs font-medium border-slate-200 hover:bg-slate-50">
+          <Button asChild variant="outline" size="sm" className="rounded-sm text-xs font-medium border-slate-200 hover:bg-slate-50">
             <Link href="/admin/productos">Ver Catálogo</Link>
           </Button>
         </div>
@@ -128,7 +128,7 @@ export default function AdminDashboardPage() {
       {/* 2 Paneles de Operaciones (Esquinas sutiles, fondo blanco nítido, sin curvas excesivas) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Próximas Citas */}
-        <div className="rounded-md border border-slate-200 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)] overflow-hidden">
+        <div className="rounded-sm border border-slate-200 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)] overflow-hidden">
           <div className="flex items-center justify-between p-4 border-b border-slate-200">
             <div>
               <h2 className="text-sm font-bold text-slate-900">Próximas Citas Agendadas</h2>
@@ -190,7 +190,7 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Pedidos y Pagos Móviles Recientes */}
-        <div className="rounded-md border border-slate-200 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)] overflow-hidden">
+        <div className="rounded-sm border border-slate-200 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)] overflow-hidden">
           <div className="flex items-center justify-between p-4 border-b border-slate-200">
             <div>
               <h2 className="text-sm font-bold text-slate-900">Pedidos y Verificación de Pagos</h2>

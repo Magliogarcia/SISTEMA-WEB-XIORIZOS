@@ -108,13 +108,13 @@
         "referencia": "19482034",
         "telefonoEmisor": "0414 3829102"
       },
-      "notificadoWhatsApp": false,
+      "notificadoWhatsApp": true,
       "duracionMin": 120,
       "profesionalNombre": "Axel Alvarado",
       "fecha": "2026-11-12T14:30:00.000Z",
       "hora": "10:30",
       "notas": "Desea reflejos cálidos miel sobre base castaña.",
-      "estado": "pendiente",
+      "estado": "confirmada",
       "creadoEn": "2026-11-09T14:20:00.000Z"
     },
     {

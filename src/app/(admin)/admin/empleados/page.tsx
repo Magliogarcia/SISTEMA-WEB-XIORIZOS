@@ -45,6 +45,8 @@ export default function AdminEmpleadosPage() {
   const [password, setPassword] = useState("");
   const [errorForm, setErrorForm] = useState("");
   const [guardando, setGuardando] = useState(false);
+  const [empleadoAEliminar, setEmpleadoAEliminar] = useState<{ id: string; nombre: string } | null>(null);
+  const [eliminando, setEliminando] = useState(false);
 
   useEffect(() => {
     cargarEmpleados();
@@ -196,17 +198,20 @@ export default function AdminEmpleadosPage() {
     }
   }
 
-  async function eliminarEmpleado(id: string, nombreEmp: string) {
-    if (!confirm(`¿Estás seguro de eliminar a ${nombreEmp} del equipo?`)) return;
-
+  async function confirmarEliminarEmpleado() {
+    if (!empleadoAEliminar) return;
+    setEliminando(true);
     try {
-      const res = await fetch(`/api/empleados?id=${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/empleados?id=${empleadoAEliminar.id}`, { method: "DELETE" });
       const data = await res.json();
       if (data.success) {
-        setEmpleados((prev) => prev.filter((e) => e.id !== id));
+        setEmpleados((prev) => prev.filter((e) => e.id !== empleadoAEliminar.id));
+        setEmpleadoAEliminar(null);
       }
     } catch (err) {
       console.error("Error al eliminar empleado:", err);
+    } finally {
+      setEliminando(false);
     }
   }
 
@@ -228,48 +233,48 @@ export default function AdminEmpleadosPage() {
 
         <Button
           onClick={abrirNuevo}
-          className="bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-md flex items-center gap-1.5 text-xs shadow-sm self-start sm:self-auto"
+          className="bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-sm flex items-center gap-1.5 text-xs shadow-sm self-start sm:self-auto"
         >
           <Plus className="h-4 w-4" />
           <span>Añadir Empleado</span>
         </Button>
       </div>
 
-      {/* Métricas Rápidas con esquinas sutiles (rounded-md) */}
+      {/* Métricas Rápidas con esquinas sutiles (rounded-sm) */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="rounded-md border border-slate-200 bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)] flex items-center justify-between">
+        <div className="rounded-sm border border-slate-200 bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)] flex items-center justify-between">
           <div>
             <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Total de Empleados</p>
             <p className="text-2xl font-bold text-slate-900 mt-1">{empleados.length}</p>
           </div>
-          <div className="w-10 h-10 rounded-md bg-blue-50 text-blue-700 flex items-center justify-center border border-blue-200">
+          <div className="w-10 h-10 rounded-sm bg-blue-50 text-blue-700 flex items-center justify-center border border-blue-200">
             <Users className="h-5 w-5" />
           </div>
         </div>
 
-        <div className="rounded-md border border-slate-200 bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)] flex items-center justify-between">
+        <div className="rounded-sm border border-slate-200 bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)] flex items-center justify-between">
           <div>
             <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Operativos en Agenda</p>
             <p className="text-2xl font-bold text-emerald-700 mt-1">{operativosCount}</p>
           </div>
-          <div className="w-10 h-10 rounded-md bg-emerald-50 text-emerald-700 flex items-center justify-center border border-emerald-200">
+          <div className="w-10 h-10 rounded-sm bg-emerald-50 text-emerald-700 flex items-center justify-center border border-emerald-200">
             <UserCheck className="h-5 w-5" />
           </div>
         </div>
 
-        <div className="rounded-md border border-slate-200 bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)] flex items-center justify-between">
+        <div className="rounded-sm border border-slate-200 bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)] flex items-center justify-between">
           <div>
             <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Inoperativos / Reposo</p>
             <p className="text-2xl font-bold text-amber-700 mt-1">{inoperativosCount}</p>
           </div>
-          <div className="w-10 h-10 rounded-md bg-amber-50 text-amber-700 flex items-center justify-center border border-amber-200">
+          <div className="w-10 h-10 rounded-sm bg-amber-50 text-amber-700 flex items-center justify-center border border-amber-200">
             <UserX className="h-5 w-5" />
           </div>
         </div>
       </div>
 
       {/* Directorio de Empleados */}
-      <div className="rounded-md border border-slate-200 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)] overflow-hidden">
+      <div className="rounded-sm border border-slate-200 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)] overflow-hidden">
         <div className="p-4 border-b border-slate-200">
           <h2 className="text-sm font-bold text-slate-900">Directorio del Personal</h2>
         </div>
@@ -289,7 +294,7 @@ export default function AdminEmpleadosPage() {
               >
                 {/* Foto y Datos del Empleado */}
                 <div className="flex items-center gap-3.5">
-                  <div className="relative h-11 w-11 rounded-md overflow-hidden bg-slate-100 border border-slate-200 shrink-0">
+                  <div className="relative h-11 w-11 rounded-sm overflow-hidden bg-slate-100 border border-slate-200 shrink-0">
                     {emp.avatarUrl ? (
                       <Image src={emp.avatarUrl} alt={emp.nombre} fill className="object-cover" />
                     ) : (
@@ -338,7 +343,7 @@ export default function AdminEmpleadosPage() {
                       )}
                     </div>
                     {emp.activo === false && emp.motivoInoperativo && (
-                      <p className="text-xs text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200 mt-1.5 w-fit">
+                      <p className="text-xs text-amber-700 bg-amber-50 px-2 py-0.5 rounded-sm border border-amber-200 mt-1.5 w-fit">
                         Motivo: {emp.motivoInoperativo}
                       </p>
                     )}
@@ -355,7 +360,7 @@ export default function AdminEmpleadosPage() {
                     <button
                       type="button"
                       onClick={() => toggleEstado(emp)}
-                      className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold border transition-colors cursor-pointer ${
+                      className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-sm text-xs font-semibold border transition-colors cursor-pointer ${
                         emp.activo !== false
                           ? "text-amber-700 bg-amber-50 hover:bg-amber-100 border-amber-200"
                           : "text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border-emerald-200"
@@ -391,7 +396,7 @@ export default function AdminEmpleadosPage() {
 
                   <button
                     type="button"
-                    onClick={() => eliminarEmpleado(emp.id, emp.nombre)}
+                    onClick={() => setEmpleadoAEliminar({ id: emp.id, nombre: emp.nombre })}
                     className="p-1.5 rounded text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-colors cursor-pointer"
                     title="Eliminar empleado"
                   >
@@ -404,9 +409,9 @@ export default function AdminEmpleadosPage() {
         )}
       </div>
 
-      {/* Modal Añadir / Editar Empleado (rounded-md y max-h-[85vh]) */}
+      {/* Modal Añadir / Editar Empleado (rounded-sm y max-h-[85vh]) */}
       <Dialog open={modalAbierto} onOpenChange={setModalAbierto}>
-        <DialogContent className="max-w-md rounded-md max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-md rounded-sm max-h-[85vh] overflow-y-auto p-5 sm:p-6 border border-slate-200">
           <DialogHeader className="pb-2 border-b border-slate-200">
             <DialogTitle className="text-base font-bold text-slate-900">
               {modoEdicion ? "Editar empleado" : "Registrar nuevo empleado"}
@@ -415,7 +420,7 @@ export default function AdminEmpleadosPage() {
 
           <form onSubmit={handleSubmit} className="space-y-3.5 pt-1 text-xs">
             {errorForm && (
-              <div className="p-2.5 rounded-md bg-rose-50 border border-rose-200 text-rose-700 text-xs">
+              <div className="p-2.5 rounded-sm bg-rose-50 border border-rose-200 text-rose-700 text-xs">
                 {errorForm}
               </div>
             )}
@@ -430,13 +435,13 @@ export default function AdminEmpleadosPage() {
                 value={nombre}
                 onChange={(e) => setNombre(e.target.value)}
                 placeholder="Ej. Carolina Mendoza"
-                className="rounded-md text-xs"
+                className="rounded-sm text-xs"
               />
             </div>
 
             {/* Credenciales de acceso para el empleado (solo en creación) */}
             {!modoEdicion && (
-              <div className="p-3 bg-slate-50 rounded-md border border-slate-200 space-y-3">
+              <div className="p-3 bg-slate-50 rounded-sm border border-slate-200 space-y-3">
                 <p className="text-[11px] font-bold text-slate-900 tracking-tight flex items-center gap-1.5">
                   <UserCheck className="w-3.5 h-3.5 text-slate-600" />
                   <span>Credenciales de acceso al sistema</span>
@@ -453,7 +458,7 @@ export default function AdminEmpleadosPage() {
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
                       placeholder="ej. carolina"
-                      className="rounded-md text-xs bg-white"
+                      className="rounded-sm text-xs bg-white"
                     />
                   </div>
 
@@ -468,7 +473,7 @@ export default function AdminEmpleadosPage() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Ej. Carolina28$"
-                      className="rounded-md text-xs bg-white font-mono"
+                      className="rounded-sm text-xs bg-white font-mono"
                     />
                   </div>
                 </div>
@@ -510,7 +515,7 @@ export default function AdminEmpleadosPage() {
                   value={cargo}
                   onChange={(e) => setCargo(e.target.value)}
                   placeholder="Ej. Estilista de Corte"
-                  className="rounded-md text-xs"
+                  className="rounded-sm text-xs"
                 />
               </div>
 
@@ -523,7 +528,7 @@ export default function AdminEmpleadosPage() {
                   value={telefono}
                   onChange={(e) => setTelefono(e.target.value)}
                   placeholder="0412 1234567"
-                  className="rounded-md text-xs"
+                  className="rounded-sm text-xs"
                 />
               </div>
             </div>
@@ -537,7 +542,7 @@ export default function AdminEmpleadosPage() {
                 value={especialidad}
                 onChange={(e) => setEspecialidad(e.target.value)}
                 placeholder="Ej. Corte en seco, Balayage, Definición"
-                className="rounded-md text-xs"
+                className="rounded-sm text-xs"
               />
             </div>
 
@@ -576,21 +581,54 @@ export default function AdminEmpleadosPage() {
                     value={motivoInoperativo}
                     onChange={(e) => setMotivoInoperativo(e.target.value)}
                     placeholder="Ej. Reposo médico, vacaciones"
-                    className="mt-1 rounded-md text-xs"
+                    className="mt-1 rounded-sm text-xs"
                   />
                 </div>
               )}
             </div>
 
             <DialogFooter className="pt-3 border-t border-slate-200 flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => setModalAbierto(false)} className="rounded-md text-xs">
+              <Button type="button" variant="outline" onClick={() => setModalAbierto(false)} className="rounded-sm text-xs">
                 Cancelar
               </Button>
-              <Button type="submit" disabled={guardando} className="bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-md text-xs shadow-sm">
+              <Button type="submit" disabled={guardando} className="bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-sm text-xs shadow-sm">
                 {guardando ? "Guardando..." : modoEdicion ? "Guardar cambios" : "Registrar"}
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal Personalizado de Confirmación para Eliminar Empleado (sin alert/confirm del navegador) */}
+      <Dialog open={!!empleadoAEliminar} onOpenChange={(open) => !open && setEmpleadoAEliminar(null)}>
+        <DialogContent className="max-w-sm rounded-sm p-5 border border-slate-200 font-sans">
+          <DialogHeader className="pb-2 border-b border-slate-200">
+            <DialogTitle className="text-sm font-bold text-slate-900">
+              Confirmar eliminación
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-3 text-xs text-slate-600">
+            ¿Estás seguro de que deseas eliminar a <strong className="text-slate-900">{empleadoAEliminar?.nombre}</strong> del equipo de especialistas? Esta acción no se puede deshacer.
+          </div>
+          <DialogFooter className="pt-3 border-t border-slate-200 flex justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setEmpleadoAEliminar(null)}
+              disabled={eliminando}
+              className="rounded-sm text-xs font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-100 border-slate-200"
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              onClick={confirmarEliminarEmpleado}
+              disabled={eliminando}
+              className="rounded-sm text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white shadow-xs"
+            >
+              {eliminando ? "Eliminando..." : "Eliminar empleado"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

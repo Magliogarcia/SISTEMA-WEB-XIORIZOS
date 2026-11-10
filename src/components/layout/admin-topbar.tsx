@@ -30,7 +30,6 @@ const menuItems = [
   { href: "/admin/pedidos", label: "Pedidos y Pagos", icon: ShoppingCart },
   { href: "/admin/productos", label: "Productos / Catálogo", icon: Package },
   { href: "/admin/empleados", label: "Personal y Equipo", icon: UserCheck },
-  { href: "/admin/usuarios", label: "Usuarios Registrados", icon: Users },
 ];
 
 export function AdminTopbar() {

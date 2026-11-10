@@ -61,6 +61,8 @@ export default function AdminProductosPage() {
   // Subida de archivos
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [subiendoFoto, setSubiendoFoto] = useState(false);
+  const [productoAEliminar, setProductoAEliminar] = useState<{ id: string; nombre: string } | null>(null);
+  const [eliminando, setEliminando] = useState(false);
   const [uploadMensaje, setUploadMensaje] = useState<string | null>(null);
 
   async function cargarProductos() {
@@ -191,21 +193,22 @@ export default function AdminProductosPage() {
     }
   }
 
-  async function eliminarProducto(id: string, nombreProd: string) {
-    if (!confirm(`¿Estás seguro de eliminar "${nombreProd}" del catálogo?`)) {
-      return;
-    }
-
+  async function confirmarEliminarProducto() {
+    if (!productoAEliminar) return;
+    setEliminando(true);
     try {
-      const res = await fetch(`/api/productos?id=${id}`, {
+      const res = await fetch(`/api/productos?id=${productoAEliminar.id}`, {
         method: "DELETE",
       });
       const data = await res.json();
       if (data.success) {
-        setProductos((prev) => prev.filter((p) => p.id !== id));
+        setProductos((prev) => prev.filter((p) => p.id !== productoAEliminar.id));
+        setProductoAEliminar(null);
       }
     } catch (err) {
       console.error(err);
+    } finally {
+      setEliminando(false);
     }
   }
 
@@ -226,19 +229,19 @@ export default function AdminProductosPage() {
         </div>
 
         <div className="flex items-center gap-2 self-start sm:self-auto">
-          <Button variant="outline" size="sm" onClick={cargarProductos} className="rounded-md border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-1.5">
+          <Button variant="outline" size="sm" onClick={cargarProductos} className="rounded-sm border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-1.5">
             <RefreshCw className="h-3.5 w-3.5" />
             <span>Actualizar</span>
           </Button>
 
-          <Button onClick={abrirNuevo} className="rounded-md bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm">
+          <Button onClick={abrirNuevo} className="rounded-sm bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm">
             <Plus className="h-4 w-4" />
             <span>Nuevo Producto</span>
           </Button>
         </div>
       </div>
 
-      <div className="rounded-md border border-slate-200 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)] overflow-hidden">
+      <div className="rounded-sm border border-slate-200 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)] overflow-hidden">
         <div className="flex flex-col sm:flex-row gap-3 sm:items-center justify-between p-4 border-b border-slate-200">
           <h2 className="text-sm font-bold text-slate-900">
             Catálogo General ({productosFiltrados.length})
@@ -247,7 +250,7 @@ export default function AdminProductosPage() {
             <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
             <Input
               placeholder="Buscar por nombre, categoría o marca..."
-              className="pl-8 rounded-md text-xs h-9 border-slate-200"
+              className="pl-8 rounded-sm text-xs h-9 border-slate-200"
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
             />
@@ -288,7 +291,7 @@ export default function AdminProductosPage() {
                               categoria: p.categoria,
                             })
                           }
-                          className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md bg-slate-100 border border-slate-200 hover:opacity-85 hover:ring-2 hover:ring-amber-500 transition-all cursor-zoom-in group shadow-xs"
+                          className="relative h-12 w-12 shrink-0 overflow-hidden rounded-sm bg-slate-100 border border-slate-200 hover:opacity-85 hover:ring-2 hover:ring-amber-500 transition-all cursor-zoom-in group shadow-xs"
                           title="Clic para ampliar foto"
                         >
                           <Image
@@ -339,7 +342,7 @@ export default function AdminProductosPage() {
                         </button>
                         <button
                           type="button"
-                          onClick={() => eliminarProducto(p.id, p.nombre)}
+                          onClick={() => setProductoAEliminar({ id: p.id, nombre: p.nombre })}
                           className="p-1.5 rounded text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-colors cursor-pointer"
                           title="Eliminar producto"
                         >
@@ -355,9 +358,9 @@ export default function AdminProductosPage() {
         </div>
       </div>
 
-      {/* Modal Crear / Editar Producto (max-h-[85vh] y rounded-md) */}
+      {/* Modal Crear / Editar Producto (max-h-[85vh] y rounded-sm) */}
       <Dialog open={modalAbierto} onOpenChange={setModalAbierto}>
-        <DialogContent className="max-w-lg rounded-md max-h-[85vh] overflow-y-auto p-5 sm:p-6">
+        <DialogContent className="max-w-lg rounded-sm max-h-[85vh] overflow-y-auto p-5 sm:p-6 border border-slate-200">
           <DialogHeader className="pb-2 border-b border-slate-200">
             <DialogTitle className="text-base font-bold text-slate-900">
               {modoEdicion ? "Editar información del producto" : "Añadir nuevo producto"}
@@ -375,7 +378,7 @@ export default function AdminProductosPage() {
                 value={nombre}
                 onChange={(e) => setNombre(e.target.value)}
                 placeholder="Ej. Crema de Peinar Etniker"
-                className="rounded-md text-xs"
+                className="rounded-sm text-xs"
               />
             </div>
 
@@ -389,7 +392,7 @@ export default function AdminProductosPage() {
                   value={marca}
                   onChange={(e) => setMarca(e.target.value)}
                   placeholder="Ej. Etniker, Skala, Cantu"
-                  className="rounded-md text-xs"
+                  className="rounded-sm text-xs"
                 />
               </div>
 
@@ -402,7 +405,7 @@ export default function AdminProductosPage() {
                   value={categoria}
                   onChange={(e) => setCategoria(e.target.value)}
                   placeholder="Ej. Cremas, Geles, Tratamientos"
-                  className="rounded-md text-xs"
+                  className="rounded-sm text-xs"
                 />
               </div>
             </div>
@@ -420,7 +423,7 @@ export default function AdminProductosPage() {
                   value={precio}
                   onChange={(e) => setPrecio(e.target.value)}
                   placeholder="25.00"
-                  className="rounded-md text-xs"
+                  className="rounded-sm text-xs"
                 />
               </div>
 
@@ -435,7 +438,7 @@ export default function AdminProductosPage() {
                   value={stock}
                   onChange={(e) => setStock(e.target.value)}
                   placeholder="10"
-                  className="rounded-md text-xs"
+                  className="rounded-sm text-xs"
                 />
               </div>
             </div>
@@ -450,7 +453,7 @@ export default function AdminProductosPage() {
                 value={descripcion}
                 onChange={(e) => setDescripcion(e.target.value)}
                 placeholder="Beneficios, modo de uso y textura para rizos."
-                className="rounded-md text-xs"
+                className="rounded-sm text-xs"
               />
             </div>
 
@@ -459,7 +462,7 @@ export default function AdminProductosPage() {
               <Label className="text-xs font-semibold text-slate-700">Foto del producto</Label>
               
               <div className="flex items-center gap-3">
-                <div className="relative h-14 w-14 shrink-0 rounded-md overflow-hidden border border-slate-200 bg-slate-100 shadow-sm">
+                <div className="relative h-14 w-14 shrink-0 rounded-sm overflow-hidden border border-slate-200 bg-slate-100 shadow-sm">
                   {imagenUrl ? (
                     <Image src={imagenUrl} alt="Preview" fill className="object-cover" />
                   ) : (
@@ -483,7 +486,7 @@ export default function AdminProductosPage() {
                     size="sm"
                     disabled={subiendoFoto}
                     onClick={() => fileInputRef.current?.click()}
-                    className="rounded-md text-xs font-semibold flex items-center gap-1.5 border-slate-200 text-slate-700 hover:bg-slate-50"
+                    className="rounded-sm text-xs font-semibold flex items-center gap-1.5 border-slate-200 text-slate-700 hover:bg-slate-50"
                   >
                     <Upload className="h-3.5 w-3.5 text-slate-600" />
                     <span>{subiendoFoto ? "Subiendo..." : "Subir foto"}</span>
@@ -501,7 +504,7 @@ export default function AdminProductosPage() {
               {/* Galería de Selección Rápida */}
               <div className="pt-1">
                 <p className="text-[11px] font-medium text-slate-500 mb-1.5">O elige del catálogo existente:</p>
-                <div className="grid grid-cols-6 gap-2 p-1.5 bg-slate-50 rounded-md border border-slate-200 max-h-24 overflow-y-auto">
+                <div className="grid grid-cols-6 gap-2 p-1.5 bg-slate-50 rounded-sm border border-slate-200 max-h-24 overflow-y-auto">
                   {IMAGENES_DISPONIBLES.map((img) => (
                     <button
                       key={img}
@@ -521,10 +524,10 @@ export default function AdminProductosPage() {
             </div>
 
             <DialogFooter className="pt-3 border-t border-slate-200 flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => setModalAbierto(false)} className="rounded-md text-xs">
+              <Button type="button" variant="outline" onClick={() => setModalAbierto(false)} className="rounded-sm text-xs">
                 Cancelar
               </Button>
-              <Button type="submit" className="bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-md text-xs shadow-sm">
+              <Button type="submit" className="bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-sm text-xs shadow-sm">
                 {modoEdicion ? "Guardar cambios" : "Crear producto"}
               </Button>
             </DialogFooter>
@@ -534,14 +537,14 @@ export default function AdminProductosPage() {
       {/* Modal Lightbox de Foto de Producto */}
       {imagenPopup && (
         <Dialog open={!!imagenPopup} onOpenChange={() => setImagenPopup(null)}>
-          <DialogContent className="max-w-sm sm:max-w-md p-5 rounded-md">
+          <DialogContent className="max-w-sm sm:max-w-md p-5 rounded-sm border border-slate-200">
             <DialogHeader className="pb-2 border-b border-slate-200">
               <DialogTitle className="text-sm font-bold text-slate-900 truncate">
                 {imagenPopup.nombre}
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-3 pt-2">
-              <div className="relative w-full aspect-square rounded-md overflow-hidden bg-slate-50 border border-slate-200">
+              <div className="relative w-full aspect-square rounded-sm overflow-hidden bg-slate-50 border border-slate-200">
                 <Image
                   src={imagenPopup.url}
                   alt={imagenPopup.nombre}
@@ -561,6 +564,39 @@ export default function AdminProductosPage() {
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Modal Personalizado de Confirmación para Eliminar Producto (sin alert/confirm del navegador) */}
+      <Dialog open={!!productoAEliminar} onOpenChange={(open) => !open && setProductoAEliminar(null)}>
+        <DialogContent className="max-w-sm rounded-sm p-5 border border-slate-200 font-sans">
+          <DialogHeader className="pb-2 border-b border-slate-200">
+            <DialogTitle className="text-sm font-bold text-slate-900">
+              Confirmar eliminación
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-3 text-xs text-slate-600">
+            ¿Estás seguro de que deseas eliminar <strong className="text-slate-900">&quot;{productoAEliminar?.nombre}&quot;</strong> del catálogo de la tienda? Esta acción no se puede deshacer.
+          </div>
+          <DialogFooter className="pt-3 border-t border-slate-200 flex justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setProductoAEliminar(null)}
+              disabled={eliminando}
+              className="rounded-sm text-xs font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-100 border-slate-200"
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              onClick={confirmarEliminarProducto}
+              disabled={eliminando}
+              className="rounded-sm text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white shadow-xs"
+            >
+              {eliminando ? "Eliminando..." : "Eliminar producto"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

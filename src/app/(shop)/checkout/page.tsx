@@ -231,7 +231,7 @@ export default function CheckoutPage() {
       const data = await res.json();
 
       if (!res.ok || !data.success) {
-        alert(data.error || "No se pudo procesar el pedido. Intenta de nuevo.");
+        setErrorGeneral(data.error || "No se pudo procesar el pedido. Intenta de nuevo.");
         setEnviando(false);
         return;
       }
