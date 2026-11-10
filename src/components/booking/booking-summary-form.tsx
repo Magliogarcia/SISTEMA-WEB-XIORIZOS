@@ -67,6 +67,8 @@ export function BookingSummaryForm() {
   const [bancoError, setBancoError] = useState<string | null>(null);
   const [referencia, setReferencia] = useState("");
   const [referenciaError, setReferenciaError] = useState<string | null>(null);
+  const [telefonoEmisor, setTelefonoEmisor] = useState("");
+  const [telefonoEmisorError, setTelefonoEmisorError] = useState<string | null>(null);
 
   if (!servicio || !profesional || !fecha || !hora) {
     return (
@@ -166,12 +168,26 @@ export function BookingSummaryForm() {
         setBancoError(null);
       }
 
-      const refClean = referencia.trim();
-      if (!refClean || refClean.length < 4) {
-        setReferenciaError("Ingresa el número de referencia del Pago Móvil (mínimo 4 dígitos).");
+      const refClean = referencia.replace(/\D/g, "");
+      if (!refClean || refClean.length !== 8) {
+        setReferenciaError("El número de referencia debe contener exactamente 8 dígitos numéricos.");
         hasErrors = true;
       } else {
         setReferenciaError(null);
+      }
+
+      if (!telefonoEmisor.trim()) {
+        setTelefonoEmisorError("El teléfono emisor del Pago Móvil es obligatorio.");
+        hasErrors = true;
+      } else {
+        const telEmisorRes = validatePhone(telefonoEmisor);
+        if (!telEmisorRes.isValid) {
+          setTelefonoEmisorError(telEmisorRes.error || "Número de teléfono emisor inválido.");
+          hasErrors = true;
+        } else {
+          setTelefonoEmisorError(null);
+          setTelefonoEmisor(telEmisorRes.formatted || telefonoEmisor);
+        }
       }
     }
 
@@ -201,7 +217,11 @@ export function BookingSummaryForm() {
           metodoPago,
           pagoMovil:
             metodoPago === "pagomovil"
-              ? { banco, referencia: referencia.trim() }
+              ? {
+                  banco,
+                  referencia: referencia.replace(/\D/g, "").slice(0, 8),
+                  telefonoEmisor: telefonoEmisor.trim(),
+                }
               : undefined,
         }),
       });
@@ -436,20 +456,46 @@ export function BookingSummaryForm() {
                   <Input
                     id="referenciaPago"
                     required
+                    maxLength={8}
                     value={referencia}
                     onChange={(e) => {
-                      // Permitir solo números y letras de referencia bancaria
-                      const val = e.target.value.replace(/[^0-9a-zA-Z]/g, "");
+                      const val = e.target.value.replace(/\D/g, "").slice(0, 8);
                       setReferencia(val);
-                      if (referenciaError && val.length >= 4) setReferenciaError(null);
+                      if (referenciaError && val.length === 8) setReferenciaError(null);
                     }}
-                    placeholder="Ej. 948271 (últimos dígitos)"
+                    placeholder="Ej. 12345678"
                     className={cn("text-xs font-mono", referenciaError ? "border-destructive" : "")}
                   />
                   {referenciaError && (
                     <p className="text-[11px] text-destructive flex items-center gap-1 mt-0.5">
                       <AlertCircle className="h-3 w-3 shrink-0" />
                       <span>{referenciaError}</span>
+                    </p>
+                  )}
+                </div>
+
+                {/* Teléfono emisor del pago móvil (obligatorio) */}
+                <div className="space-y-1 sm:col-span-2">
+                  <Label htmlFor="telefonoEmisorPago" className="text-xs font-semibold">
+                    Teléfono emisor del Pago Móvil <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="telefonoEmisorPago"
+                    required
+                    type="tel"
+                    value={telefonoEmisor}
+                    onChange={(e) => {
+                      const val = filterPhoneInput(e.target.value);
+                      setTelefonoEmisor(val);
+                      if (telefonoEmisorError) setTelefonoEmisorError(null);
+                    }}
+                    placeholder="0412 1234567"
+                    className={cn("text-xs font-mono", telefonoEmisorError ? "border-destructive" : "")}
+                  />
+                  {telefonoEmisorError && (
+                    <p className="text-[11px] text-destructive flex items-center gap-1 mt-0.5">
+                      <AlertCircle className="h-3 w-3 shrink-0" />
+                      <span>{telefonoEmisorError}</span>
                     </p>
                   )}
                 </div>
@@ -468,14 +514,20 @@ export function BookingSummaryForm() {
           )}
         </div>
 
-        <Button
-          type="submit"
-          size="lg"
-          className="w-full text-base font-semibold py-6 rounded-xl shadow-md cursor-pointer"
-          disabled={enviando}
-        >
-          {enviando ? "Confirmando reserva..." : `Reservar mi cita con 20% (${formatCurrency(montoReserva)})`}
-        </Button>
+        <div className="space-y-2 pt-2">
+          <Button
+            type="submit"
+            size="lg"
+            className="w-full text-base font-semibold py-6 rounded-xl shadow-md cursor-pointer bg-primary hover:bg-secondary text-white"
+            disabled={enviando}
+          >
+            {enviando ? "Registrando solicitud..." : `Solicitar reserva de cita (${formatCurrency(montoReserva)})`}
+          </Button>
+
+          <p className="text-[11.5px] text-muted-foreground text-center leading-relaxed px-2">
+            🔔 Tu cita no se confirma automáticamente. Una vez que el personal compruebe tu pago, se te confirmará el registro oficial y se te notificará por <strong>WhatsApp</strong>.
+          </p>
+        </div>
       </form>
 
       {/* Resumen lateral con desglose del 20% y 80% */}

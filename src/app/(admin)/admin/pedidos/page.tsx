@@ -29,10 +29,61 @@ const estadoLabel: Record<string, string> = {
   cancelado: "Cancelado",
 };
 
+function WhatsAppIcon({ className = "w-3.5 h-3.5" }: { className?: string }) {
+  return (
+    <svg className={className} fill="currentColor" viewBox="0 0 24 24">
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.82 11.82 0 00-3.48-8.413Z" />
+    </svg>
+  );
+}
+
+function normalizePhoneForWhatsApp(phone: string): string {
+  let digits = phone.replace(/\D/g, "");
+  if (digits.startsWith("0")) {
+    digits = "58" + digits.slice(1);
+  } else if (digits.length === 10 && !digits.startsWith("58")) {
+    digits = "58" + digits;
+  }
+  return digits;
+}
+
+function getPedidoWhatsAppMessage(pedido: DBOrder): string {
+  const itemsText = pedido.items
+    .map((it) => `• ${it.cantidad}x ${it.nombre} ($${(it.precio * it.cantidad).toFixed(2)})`)
+    .join("\n");
+
+  let detallePago = "";
+  if (pedido.metodoPago === "pagomovil" && pedido.pagoMovil) {
+    detallePago = `Hemos comprobado con éxito tu Pago Móvil de $${pedido.total.toFixed(2)} (Banco: ${pedido.pagoMovil.banco}, Ref: ${pedido.pagoMovil.referencia}).`;
+  } else {
+    detallePago = `Hemos comprobado con éxito tu pago por un total de $${pedido.total.toFixed(2)}.`;
+  }
+
+  return (
+    `¡Hola ${pedido.clienteNombre}! 👋 Te saludamos desde la tienda botánica de *Estudio Xiorizos*.\n\n` +
+    `✅ *¡El pago de tu orden ha sido COMPROBADO con éxito!*\n` +
+    `${detallePago}\n\n` +
+    `🛍️ *Detalles de tu orden ${pedido.id}:*\n` +
+    `${itemsText}\n\n` +
+    `💰 *Total:* $${pedido.total.toFixed(2)}\n` +
+    (pedido.direccion
+      ? `📍 *Dirección de entrega:* ${pedido.direccion}\n\n`
+      : `📍 *Retiro:* Directamente en nuestro salón en Naguanagua\n\n`) +
+    `Nos encontramos preparando tus productos con el mayor cuidado botánico. Te avisaremos en cuanto tu paquete salga a despacho o esté listo para entregar. ¡Muchas gracias por tu confianza en Xiorizos! 🌿✨`
+  );
+}
+
+function getPedidoWhatsAppUrl(pedido: DBOrder): string {
+  const phone = normalizePhoneForWhatsApp(pedido.clienteTelefono);
+  const msg = getPedidoWhatsAppMessage(pedido);
+  return `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+}
+
 export default function AdminPedidosPage() {
   const [pedidos, setPedidos] = useState<DBOrder[]>([]);
   const [cargando, setCargando] = useState(true);
   const [pedidoDetalle, setPedidoDetalle] = useState<DBOrder | null>(null);
+  const [modalWhatsAppPedido, setModalWhatsAppPedido] = useState<DBOrder | null>(null);
 
   async function cargarPedidos() {
     setCargando(true);
@@ -55,7 +106,8 @@ export default function AdminPedidosPage() {
 
   async function cambiarEstado(
     id: string,
-    nuevoEstado: "pendiente_verificacion" | "verificado" | "entregado" | "cancelado"
+    nuevoEstado: "pendiente_verificacion" | "verificado" | "entregado" | "cancelado",
+    abrirWhatsAppModal = false
   ) {
     try {
       const res = await fetch("/api/pedidos", {
@@ -75,6 +127,13 @@ export default function AdminPedidosPage() {
         // Sincronizar notificaciones de topbar en vivo
         if (typeof window !== "undefined") {
           window.dispatchEvent(new CustomEvent("xiorizos-admin-update"));
+        }
+
+        if (abrirWhatsAppModal) {
+          const ped = pedidos.find((p) => p.id === id) || pedidoDetalle;
+          if (ped) {
+            setModalWhatsAppPedido({ ...ped, estado: nuevoEstado });
+          }
         }
       }
     } catch (err) {
@@ -177,6 +236,11 @@ export default function AdminPedidosPage() {
                               {pedido.pagoMovil.referencia}
                             </span>
                           </p>
+                          {pedido.pagoMovil.telefonoEmisor && (
+                            <p className="text-[10px] text-slate-500 font-mono">
+                              Emisor: {pedido.pagoMovil.telefonoEmisor}
+                            </p>
+                          )}
                         </div>
                       ) : (
                         <span className="text-slate-400">Pago en efectivo al retirar</span>
@@ -226,6 +290,18 @@ export default function AdminPedidosPage() {
 
                     <td className="py-3.5 px-4 text-right whitespace-nowrap">
                       <div className="flex items-center justify-end gap-1.5">
+                        {/* Botón directo de WhatsApp para la orden */}
+                        <a
+                          href={getPedidoWhatsAppUrl(pedido)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-semibold text-white bg-[#25D366] hover:bg-[#20bd5a] transition-all cursor-pointer shadow-xs"
+                          title="Enviar mensaje de comprobación por WhatsApp al cliente"
+                        >
+                          <WhatsAppIcon className="h-3.5 w-3.5" />
+                          <span>WhatsApp</span>
+                        </a>
+
                         <button
                           type="button"
                           onClick={() => setPedidoDetalle(pedido)}
@@ -239,9 +315,9 @@ export default function AdminPedidosPage() {
                         {pedido.estado === "pendiente_verificacion" && (
                           <button
                             type="button"
-                            onClick={() => cambiarEstado(pedido.id, "verificado")}
+                            onClick={() => cambiarEstado(pedido.id, "verificado", true)}
                             className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-colors cursor-pointer"
-                            title="Validar comprobante de Pago Móvil"
+                            title="Validar comprobante de Pago Móvil y notificar por WhatsApp"
                           >
                             <CheckCircle2 className="h-3 w-3" />
                             <span>Validar</span>
@@ -336,6 +412,12 @@ export default function AdminPedidosPage() {
                       {pedidoDetalle.pagoMovil.referencia}
                     </span>
                   </p>
+                  {pedidoDetalle.pagoMovil.telefonoEmisor && (
+                    <p>
+                      <strong>Teléfono Emisor:</strong>{" "}
+                      <span className="font-mono font-medium">{pedidoDetalle.pagoMovil.telefonoEmisor}</span>
+                    </p>
+                  )}
                 </div>
               )}
 
@@ -362,10 +444,21 @@ export default function AdminPedidosPage() {
                   <p className="text-base font-bold text-slate-900">{formatCurrency(pedidoDetalle.total)}</p>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <a
+                    href={getPedidoWhatsAppUrl(pedidoDetalle)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold text-white bg-[#25D366] hover:bg-[#20bd5a] transition-all cursor-pointer shadow-xs"
+                    title="Notificar o conversar con el cliente por WhatsApp"
+                  >
+                    <WhatsAppIcon className="h-3.5 w-3.5" />
+                    <span>WhatsApp</span>
+                  </a>
+
                   {pedidoDetalle.estado === "pendiente_verificacion" && (
                     <Button
-                      onClick={() => cambiarEstado(pedidoDetalle.id, "verificado")}
+                      onClick={() => cambiarEstado(pedidoDetalle.id, "verificado", true)}
                       className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-md text-xs font-semibold"
                     >
                       Marcar Pago Verificado
@@ -390,6 +483,81 @@ export default function AdminPedidosPage() {
                     </Button>
                   )}
                 </div>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Modal Dialog para Notificación de Pedido por WhatsApp */}
+      {modalWhatsAppPedido && (
+        <Dialog open={!!modalWhatsAppPedido} onOpenChange={() => setModalWhatsAppPedido(null)}>
+          <DialogContent className="max-w-md rounded-md max-h-[85vh] overflow-y-auto">
+            <DialogHeader className="pb-2 border-b border-slate-200">
+              <DialogTitle className="flex items-center gap-2 text-base font-bold text-slate-900">
+                <div className="w-8 h-8 rounded-full bg-[#25D366]/20 text-[#25D366] flex items-center justify-center shrink-0">
+                  <WhatsAppIcon className="w-4 h-4 text-[#25D366]" />
+                </div>
+                <div>
+                  <p className="leading-tight">Pago Verificado</p>
+                  <p className="text-[11px] font-normal text-slate-500">
+                    Notificar verificación de compra por WhatsApp
+                  </p>
+                </div>
+              </DialogTitle>
+            </DialogHeader>
+
+            <div className="space-y-3.5 pt-2 text-xs">
+              <div className="p-3 bg-slate-50 rounded-md border border-slate-200 space-y-1">
+                <p className="font-semibold text-slate-900 text-sm">
+                  {modalWhatsAppPedido.clienteNombre}
+                </p>
+                <p className="text-slate-600 font-mono">
+                  Teléfono: {modalWhatsAppPedido.clienteTelefono}
+                </p>
+                <p className="text-slate-600">
+                  <strong>Orden:</strong> {modalWhatsAppPedido.id} &bull; <strong>Total:</strong> {formatCurrency(modalWhatsAppPedido.total)}
+                </p>
+                {modalWhatsAppPedido.pagoMovil && (
+                  <div className="mt-2 pt-2 border-t border-slate-200 text-slate-700">
+                    <p className="font-semibold text-slate-800">Comprobante Pago Móvil:</p>
+                    <p>Banco: {modalWhatsAppPedido.pagoMovil.banco} &bull; Ref: <strong className="font-mono">{modalWhatsAppPedido.pagoMovil.referencia}</strong></p>
+                    {modalWhatsAppPedido.pagoMovil.telefonoEmisor && (
+                      <p className="font-mono text-slate-500">Teléfono emisor: {modalWhatsAppPedido.pagoMovil.telefonoEmisor}</p>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <p className="font-semibold text-slate-800 mb-1">
+                  Mensaje preparado para WhatsApp:
+                </p>
+                <pre className="p-3 bg-slate-900 text-slate-100 rounded-md text-[11px] font-sans whitespace-pre-wrap leading-relaxed max-h-44 overflow-y-auto">
+                  {getPedidoWhatsAppMessage(modalWhatsAppPedido)}
+                </pre>
+              </div>
+
+              <div className="pt-2 border-t border-slate-200 flex items-center justify-between gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setModalWhatsAppPedido(null)}
+                  className="rounded-md text-xs border-slate-300"
+                >
+                  Cerrar
+                </Button>
+
+                <a
+                  href={getPedidoWhatsAppUrl(modalWhatsAppPedido)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => setModalWhatsAppPedido(null)}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-md text-xs font-bold text-white bg-[#25D366] hover:bg-[#20bd5a] transition-all shadow-sm"
+                >
+                  <WhatsAppIcon className="w-4 h-4" />
+                  <span>Abrir WhatsApp y Enviar</span>
+                </a>
               </div>
             </div>
           </DialogContent>

@@ -25,6 +25,7 @@ export interface DBAppointment {
   pagoMovil?: {
     banco: string;
     referencia: string;
+    telefonoEmisor?: string;
   };
   duracionMin?: number;
   profesionalNombre: string;

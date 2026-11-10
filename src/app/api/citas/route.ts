@@ -42,9 +42,9 @@ export async function POST(req: Request) {
     }
 
     if (metodoPago === "pagomovil") {
-      if (!pagoMovil?.banco || !pagoMovil?.referencia) {
+      if (!pagoMovil?.banco || !pagoMovil?.referencia || !pagoMovil?.telefonoEmisor) {
         return NextResponse.json(
-          { error: "Para abonar la reserva por Pago Móvil debes indicar el banco y número de referencia." },
+          { error: "Para abonar la reserva por Pago Móvil debes indicar el banco, número de referencia (8 dígitos) y teléfono emisor." },
           { status: 400 }
         );
       }

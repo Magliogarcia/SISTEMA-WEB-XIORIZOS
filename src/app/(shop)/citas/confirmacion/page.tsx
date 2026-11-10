@@ -1,41 +1,42 @@
 import Link from "next/link";
-import { CalendarCheck, ShieldCheck, ArrowRight, Store } from "lucide-react";
+import { Clock, ShieldCheck, Store, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function ConfirmacionCitaPage() {
   return (
     <div className="mx-auto flex max-w-lg flex-col items-center px-4 pt-32 pb-24 text-center">
-      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-600 shadow-sm border border-emerald-500/20">
-        <CalendarCheck className="h-8 w-8 text-emerald-600" />
+      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-600 shadow-sm border border-amber-500/20">
+        <Clock className="h-8 w-8 text-amber-600 animate-pulse" />
       </div>
 
-      <h1 className="mt-5 font-heading text-2xl sm:text-3xl font-bold text-primary">
-        ¡Tu cita ha sido agendada con éxito!
+      <span className="mt-4 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-50 text-amber-800 border border-amber-200">
+        Pendiente por comprobación de pago
+      </span>
+
+      <h1 className="mt-3 font-heading text-2xl sm:text-3xl font-bold text-primary">
+        Solicitud de Reserva Registrada
       </h1>
 
       <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
-        Hemos registrado tu cita en el sistema con el <strong>20% de reserva</strong>. Nuestro equipo de recepción validará tu abono y te enviará la confirmación final por WhatsApp.
+        Tu cita no se registra de forma automática. Se te confirmará tu registro oficialmente una vez que nuestro personal compruebe el pago de la reserva y <strong>se te notificará directamente por WhatsApp</strong>.
       </p>
 
-      {/* Tarjeta de recordatorio del 80% restante */}
-      <div className="mt-6 w-full rounded-2xl border border-secondary/20 bg-secondary/5 p-4 text-xs text-left space-y-2">
-        <div className="flex items-center gap-2 font-bold text-primary text-sm">
-          <ShieldCheck className="h-4 w-4 text-secondary shrink-0" />
-          <span>Detalles del pago y atención:</span>
+      {/* Tarjeta destacada de Notificación WhatsApp */}
+      <div className="mt-6 w-full rounded-2xl border border-emerald-500/25 bg-emerald-500/5 p-4 text-xs text-left space-y-2">
+        <div className="flex items-center gap-2 font-bold text-emerald-800 text-sm">
+          <MessageCircle className="h-4 w-4 text-emerald-600 shrink-0" />
+          <span>Notificación oficial por WhatsApp</span>
         </div>
-        <p className="text-foreground">
-          • <strong>Abono 20%:</strong> Registrado para apartar tu turno con el especialista.
+        <p className="text-foreground leading-relaxed">
+          Revisaremos los 8 dígitos de tu referencia de Pago Móvil y tu teléfono emisor. En cuanto el pago sea comprobado, recibirás en tu WhatsApp el mensaje de confirmación con la fecha, hora y especialista asignado.
         </p>
-        <p className="text-foreground">
-          • <strong>Resta 80%:</strong> Lo cancelarás el día de tu cita directamente en el salón (efectivo, punto, transferencia o Cashea).
-        </p>
-        <p className="text-muted-foreground pt-1 border-t border-secondary/15">
-          📍 Torre Anexa del Centro Científico Metropolitano del Norte, Naguanagua.
+        <p className="text-muted-foreground pt-1 border-t border-emerald-500/15">
+          • <strong>80% restante:</strong> Lo cancelarás el día de tu cita en el estudio (efectivo, punto, transferencia o Cashea).
         </p>
       </div>
 
       <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 w-full">
-        <Button className="w-full sm:w-auto rounded-full bg-primary hover:bg-primary/90 text-on-primary px-6 font-semibold" asChild>
+        <Button className="w-full sm:w-auto rounded-full bg-primary hover:bg-secondary text-on-primary px-6 font-semibold" asChild>
           <Link href="/">
             <span>Volver al inicio</span>
           </Link>

@@ -65,6 +65,7 @@ export default function CheckoutPage() {
   const [referenciaError, setReferenciaError] = useState<string | null>(null);
 
   const [telefonoEmisor, setTelefonoEmisor] = useState("");
+  const [telefonoEmisorError, setTelefonoEmisorError] = useState<string | null>(null);
 
   const total = getTotal();
 
@@ -150,11 +151,25 @@ export default function CheckoutPage() {
       }
 
       const refClean = referencia.replace(/\D/g, "");
-      if (!refClean || refClean.length < 4) {
-        setReferenciaError("Ingresa al menos los últimos 4 a 8 dígitos de la referencia.");
+      if (!refClean || refClean.length !== 8) {
+        setReferenciaError("El número de referencia debe contener exactamente 8 dígitos numéricos.");
         hasErrors = true;
       } else {
         setReferenciaError(null);
+      }
+
+      if (!telefonoEmisor.trim()) {
+        setTelefonoEmisorError("El teléfono emisor del pago móvil es obligatorio.");
+        hasErrors = true;
+      } else {
+        const telEmisorRes = validatePhone(telefonoEmisor);
+        if (!telEmisorRes.isValid) {
+          setTelefonoEmisorError(telEmisorRes.error || "Teléfono emisor inválido.");
+          hasErrors = true;
+        } else {
+          setTelefonoEmisorError(null);
+          setTelefonoEmisor(telEmisorRes.formatted || telefonoEmisor);
+        }
       }
     }
 
@@ -215,18 +230,37 @@ export default function CheckoutPage() {
   if (pedidoExitoso) {
     return (
       <div className="mx-auto max-w-lg px-4 pt-36 pb-24 text-center">
-        <div className="mx-auto w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mb-4">
-          <CheckCircle2 className="w-10 h-10" />
+        <div className="mx-auto w-16 h-16 rounded-2xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center mb-4 border border-emerald-500/20">
+          <CheckCircle2 className="w-9 h-9" />
         </div>
-        <h1 className="font-heading text-2xl font-bold text-primary">¡Pedido registrado con éxito!</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Tu código de orden es <strong className="text-foreground">{pedidoExitoso}</strong>.
+
+        <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-50 text-emerald-800 border border-emerald-200">
+          {metodoPago === "pagomovil" ? "Pendiente por Comprobación de Pago" : "Orden Registrada"}
+        </span>
+
+        <h1 className="mt-3 font-heading text-2xl font-bold text-primary">
+          ¡Orden #{pedidoExitoso} registrada!
+        </h1>
+
+        <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
           {metodoPago === "pagomovil"
-            ? " Nuestro equipo verificará tu pago móvil y te contactará para coordinar la entrega."
-            : " Podrás pagar en efectivo al momento de la entrega o al retirar en el salón."}
+            ? "Tu orden no queda confirmada de forma automática. Nuestro personal administrativo comprobará tu Pago Móvil y se te confirmará la compra notificándote directamente por WhatsApp a tu número de contacto."
+            : "Tu orden ha sido registrada para pago en efectivo al momento de la entrega o al retirar personalmente en el estudio en Naguanagua."}
         </p>
+
+        {metodoPago === "pagomovil" && (
+          <div className="mt-6 rounded-2xl border border-emerald-500/25 bg-emerald-500/5 p-4 text-xs text-left space-y-1.5">
+            <p className="font-bold text-emerald-800 text-sm flex items-center gap-1.5">
+              <span>🔔 Notificación por WhatsApp:</span>
+            </p>
+            <p className="text-foreground leading-relaxed">
+              En cuanto el personal verifique los 8 dígitos de tu referencia y el teléfono emisor, recibirás un mensaje en tu WhatsApp confirmando el despacho o disponibilidad de tu paquete.
+            </p>
+          </div>
+        )}
+
         <div className="mt-8 flex justify-center gap-3">
-          <Button onClick={() => router.push("/catalogo")} className="rounded-full">
+          <Button onClick={() => router.push("/catalogo")} className="rounded-full bg-primary hover:bg-secondary text-white font-semibold">
             Volver a la tienda
           </Button>
         </div>
@@ -472,14 +506,15 @@ export default function CheckoutPage() {
                     <Input
                       id="referencia"
                       required
+                      maxLength={8}
                       value={referencia}
                       onChange={(e) => {
-                        const clean = e.target.value.replace(/\D/g, "");
+                        const clean = e.target.value.replace(/\D/g, "").slice(0, 8);
                         setReferencia(clean);
-                        if (referenciaError) setReferenciaError(null);
+                        if (referenciaError && clean.length === 8) setReferenciaError(null);
                       }}
-                      placeholder="Ej. 0948271 (solo números)"
-                      className={referenciaError ? "border-destructive" : ""}
+                      placeholder="Ej. 12345678"
+                      className={referenciaError ? "border-destructive font-mono" : "font-mono"}
                     />
                     {referenciaError && (
                       <p className="text-xs text-destructive flex items-center gap-1">
@@ -489,17 +524,30 @@ export default function CheckoutPage() {
                     )}
                   </div>
 
-                  {/* Teléfono emisor (opcional si es el mismo) */}
+                  {/* Teléfono emisor del pago móvil (obligatorio) */}
                   <div className="space-y-1.5 sm:col-span-2">
                     <Label htmlFor="telefonoEmisor" className="text-xs font-semibold">
-                      Teléfono emisor del pago móvil (opcional)
+                      Teléfono emisor del pago móvil <span className="text-destructive">*</span>
                     </Label>
                     <Input
                       id="telefonoEmisor"
+                      required
+                      type="tel"
                       value={telefonoEmisor}
-                      onChange={(e) => setTelefonoEmisor(filterPhoneInput(e.target.value))}
-                      placeholder="Ej. 0412 1234567 (si es distinto al de contacto)"
+                      onChange={(e) => {
+                        const clean = filterPhoneInput(e.target.value);
+                        setTelefonoEmisor(clean);
+                        if (telefonoEmisorError) setTelefonoEmisorError(null);
+                      }}
+                      placeholder="0412 1234567"
+                      className={telefonoEmisorError ? "border-destructive font-mono" : "font-mono"}
                     />
+                    {telefonoEmisorError && (
+                      <p className="text-xs text-destructive flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3" />
+                        {telefonoEmisorError}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -513,18 +561,25 @@ export default function CheckoutPage() {
             )}
           </section>
 
-          <Button
-            type="submit"
-            size="lg"
-            className="w-full text-base font-semibold py-6 rounded-xl shadow-md"
-            disabled={enviando}
-          >
-            {enviando
-              ? "Registrando pedido..."
-              : !isAuthenticated
-              ? "Iniciar sesión para pagar"
-              : `Confirmar pedido por ${formatCurrency(total)}`}
-          </Button>
+          <div className="space-y-2">
+            <Button
+              type="submit"
+              size="lg"
+              className="w-full text-base font-semibold py-6 rounded-xl shadow-md cursor-pointer"
+              disabled={enviando}
+            >
+              {enviando
+                ? "Registrando orden..."
+                : !isAuthenticated
+                ? "Iniciar sesión para pagar"
+                : `Confirmar pedido por ${formatCurrency(total)}`}
+            </Button>
+            {metodoPago === "pagomovil" && (
+              <p className="text-[11.5px] text-muted-foreground text-center leading-relaxed">
+                🔔 Tu compra no se confirma automáticamente. Una vez que nuestro personal compruebe tu Pago Móvil, se te confirmará oficialmente el pedido y se te notificará por <strong>WhatsApp</strong>.
+              </p>
+            )}
+          </div>
         </form>
 
         {/* Resumen lateral */}
