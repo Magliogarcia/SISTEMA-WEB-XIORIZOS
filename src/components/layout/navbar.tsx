@@ -45,13 +45,13 @@ export function Navbar() {
   return (
     <>
       <header className="fixed top-0 inset-x-0 z-50 pointer-events-none">
-        <div className="h-24 max-w-[1320px] mx-auto px-margin-mobile md:px-margin flex items-center justify-between">
+        <div className="h-20 sm:h-24 max-w-[1320px] mx-auto px-3 sm:px-margin-mobile md:px-margin flex items-center justify-between gap-2">
           
           {/* Brand Logo Pill */}
           <Link
             href="/"
             prefetch={true}
-            className="pointer-events-auto flex items-center bg-surface-container-lowest/90 backdrop-blur-md rounded-full px-4 py-2 shadow-[0_12px_32px_-4px_rgba(61,34,20,0.08)] transition-all hover:shadow-[0_16px_36px_-4px_rgba(61,34,20,0.12)] hover:scale-[1.02]"
+            className="pointer-events-auto flex items-center bg-surface-container-lowest/90 backdrop-blur-md rounded-full px-3 sm:px-4 py-1.5 sm:py-2 shadow-[0_12px_32px_-4px_rgba(61,34,20,0.08)] transition-all hover:shadow-[0_16px_36px_-4px_rgba(61,34,20,0.12)] hover:scale-[1.02] shrink-0"
             aria-label="Xiorizos Inicio"
           >
             <Image
@@ -59,7 +59,7 @@ export function Navbar() {
               alt="Xiorizos"
               width={140}
               height={38}
-              className="h-8 md:h-9 w-auto object-contain"
+              className="h-7 sm:h-8 md:h-9 w-auto object-contain"
               priority
             />
           </Link>
@@ -95,17 +95,17 @@ export function Navbar() {
           </nav>
 
           {/* Right Action Controls Pill */}
-          <div className="pointer-events-auto flex items-center gap-2 bg-surface-container-lowest/90 backdrop-blur-md rounded-full p-2 shadow-[0_12px_32px_-4px_rgba(61,34,20,0.08)]">
+          <div className="pointer-events-auto flex items-center gap-1.5 sm:gap-2 bg-surface-container-lowest/90 backdrop-blur-md rounded-full p-1.5 sm:p-2 shadow-[0_12px_32px_-4px_rgba(61,34,20,0.08)] shrink-0">
             {/* Bolsa de compras */}
             <button
               onClick={openCart}
-              className="relative flex items-center justify-center w-10 h-10 rounded-full bg-surface-container-low hover:bg-surface-container-high transition-colors text-on-surface"
+              className="relative flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-surface-container-low hover:bg-surface-container-high transition-colors text-on-surface"
               type="button"
               aria-label="Abrir bolsa de compras"
             >
-              <span className="material-symbols-outlined text-[20px]">shopping_bag</span>
+              <span className="material-symbols-outlined text-[18px] sm:text-[20px]">shopping_bag</span>
               {itemsCount > 0 && (
-                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-secondary text-on-secondary font-label-sm text-[10px] px-1 shadow-[0_2px_8px_rgba(90,53,30,0.25)]">
+                <span className="absolute -top-1 -right-1 min-w-[16px] h-[16px] sm:min-w-[18px] sm:h-[18px] flex items-center justify-center rounded-full bg-secondary text-on-secondary font-label-sm text-[9px] sm:text-[10px] px-1 shadow-[0_2px_8px_rgba(90,53,30,0.25)]">
                   {itemsCount}
                 </span>
               )}
@@ -120,7 +120,7 @@ export function Navbar() {
                   router.prefetch("/citas");
                 } catch {}
               }}
-              className="hidden sm:inline-flex items-center justify-center bg-primary text-on-primary font-label-md text-label-md px-5 py-2.5 rounded-full shadow-[0_4px_14px_rgba(18,18,18,0.18)] hover:scale-105 active:scale-95 transition-all"
+              className="hidden sm:inline-flex items-center justify-center bg-primary text-on-primary font-label-md text-label-md px-4 sm:px-5 py-2 sm:py-2.5 rounded-full shadow-[0_4px_14px_rgba(18,18,18,0.18)] hover:scale-105 active:scale-95 transition-all text-xs sm:text-sm"
             >
               Cita Online
             </Link>
@@ -129,7 +129,7 @@ export function Navbar() {
             {user?.rol === "admin" && (
               <Link
                 href="/admin"
-                className="hidden sm:inline-flex items-center gap-1 px-3 py-2 rounded-full bg-secondary text-white text-xs font-bold shadow-md hover:scale-105 transition-all"
+                className="hidden sm:inline-flex items-center gap-1 px-3 py-1.5 sm:py-2 rounded-full bg-secondary text-white text-xs font-bold shadow-md hover:scale-105 transition-all"
                 title="Ir al Panel de Administración"
               >
                 <span>Admin</span>
@@ -145,21 +145,21 @@ export function Navbar() {
                   router.prefetch("/login");
                 } catch {}
               }}
-              className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-on-primary hover:scale-105 active:scale-95 transition-transform shadow-sm"
+              className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary flex items-center justify-center text-on-primary hover:scale-105 active:scale-95 transition-transform shadow-sm"
               aria-label="Perfil y Login"
               title={isAuthenticated ? `Mi Perfil (${user?.nombre}) - Iniciar sesión / Gestionar cuenta` : "Iniciar sesión"}
             >
-              <span className="material-symbols-outlined text-[20px]">person</span>
+              <span className="material-symbols-outlined text-[18px] sm:text-[20px]">person</span>
             </Link>
 
             {/* Menú de Hamburguesa en Móvil y pantallas medianas */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="xl:hidden flex items-center justify-center w-10 h-10 rounded-full bg-surface-container-low hover:bg-surface-container-high transition-colors text-on-surface"
+              className="xl:hidden flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-surface-container-low hover:bg-surface-container-high transition-colors text-on-surface"
               type="button"
               aria-label="Abrir menú"
             >
-              <span className="material-symbols-outlined text-[22px]">
+              <span className="material-symbols-outlined text-[20px] sm:text-[22px]">
                 {mobileMenuOpen ? "close" : "menu"}
               </span>
             </button>
@@ -174,7 +174,7 @@ export function Navbar() {
           onClick={() => setMobileMenuOpen(false)}
         >
           <div
-            className="fixed top-24 inset-x-4 max-w-sm mx-auto bg-surface-container-lowest rounded-3xl p-5 shadow-2xl border border-surface-container animate-in slide-in-from-top-4 duration-300"
+            className="fixed top-20 sm:top-24 inset-x-3 sm:inset-x-4 max-w-sm mx-auto bg-surface-container-lowest rounded-3xl p-4 sm:p-5 shadow-2xl border border-surface-container animate-in slide-in-from-top-4 duration-300 max-h-[calc(100vh-6rem)] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex flex-col gap-1.5">

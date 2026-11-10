@@ -70,7 +70,7 @@ function CitasWizardContent() {
               >
                 <div
                   className={cn(
-                    "flex h-9 w-9 items-center justify-center rounded-full border-2 text-sm font-semibold transition-all shadow-sm",
+                    "flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full border-2 text-xs sm:text-sm font-semibold transition-all shadow-sm",
                     isCompleted
                       ? "border-primary bg-primary text-on-primary group-hover:scale-110"
                       : isCurrent
@@ -78,7 +78,7 @@ function CitasWizardContent() {
                       : "border-surface-container text-on-surface-variant/60 group-hover:border-primary/50"
                   )}
                 >
-                  {isCompleted ? <Check className="h-4 w-4" /> : paso.numero}
+                  {isCompleted ? <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> : paso.numero}
                 </div>
                 <span
                   className={cn(
@@ -92,7 +92,7 @@ function CitasWizardContent() {
               {idx < pasos.length - 1 && (
                 <div
                   className={cn(
-                    "mx-2 h-0.5 flex-1 transition-colors",
+                    "mx-1 sm:mx-2 h-0.5 flex-1 transition-colors",
                     step > paso.numero ? "bg-primary" : "bg-surface-container"
                   )}
                 />

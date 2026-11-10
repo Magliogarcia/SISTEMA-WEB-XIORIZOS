@@ -36,6 +36,8 @@
     scroll-behavior: smooth;
     margin: 0;
     padding: 0;
+    overflow-x: hidden;
+    max-width: 100vw;
   }
 
   body {
@@ -44,6 +46,8 @@
     overscroll-behavior: none;
     background-color: #fbf9f6;
     color: #1b1c1a;
+    overflow-x: hidden;
+    max-width: 100vw;
   }
 
   main > :first-child {

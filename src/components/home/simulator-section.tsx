@@ -36,11 +36,24 @@ export function SimulatorSection() {
   const { isAuthenticated } = useAuthStore();
 
   const [sliderPosition, setSliderPosition] = useState(50);
+  const [containerWidth, setContainerWidth] = useState(560);
   // Default to Rojo so the preview shows the contrast against the castaño
   const [activeSwatch, setActiveSwatch] = useState(swatches[2]);
   const [customBeforeImage, setCustomBeforeImage] = useState<string | null>(null);
   const sliderRef = useRef<HTMLDivElement>(null);
   const isDraggingRef = useRef(false);
+
+  // Mantener el ancho del contenedor sincronizado con el viewport para alineación perfecta sin distorsión
+  useEffect(() => {
+    const updateWidth = () => {
+      if (sliderRef.current) {
+        setContainerWidth(sliderRef.current.clientWidth);
+      }
+    };
+    updateWidth();
+    window.addEventListener("resize", updateWidth);
+    return () => window.removeEventListener("resize", updateWidth);
+  }, []);
 
   const handleMove = useCallback((clientX: number) => {
     if (!sliderRef.current) return;
@@ -162,7 +175,10 @@ export function SimulatorSection() {
                   className="absolute inset-0 h-full overflow-hidden pointer-events-none select-none"
                   style={{ width: `${sliderPosition}%` }}
                 >
-                  <div className="relative w-[560px] max-w-none h-full pointer-events-none select-none">
+                  <div
+                    className="relative max-w-none h-full pointer-events-none select-none"
+                    style={{ width: `${containerWidth}px` }}
+                  >
                     <Image
                       src={
                         customBeforeImage ||
@@ -245,7 +261,7 @@ export function SimulatorSection() {
                 </div>
 
                 {/* Swatches Palette List (Solo Castaño, Negro o Rojo) */}
-                <div className="flex gap-4 items-center justify-start py-2">
+                <div className="flex flex-wrap gap-2.5 sm:gap-4 items-center justify-start py-2">
                   {swatches.map((swatch) => (
                     <button
                       key={swatch.name}

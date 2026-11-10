@@ -14,7 +14,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           priority
         />
       </Link>
-      <div className="w-full max-w-sm rounded-md border border-slate-200 bg-white p-7 shadow-sm">
+      <div className="w-full max-w-sm rounded-md border border-slate-200 bg-white p-5 sm:p-7 shadow-sm">
         {children}
       </div>
     </div>

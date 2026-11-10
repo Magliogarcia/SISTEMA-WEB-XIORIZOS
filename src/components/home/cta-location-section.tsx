@@ -1,7 +1,7 @@
 export function CtaLocationSection() {
   return (
     <section className="w-full max-w-[1320px] mx-auto px-margin-mobile md:px-margin pb-space-xl" id="contacto">
-      <div className="w-full bg-primary text-on-primary rounded-[40px] p-space-lg md:p-space-xl shadow-[0_24px_48px_-8px_rgba(18,18,18,0.28)]">
+      <div className="w-full bg-primary text-on-primary rounded-3xl sm:rounded-[40px] p-5 sm:p-space-lg md:p-space-xl shadow-[0_24px_48px_-8px_rgba(18,18,18,0.28)]">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-center">
           
           {/* Left info (7 cols) */}
@@ -48,9 +48,9 @@ export function CtaLocationSection() {
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-space-sm pt-4">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-space-sm pt-4">
               <a
-                className="inline-flex items-center gap-2 bg-on-primary text-primary font-label-md text-label-md px-6 py-3 rounded-full hover:bg-secondary-fixed hover:scale-105 transition-all shadow-md font-semibold"
+                className="inline-flex items-center justify-center gap-2 bg-on-primary text-primary font-label-md text-label-md px-6 py-3 rounded-full hover:bg-secondary-fixed hover:scale-105 transition-all shadow-md font-semibold text-center"
                 href="https://wa.me/584127434761"
                 rel="noopener noreferrer"
                 target="_blank"
@@ -60,7 +60,7 @@ export function CtaLocationSection() {
               </a>
 
               <a
-                className="inline-flex items-center gap-2 bg-primary-container text-on-primary font-label-md text-label-md px-6 py-3 rounded-full hover:bg-on-primary-fixed-variant transition-all border border-white/10"
+                className="inline-flex items-center justify-center gap-2 bg-primary-container text-on-primary font-label-md text-label-md px-6 py-3 rounded-full hover:bg-on-primary-fixed-variant transition-all border border-white/10 text-center"
                 href="https://maps.app.goo.gl/A5WyREVTwa24HHCD8"
                 rel="noopener noreferrer"
                 target="_blank"

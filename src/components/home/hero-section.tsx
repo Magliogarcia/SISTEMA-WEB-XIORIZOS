@@ -44,10 +44,10 @@ export function HeroSection() {
         </p>
 
         {/* CTA Pill Actions */}
-        <div className="flex flex-wrap items-center gap-space-sm pt-space-xs">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-space-sm pt-space-xs w-full sm:w-auto">
           <Link
             href="/citas"
-            className="inline-flex items-center justify-center gap-2 bg-white text-primary font-label-lg text-label-lg px-8 py-3.5 rounded-full shadow-[0_4px_20px_rgba(0,0,0,0.35)] hover:bg-[#ffdbc7] hover:scale-105 active:scale-95 transition-all font-semibold"
+            className="inline-flex items-center justify-center gap-2 bg-white text-primary font-label-lg text-label-lg px-6 sm:px-8 py-3.5 rounded-full shadow-[0_4px_20px_rgba(0,0,0,0.35)] hover:bg-[#ffdbc7] hover:scale-105 active:scale-95 transition-all font-semibold text-center"
           >
             <span>Reservar cita</span>
             <span className="material-symbols-outlined text-[18px]">calendar_today</span>
@@ -55,7 +55,7 @@ export function HeroSection() {
 
           <Link
             href="/simulador"
-            className="inline-flex items-center justify-center gap-2 bg-surface-container-lowest/20 hover:bg-surface-container-lowest/30 backdrop-blur-md border border-white/30 text-white font-label-lg text-label-lg px-8 py-3.5 rounded-full shadow-sm hover:scale-105 active:scale-95 transition-all"
+            className="inline-flex items-center justify-center gap-2 bg-surface-container-lowest/20 hover:bg-surface-container-lowest/30 backdrop-blur-md border border-white/30 text-white font-label-lg text-label-lg px-6 sm:px-8 py-3.5 rounded-full shadow-sm hover:scale-105 active:scale-95 transition-all text-center"
           >
             <span>Probar mi nuevo color</span>
             <span className="material-symbols-outlined text-[18px] text-[#febb90]">palette</span>
@@ -63,7 +63,7 @@ export function HeroSection() {
         </div>
 
         {/* Floating Trust Indicator on Dark Overlay */}
-        <div className="flex flex-wrap items-center gap-3 pt-space-xs bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border border-white/10">
+        <div className="flex items-center gap-2.5 sm:gap-3 bg-black/40 backdrop-blur-md px-3.5 sm:px-4 py-2 rounded-2xl sm:rounded-full border border-white/10 max-w-full">
           <div className="flex -space-x-2">
             <span className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center text-white text-[11px] font-bold ring-2 ring-black/50 shadow-sm">✓</span>
             <span className="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-white text-[11px] font-bold ring-2 ring-black/50 shadow-sm">★</span>

@@ -94,8 +94,8 @@ export default function CatalogoPage() {
           </p>
         </div>
 
-        <div className="flex gap-2">
-          <div className="w-64">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="flex-1 sm:w-64">
             <SearchBar value={busqueda} onChange={setBusqueda} />
           </div>
 

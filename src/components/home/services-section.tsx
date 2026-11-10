@@ -53,20 +53,20 @@ function ServiceRow({ services, titleBadge }: ServiceRowProps) {
           type="button"
           onClick={() => handleScroll("left")}
           aria-label="Ver servicios anteriores"
-          className="flex-shrink-0 w-10 h-10 md:w-11 md:h-11 rounded-full bg-surface-container-lowest hover:bg-surface-container text-primary flex items-center justify-center shadow-md border border-surface-container transition-all active:scale-90 hover:scale-105"
+          className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 md:w-11 md:h-11 rounded-full bg-surface-container-lowest hover:bg-surface-container text-primary flex items-center justify-center shadow-md border border-surface-container transition-all active:scale-90 hover:scale-105"
         >
-          <span className="material-symbols-outlined text-[20px]">chevron_left</span>
+          <span className="material-symbols-outlined text-[18px] sm:text-[20px]">chevron_left</span>
         </button>
 
         {/* Pista Deslizable Optimizada (Nativa, fluida, snap) */}
         <div
           ref={trackRef}
-          className="flex gap-4 overflow-x-auto py-2 w-full scroll-smooth scrollbar-none snap-x snap-mandatory"
+          className="flex gap-3 sm:gap-4 overflow-x-auto py-2 w-full scroll-smooth scrollbar-none snap-x snap-mandatory"
         >
           {services.map((service) => (
             <div
               key={service.id}
-              className="snap-start flex-shrink-0 w-[270px] sm:w-[290px] bg-surface-container-lowest rounded-3xl p-4 shadow-sm border border-surface-container flex flex-col justify-between hover:shadow-lg transition-all duration-300 hover:border-primary/30"
+              className="snap-start flex-shrink-0 w-[240px] sm:w-[280px] bg-surface-container-lowest rounded-3xl p-4 shadow-sm border border-surface-container flex flex-col justify-between hover:shadow-lg transition-all duration-300 hover:border-primary/30"
             >
               <div>
                 {/* Imagen del Servicio */}
@@ -125,9 +125,9 @@ function ServiceRow({ services, titleBadge }: ServiceRowProps) {
           type="button"
           onClick={() => handleScroll("right")}
           aria-label="Ver siguientes servicios"
-          className="flex-shrink-0 w-10 h-10 md:w-11 md:h-11 rounded-full bg-surface-container-lowest hover:bg-surface-container text-primary flex items-center justify-center shadow-md border border-surface-container transition-all active:scale-90 hover:scale-105"
+          className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 md:w-11 md:h-11 rounded-full bg-surface-container-lowest hover:bg-surface-container text-primary flex items-center justify-center shadow-md border border-surface-container transition-all active:scale-90 hover:scale-105"
         >
-          <span className="material-symbols-outlined text-[20px]">chevron_right</span>
+          <span className="material-symbols-outlined text-[18px] sm:text-[20px]">chevron_right</span>
         </button>
       </div>
     </div>

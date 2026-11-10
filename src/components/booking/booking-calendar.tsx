@@ -232,7 +232,7 @@ export function BookingCalendar() {
                           disabled={disabled}
                           onClick={() => confirmarHora(slot)}
                           className={cn(
-                            "rounded-lg border px-3 py-2 text-sm font-medium transition-all text-center select-none",
+                            "rounded-lg border px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium transition-all text-center select-none",
                             disabled
                               ? "opacity-30 cursor-not-allowed bg-muted/60 text-muted-foreground/50 border-transparent line-through pointer-events-none"
                               : isSelected
@@ -264,7 +264,7 @@ export function BookingCalendar() {
                           disabled={disabled}
                           onClick={() => confirmarHora(slot)}
                           className={cn(
-                            "rounded-lg border px-3 py-2 text-sm font-medium transition-all text-center select-none",
+                            "rounded-lg border px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium transition-all text-center select-none",
                             disabled
                               ? "opacity-30 cursor-not-allowed bg-muted/60 text-muted-foreground/50 border-transparent line-through pointer-events-none"
                               : isSelected
