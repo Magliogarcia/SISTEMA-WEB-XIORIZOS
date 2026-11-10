@@ -26,6 +26,10 @@ export const useBookingStore = create<BookingState>((set) => ({
   setServicio: (servicio) =>
     set((state) => ({
       servicio,
+      profesional:
+        state.profesional && state.profesional.serviciosIds?.includes(servicio.id)
+          ? state.profesional
+          : null,
       hora: null,
       // Avanzar al paso 2 solo si estamos en el paso 1
       step: state.step === 1 ? 2 : state.step,

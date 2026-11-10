@@ -392,9 +392,9 @@ export const mockProfessionals: Professional[] = realStaffMembers
       st.id === "st1"
         ? ["s1", "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9", "s10", "s11"]
         : st.id === "st4"
-        ? ["s3", "s9"]
+        ? ["s3", "s8", "s9"]
         : st.id === "st5"
-        ? ["s1", "s2", "s4", "s5", "s6", "s11"]
+        ? ["s1", "s2", "s4", "s5", "s6", "s7", "s8", "s10", "s11"]
         : ["s12"],
   }));
 
