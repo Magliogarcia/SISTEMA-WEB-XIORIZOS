@@ -1,6 +1,12 @@
 "use client";
 
+import { useCartStore } from "@/store/cart-store";
+
 export function WhatsAppButton() {
+  const isCartOpen = useCartStore((state) => state.isOpen);
+
+  if (isCartOpen) return null;
+
   return (
     <aside
       aria-label="Atención al cliente por WhatsApp"

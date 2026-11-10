@@ -3,9 +3,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Lock, ArrowRight } from "lucide-react";
-import { useAuthStore } from "@/store/auth-store";
 
 interface Swatch {
   name: string;
@@ -13,6 +10,7 @@ interface Swatch {
   afterImage: string;
 }
 
+// ÚNICAMENTE los 3 tonos oficiales permitidos: Castaño, Negro, Rojo
 const swatches: Swatch[] = [
   {
     name: "Castaño",
@@ -32,14 +30,10 @@ const swatches: Swatch[] = [
 ];
 
 export function SimulatorSection() {
-  const router = useRouter();
-  const { isAuthenticated } = useAuthStore();
-
   const [sliderPosition, setSliderPosition] = useState(50);
   const [containerWidth, setContainerWidth] = useState(560);
-  // Default to Rojo so the preview shows the contrast against the castaño
+  // Default a Rojo para apreciar el contraste contra el castaño
   const [activeSwatch, setActiveSwatch] = useState(swatches[2]);
-  const [customBeforeImage, setCustomBeforeImage] = useState<string | null>(null);
   const sliderRef = useRef<HTMLDivElement>(null);
   const isDraggingRef = useRef(false);
 
@@ -65,21 +59,14 @@ export function SimulatorSection() {
     setSliderPosition(percentage);
   }, []);
 
+  // En la página de inicio se puede mover el deslizador libremente sin iniciar sesión (representación visual)
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
-    if (!isAuthenticated) {
-      router.push("/login?redirect=/#simulador");
-      return;
-    }
     isDraggingRef.current = true;
     handleMove(e.clientX);
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    if (!isAuthenticated) {
-      router.push("/login?redirect=/#simulador");
-      return;
-    }
     isDraggingRef.current = true;
     if (e.touches[0]) handleMove(e.touches[0].clientX);
   };
@@ -114,18 +101,6 @@ export function SimulatorSection() {
     };
   }, [handleMove]);
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!isAuthenticated) {
-      router.push("/login?redirect=/#simulador");
-      return;
-    }
-    const file = e.target.files?.[0];
-    if (file) {
-      const url = URL.createObjectURL(file);
-      setCustomBeforeImage(url);
-    }
-  };
-
   return (
     <section className="w-full py-space-xl bg-background" id="simulador">
       <div className="max-w-[1320px] mx-auto px-margin-mobile md:px-margin">
@@ -137,7 +112,7 @@ export function SimulatorSection() {
             Simulador de Color
           </h2>
           <p className="font-body-md text-body-md text-on-surface-variant mt-2">
-            Descubre qué matiz le va mejor a tus rizos antes de aplicarte el tinte.
+            Mueve el deslizador para previsualizar el cambio de tono en tus rizos.
           </p>
         </div>
 
@@ -180,11 +155,8 @@ export function SimulatorSection() {
                     style={{ width: `${containerWidth}px` }}
                   >
                     <Image
-                      src={
-                        customBeforeImage ||
-                        "/images/persona_con_cabello_castano_normal.webp"
-                      }
-                      alt="Cabello rizado natural castaño"
+                      src="/images/persona_con_cabello_castano_normal.webp"
+                      alt="Cabello rizado castaño natural"
                       fill
                       draggable={false}
                       className="object-cover pointer-events-none select-none"
@@ -192,11 +164,15 @@ export function SimulatorSection() {
                   </div>
                 </div>
 
-                {/* Draggable Divider Line centrado perfectamente */}
+                {/* Vertical Divider Line with Centered Arrows Button */}
                 <div
-                  className="absolute top-0 bottom-0 w-0.5 bg-white pointer-events-none -translate-x-1/2"
-                  style={{ left: `${sliderPosition}%` }}
+                  className="absolute top-0 bottom-0 pointer-events-none select-none z-20 flex items-center justify-center -translate-x-1/2"
+                  style={{ left: `${sliderPosition}%`, width: "2px" }}
                 >
+                  {/* Línea blanca vertical continua */}
+                  <div className="w-full h-full bg-white shadow-[0_0_10px_rgba(0,0,0,0.5)]" />
+
+                  {/* Botón Circular Divisor Centrado Exactamente sobre la línea */}
                   <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center shadow-2xl border-2 border-white pointer-events-none">
                     <span className="material-symbols-outlined text-[20px] text-white">sync_alt</span>
                   </div>
@@ -209,43 +185,7 @@ export function SimulatorSection() {
                 <span className="absolute bottom-4 right-4 bg-secondary/90 backdrop-blur-md text-on-secondary font-label-sm text-label-sm px-3.5 py-1 rounded-full pointer-events-none shadow font-medium">
                   Después
                 </span>
-
-                {/* Overlay de protección si no ha iniciado sesión */}
-                {!isAuthenticated && (
-                  <div className="absolute inset-0 z-30 bg-black/60 backdrop-blur-[3px] flex flex-col items-center justify-center p-6 text-center text-white">
-                    <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center mb-3">
-                      <Lock className="w-6 h-6 text-white" />
-                    </div>
-                    <h3 className="font-heading text-lg font-bold text-white">
-                      Inicia sesión para usar el simulador
-                    </h3>
-                    <p className="text-xs text-white/80 max-w-xs mt-1 mb-4 leading-relaxed">
-                      Debes tener una cuenta activa para interactuar con la colorimetría virtual y probar tonos en tu foto.
-                    </p>
-                    <Link
-                      href="/login?redirect=/#simulador"
-                      className="inline-flex items-center gap-2 bg-white text-primary px-5 py-2.5 rounded-full text-xs font-bold shadow-lg hover:bg-[#FAF6F0] transition-all"
-                    >
-                      <span>Iniciar sesión ahora</span>
-                      <ArrowRight className="h-3.5 w-3.5" />
-                    </Link>
-                  </div>
-                )}
               </div>
-
-              {/* Upload Photo Trigger */}
-              <label className="mt-space-md inline-flex items-center gap-2 bg-surface-container-lowest hover:bg-surface-container text-primary font-label-md text-label-md px-6 py-2.5 rounded-full cursor-pointer shadow-sm transition-all hover:scale-[1.02] active:scale-95">
-                <span className="material-symbols-outlined text-[18px]">photo_camera</span>
-                <span>
-                  {customBeforeImage ? "Cambiar mi foto" : "Sube tu foto para probarlo en ti"}
-                </span>
-                <input
-                  accept="image/*"
-                  className="hidden"
-                  type="file"
-                  onChange={handlePhotoUpload}
-                />
-              </label>
             </div>
 
             {/* Color Palette Picker & Formula Metric (Right 5 Cols) */}
@@ -306,13 +246,13 @@ export function SimulatorSection() {
                 </div>
               </div>
 
-              {/* Action Button */}
+              {/* Botón CTA que invita a ir al simulador interactivo completo */}
               <Link
-                href="/citas"
-                className="w-full inline-flex items-center justify-center gap-2 bg-primary text-on-primary font-label-lg text-label-lg py-4 rounded-full shadow-[0_4px_14px_rgba(18,18,18,0.22)] hover:scale-[1.02] active:scale-95 transition-all font-semibold"
+                href="/simulador"
+                className="w-full inline-flex items-center justify-center gap-2 bg-primary text-on-primary font-label-lg text-label-lg py-4 rounded-full shadow-[0_4px_14px_rgba(18,18,18,0.22)] hover:scale-[1.02] active:scale-95 transition-all font-semibold text-center"
               >
-                <span className="material-symbols-outlined text-[18px]">auto_awesome</span>
-                <span>Pedir este color en el salón</span>
+                <span>Probar simulador con mi foto</span>
+                <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
               </Link>
             </div>
           </div>

@@ -399,9 +399,7 @@ export const mockProfessionals: Professional[] = realStaffMembers
   }));
 
 export const mockHairTones: HairColorTone[] = [
-  { id: "t1", nombre: "Honey Blonde", hex: "#E5C158", familia: "rubios" },
-  { id: "t2", nombre: "Rich Hazelnut", hex: "#5C3D2E", familia: "castaños" },
-  { id: "t3", nombre: "Sunset Copper", hex: "#C86432", familia: "rojos" },
-  { id: "t4", nombre: "Burgundy Velvet", hex: "#722F37", familia: "rojos" },
-  { id: "t5", nombre: "Rose Gold Glow", hex: "#DDA39D", familia: "fantasia" },
+  { id: "t1", nombre: "Castaño", hex: "#4A2C1D", familia: "castaños" },
+  { id: "t2", nombre: "Negro", hex: "#1A1A1A", familia: "negros" },
+  { id: "t3", nombre: "Rojo", hex: "#C86432", familia: "rojos" },
 ];
