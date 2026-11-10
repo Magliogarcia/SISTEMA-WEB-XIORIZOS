@@ -18,6 +18,7 @@ export interface Product {
   nombre: string;
   descripcion: string;
   precio: number;
+  costo?: number;
   marca: string;
   categoria: string;
   imagenUrl: string;

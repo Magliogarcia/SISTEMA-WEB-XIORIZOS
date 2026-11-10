@@ -26,6 +26,19 @@ import { Textarea } from "@/components/ui/textarea";
 import { formatCurrency } from "@/lib/utils";
 import type { DBProduct } from "@/lib/db";
 
+const CATEGORIAS_PRODUCTO = [
+  "Cremas",
+  "Definidores",
+  "Geles",
+  "Tratamientos",
+  "Aceites",
+  "Shampoo",
+  "Acondicionadores",
+  "Mascarillas",
+  "Accesorios",
+  "Kits",
+];
+
 const IMAGENES_DISPONIBLES = [
   "/images/crema_de_peinar_etniker.webp",
   "/images/gel_definidor.webp",
@@ -54,6 +67,7 @@ export default function AdminProductosPage() {
   const [descripcion, setDescripcion] = useState("");
   const [marca, setMarca] = useState("Xiorizos");
   const [categoria, setCategoria] = useState("Cremas");
+  const [costo, setCosto] = useState("");
   const [precio, setPrecio] = useState("");
   const [stock, setStock] = useState("10");
   const [imagenUrl, setImagenUrl] = useState(IMAGENES_DISPONIBLES[0]);
@@ -91,6 +105,7 @@ export default function AdminProductosPage() {
     setDescripcion("");
     setMarca("Xiorizos");
     setCategoria("Cremas");
+    setCosto("");
     setPrecio("");
     setStock("10");
     setImagenUrl(IMAGENES_DISPONIBLES[0]);
@@ -105,6 +120,7 @@ export default function AdminProductosPage() {
     setDescripcion(p.descripcion);
     setMarca(p.marca);
     setCategoria(p.categoria);
+    setCosto(p.costo !== undefined ? p.costo.toString() : (p.precio * 0.55).toFixed(2));
     setPrecio(p.precio.toString());
     setStock(p.stock.toString());
     setImagenUrl(p.imagenUrl);
@@ -131,7 +147,7 @@ export default function AdminProductosPage() {
       const data = await res.json();
       if (data.success && data.url) {
         setImagenUrl(data.url);
-        setUploadMensaje("Foto subida correctamente");
+        setUploadMensaje("Foto subida y optimizada a WebP correctamente");
       } else {
         setUploadMensaje(data.error || "No se pudo subir la foto");
       }
@@ -157,6 +173,7 @@ export default function AdminProductosPage() {
             descripcion,
             marca,
             categoria,
+            costo: parseFloat(costo) || 0,
             precio: parseFloat(precio) || 0,
             stock: parseInt(stock, 10) || 0,
             imagenUrl,
@@ -177,6 +194,7 @@ export default function AdminProductosPage() {
             descripcion,
             marca,
             categoria,
+            costo: parseFloat(costo) || 0,
             precio: parseFloat(precio) || 0,
             stock: parseInt(stock, 10) || 0,
             imagenUrl,
@@ -224,143 +242,164 @@ export default function AdminProductosPage() {
         <div>
           <h1 className="text-xl font-bold text-slate-900 tracking-tight">Inventario y Productos</h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Gestión de catálogo, precios, stock y subida de fotos.
+            Gestión de catálogo, costes de adquisición, precios de venta, stock y fotos.
           </p>
         </div>
 
         <div className="flex items-center gap-2 self-start sm:self-auto">
-          <Button variant="outline" size="sm" onClick={cargarProductos} className="rounded-sm border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-1.5">
+          <Button variant="outline" size="sm" onClick={cargarProductos} className="rounded-sm border-slate-200 text-xs font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-50 flex items-center gap-1.5">
             <RefreshCw className="h-3.5 w-3.5" />
             <span>Actualizar</span>
           </Button>
 
-          <Button onClick={abrirNuevo} className="rounded-sm bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm">
+          <Button
+            onClick={abrirNuevo}
+            size="sm"
+            className="rounded-sm bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold flex items-center gap-1.5 shadow-xs"
+          >
             <Plus className="h-4 w-4" />
-            <span>Nuevo Producto</span>
+            <span>Nuevo producto</span>
           </Button>
         </div>
       </div>
 
-      <div className="rounded-sm border border-slate-200 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)] overflow-hidden">
-        <div className="flex flex-col sm:flex-row gap-3 sm:items-center justify-between p-4 border-b border-slate-200">
-          <h2 className="text-sm font-bold text-slate-900">
-            Catálogo General ({productosFiltrados.length})
-          </h2>
-          <div className="relative w-full sm:w-72">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
-            <Input
-              placeholder="Buscar por nombre, categoría o marca..."
-              className="pl-8 rounded-sm text-xs h-9 border-slate-200"
-              value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
-            />
-          </div>
+      {/* Barra de Filtros */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+          <Input
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+            placeholder="Buscar por nombre, categoría o marca..."
+            className="pl-9 bg-white rounded-sm text-xs border-slate-200"
+          />
         </div>
+      </div>
 
+      {/* Tabla de Productos */}
+      <div className="rounded-sm border border-slate-200 bg-white overflow-hidden shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
         <div className="overflow-x-auto">
           {cargando ? (
-            <div className="py-12 text-center text-xs text-slate-500">Cargando productos...</div>
+            <div className="p-8 text-center text-xs text-slate-500">
+              Cargando catálogo de productos...
+            </div>
           ) : productosFiltrados.length === 0 ? (
-            <div className="py-12 text-center text-xs text-slate-500">
-              No se encontraron productos coincidentes.
+            <div className="p-8 text-center text-xs text-slate-500">
+              No se encontraron productos con el filtro aplicado.
             </div>
           ) : (
-            <table className="w-full min-w-[650px] text-left border-collapse">
+            <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="border-b border-slate-200 bg-slate-50/60 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                <tr className="border-b border-slate-200 bg-slate-50 text-slate-600 font-semibold uppercase tracking-wider text-[11px]">
                   <th className="py-3 px-4">Producto</th>
                   <th className="py-3 px-4">Categoría</th>
                   <th className="py-3 px-4">Marca</th>
-                  <th className="py-3 px-4">Precio</th>
+                  <th className="py-3 px-4">Precio / Margen</th>
                   <th className="py-3 px-4">Stock</th>
                   <th className="py-3 px-4 text-right">Acciones</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-xs">
-                {productosFiltrados.map((p) => (
-                  <tr key={p.id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-3">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setImagenPopup({
-                              url: p.imagenUrl,
-                              nombre: p.nombre,
-                              precio: p.precio,
-                              categoria: p.categoria,
-                            })
-                          }
-                          className="relative h-12 w-12 shrink-0 overflow-hidden rounded-sm bg-slate-100 border border-slate-200 hover:opacity-85 hover:ring-2 hover:ring-amber-500 transition-all cursor-zoom-in group shadow-xs"
-                          title="Clic para ampliar foto"
-                        >
-                          <Image
-                            src={p.imagenUrl}
-                            alt={p.nombre}
-                            fill
-                            className="object-cover group-hover:scale-105 transition-transform"
-                          />
-                        </button>
-                        <div>
-                          <p className="font-semibold text-slate-900 text-sm">{p.nombre}</p>
-                          <p className="text-slate-500 line-clamp-1 max-w-xs">{p.descripcion}</p>
+              <tbody className="divide-y divide-slate-100">
+                {productosFiltrados.map((p) => {
+                  const costoUnit = p.costo !== undefined ? p.costo : p.precio * 0.55;
+                  const gananciaUnit = p.precio - costoUnit;
+                  const porcentaje = costoUnit > 0 ? (gananciaUnit / costoUnit) * 100 : 0;
+
+                  return (
+                    <tr key={p.id} className="hover:bg-slate-50/80 transition-colors">
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-3">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setImagenPopup({
+                                url: p.imagenUrl,
+                                nombre: p.nombre,
+                                precio: p.precio,
+                                categoria: p.categoria,
+                              })
+                            }
+                            className="relative h-12 w-12 shrink-0 overflow-hidden rounded-sm bg-slate-100 border border-slate-200 hover:opacity-85 hover:ring-2 hover:ring-amber-500 transition-all cursor-zoom-in group shadow-xs"
+                            title="Clic para ampliar foto"
+                          >
+                            <Image
+                              src={p.imagenUrl}
+                              alt={p.nombre}
+                              fill
+                              unoptimized={true}
+                              className="object-cover group-hover:scale-105 transition-transform"
+                            />
+                          </button>
+                          <div>
+                            <p className="font-semibold text-slate-900 text-sm">{p.nombre}</p>
+                            <p className="text-slate-500 line-clamp-1 max-w-xs">{p.descripcion}</p>
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                    <td className="py-3 px-4">
-                      <span className="text-xs font-medium text-slate-600 capitalize">
-                        {p.categoria}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 font-medium text-slate-700">
-                      {p.marca}
-                    </td>
-                    <td className="py-3 px-4 font-bold text-sm text-slate-900">
-                      {formatCurrency(p.precio)}
-                    </td>
-                    <td className="py-3 px-4">
-                      <span className="inline-flex items-center gap-1.5 text-xs font-semibold">
-                        <span
-                          className={`w-2 h-2 rounded-full shrink-0 ${
-                            p.stock <= 5 ? "bg-rose-500" : "bg-emerald-500"
-                          }`}
-                        />
-                        <span className={p.stock <= 5 ? "text-rose-700" : "text-slate-800"}>
-                          {p.stock} unid.
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className="text-xs font-medium text-slate-600 capitalize">
+                          {p.categoria}
                         </span>
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <button
-                          type="button"
-                          onClick={() => abrirEditar(p)}
-                          className="p-1.5 rounded text-slate-600 hover:bg-slate-100 border border-slate-200 transition-colors cursor-pointer"
-                          title="Editar producto"
-                        >
-                          <Pencil className="h-3.5 w-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setProductoAEliminar({ id: p.id, nombre: p.nombre })}
-                          className="p-1.5 rounded text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-colors cursor-pointer"
-                          title="Eliminar producto"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td className="py-3 px-4 font-medium text-slate-700">
+                        {p.marca}
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="font-bold text-sm text-slate-900">
+                          {formatCurrency(p.precio)}
+                        </div>
+                        <div className="text-[11px] text-emerald-700 font-medium">
+                          +{formatCurrency(gananciaUnit)} ({porcentaje.toFixed(0)}%)
+                        </div>
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold">
+                          <span
+                            className={`w-2 h-2 rounded-full shrink-0 ${
+                              p.stock <= 5 ? "bg-rose-500" : "bg-emerald-500"
+                            }`}
+                          />
+                          <span className={p.stock <= 5 ? "text-rose-700" : "text-slate-800"}>
+                            {p.stock} unid.
+                          </span>
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <button
+                            type="button"
+                            onClick={() => abrirEditar(p)}
+                            className="p-1.5 rounded-sm text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 transition-colors cursor-pointer"
+                            title="Editar producto"
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setProductoAEliminar({ id: p.id, nombre: p.nombre })}
+                            className="p-1.5 rounded-sm text-rose-600 hover:text-rose-900 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-colors cursor-pointer"
+                            title="Eliminar producto"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           )}
         </div>
       </div>
 
-      {/* Modal Crear / Editar Producto (max-h-[85vh] y rounded-sm) */}
+      {/* Modal Crear / Editar Producto (Solo se cierra por la X o Cancelar, no por clic afuera) */}
       <Dialog open={modalAbierto} onOpenChange={setModalAbierto}>
-        <DialogContent className="max-w-lg rounded-sm max-h-[85vh] overflow-y-auto p-5 sm:p-6 border border-slate-200">
+        <DialogContent
+          onPointerDownOutside={(e) => e.preventDefault()}
+          onInteractOutside={(e) => e.preventDefault()}
+          className="max-w-lg rounded-sm max-h-[85vh] overflow-y-auto p-5 sm:p-6 border border-slate-200"
+        >
           <DialogHeader className="pb-2 border-b border-slate-200">
             <DialogTitle className="text-base font-bold text-slate-900">
               {modoEdicion ? "Editar información del producto" : "Añadir nuevo producto"}
@@ -385,10 +424,11 @@ export default function AdminProductosPage() {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
                 <Label htmlFor="prodMarca" className="text-xs font-semibold text-slate-700">
-                  Marca
+                  Marca *
                 </Label>
                 <Input
                   id="prodMarca"
+                  required
                   value={marca}
                   onChange={(e) => setMarca(e.target.value)}
                   placeholder="Ej. Etniker, Skala, Cantu"
@@ -396,24 +436,47 @@ export default function AdminProductosPage() {
                 />
               </div>
 
+              {/* Selector Desplegable de Categorías */}
               <div className="space-y-1">
                 <Label htmlFor="prodCat" className="text-xs font-semibold text-slate-700">
-                  Categoría
+                  Categoría *
                 </Label>
-                <Input
+                <select
                   id="prodCat"
                   value={categoria}
                   onChange={(e) => setCategoria(e.target.value)}
-                  placeholder="Ej. Cremas, Geles, Tratamientos"
-                  className="rounded-sm text-xs"
-                />
+                  className="w-full h-9 px-2.5 rounded-sm border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-900 cursor-pointer shadow-xs"
+                >
+                  {CATEGORIAS_PRODUCTO.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            {/* Fila única compacta: Costo, Venta, Ganancia y % Margen */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 items-end">
+              <div className="space-y-1">
+                <Label htmlFor="prodCosto" className="text-xs font-semibold text-slate-700">
+                  Precio de costo ($) *
+                </Label>
+                <Input
+                  id="prodCosto"
+                  type="number"
+                  step="0.01"
+                  required
+                  value={costo}
+                  onChange={(e) => setCosto(e.target.value)}
+                  placeholder="12.00"
+                  className="rounded-sm text-xs h-9"
+                />
+              </div>
+
               <div className="space-y-1">
                 <Label htmlFor="prodPrecio" className="text-xs font-semibold text-slate-700">
-                  Precio (USD) *
+                  Precio de venta ($) *
                 </Label>
                 <Input
                   id="prodPrecio"
@@ -422,11 +485,45 @@ export default function AdminProductosPage() {
                   required
                   value={precio}
                   onChange={(e) => setPrecio(e.target.value)}
-                  placeholder="25.00"
-                  className="rounded-sm text-xs"
+                  placeholder="22.00"
+                  className="rounded-sm text-xs h-9"
                 />
               </div>
 
+              <div className="space-y-1">
+                <span className="text-[11px] font-semibold text-slate-500 block truncate">
+                  Ganancia y margen
+                </span>
+                {(() => {
+                  const p = parseFloat(precio) || 0;
+                  const c = parseFloat(costo) || 0;
+                  const ganancia = p - c;
+                  const porcentaje = c > 0 ? (ganancia / c) * 100 : 0;
+                  const esPositivo = ganancia >= 0;
+
+                  return (
+                    <div
+                      className={`h-9 px-2.5 rounded-sm border flex items-center justify-between text-xs font-medium ${
+                        !precio && !costo
+                          ? "bg-slate-50 border-slate-200 text-slate-400"
+                          : esPositivo
+                          ? "bg-emerald-50/80 border-emerald-200 text-emerald-800"
+                          : "bg-rose-50/80 border-rose-200 text-rose-800"
+                      }`}
+                    >
+                      <span className="font-bold truncate">
+                        {esPositivo ? `+$${ganancia.toFixed(2)}` : `-$${Math.abs(ganancia).toFixed(2)}`}
+                      </span>
+                      <span className={`text-[11px] font-bold ${esPositivo ? "text-emerald-700" : "text-rose-700"}`}>
+                        {c > 0 ? `${esPositivo ? "+" : ""}${porcentaje.toFixed(0)}%` : "0%"}
+                      </span>
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="space-y-1">
                 <Label htmlFor="prodStock" className="text-xs font-semibold text-slate-700">
                   Stock disponible *
@@ -441,30 +538,35 @@ export default function AdminProductosPage() {
                   className="rounded-sm text-xs"
                 />
               </div>
+
+              <div className="sm:col-span-2 space-y-1">
+                <Label htmlFor="prodDesc" className="text-xs font-semibold text-slate-700">
+                  Descripción
+                </Label>
+                <Input
+                  id="prodDesc"
+                  value={descripcion}
+                  onChange={(e) => setDescripcion(e.target.value)}
+                  placeholder="Beneficios y textura para rizos."
+                  className="rounded-sm text-xs"
+                />
+              </div>
             </div>
 
-            <div className="space-y-1">
-              <Label htmlFor="prodDesc" className="text-xs font-semibold text-slate-700">
-                Descripción
-              </Label>
-              <Textarea
-                id="prodDesc"
-                rows={2}
-                value={descripcion}
-                onChange={(e) => setDescripcion(e.target.value)}
-                placeholder="Beneficios, modo de uso y textura para rizos."
-                className="rounded-sm text-xs"
-              />
-            </div>
-
-            {/* Subida de Imagen Limpia y sin textos indebidos */}
+            {/* Subida de Imagen con optimización WebP */}
             <div className="space-y-2 pt-2 border-t border-slate-200">
               <Label className="text-xs font-semibold text-slate-700">Foto del producto</Label>
               
               <div className="flex items-center gap-3">
                 <div className="relative h-14 w-14 shrink-0 rounded-sm overflow-hidden border border-slate-200 bg-slate-100 shadow-sm">
                   {imagenUrl ? (
-                    <Image src={imagenUrl} alt="Preview" fill className="object-cover" />
+                    <Image
+                      src={imagenUrl}
+                      alt="Preview"
+                      fill
+                      unoptimized={true}
+                      className="object-cover"
+                    />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-slate-400">
                       <Package className="h-5 w-5" />
@@ -486,10 +588,10 @@ export default function AdminProductosPage() {
                     size="sm"
                     disabled={subiendoFoto}
                     onClick={() => fileInputRef.current?.click()}
-                    className="rounded-sm text-xs font-semibold flex items-center gap-1.5 border-slate-200 text-slate-700 hover:bg-slate-50"
+                    className="rounded-sm text-xs font-semibold flex items-center gap-1.5 border-slate-200 text-slate-700 hover:text-slate-900 hover:bg-slate-50"
                   >
                     <Upload className="h-3.5 w-3.5 text-slate-600" />
-                    <span>{subiendoFoto ? "Subiendo..." : "Subir foto"}</span>
+                    <span>{subiendoFoto ? "Procesando..." : "Subir foto (JPG, PNG, WebP)"}</span>
                   </Button>
                 </div>
               </div>
@@ -510,13 +612,13 @@ export default function AdminProductosPage() {
                       key={img}
                       type="button"
                       onClick={() => setImagenUrl(img)}
-                      className={`relative aspect-square rounded overflow-hidden border transition-all ${
+                      className={`relative aspect-square rounded-sm overflow-hidden border transition-all ${
                         imagenUrl === img
                           ? "border-slate-900 ring-2 ring-slate-900 scale-105"
                           : "border-transparent opacity-70 hover:opacity-100"
                       }`}
                     >
-                      <Image src={img} alt="Preview" fill className="object-cover" />
+                      <Image src={img} alt="Preview" fill unoptimized={true} className="object-cover" />
                     </button>
                   ))}
                 </div>
@@ -524,16 +626,25 @@ export default function AdminProductosPage() {
             </div>
 
             <DialogFooter className="pt-3 border-t border-slate-200 flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => setModalAbierto(false)} className="rounded-sm text-xs">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setModalAbierto(false)}
+                className="rounded-sm text-xs font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-100 border-slate-200"
+              >
                 Cancelar
               </Button>
-              <Button type="submit" className="bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-sm text-xs shadow-sm">
+              <Button
+                type="submit"
+                className="bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-sm text-xs shadow-xs"
+              >
                 {modoEdicion ? "Guardar cambios" : "Crear producto"}
               </Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
+
       {/* Modal Lightbox de Foto de Producto */}
       {imagenPopup && (
         <Dialog open={!!imagenPopup} onOpenChange={() => setImagenPopup(null)}>
@@ -549,11 +660,12 @@ export default function AdminProductosPage() {
                   src={imagenPopup.url}
                   alt={imagenPopup.nombre}
                   fill
+                  unoptimized={true}
                   className="object-contain p-2"
                 />
               </div>
               <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-100">
-                <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-medium capitalize">
+                <span className="px-2 py-0.5 rounded-sm bg-slate-100 text-slate-700 font-medium capitalize">
                   {imagenPopup.categoria}
                 </span>
                 <span className="text-sm font-bold text-slate-900">
@@ -565,7 +677,7 @@ export default function AdminProductosPage() {
         </Dialog>
       )}
 
-      {/* Modal Personalizado de Confirmación para Eliminar Producto (sin alert/confirm del navegador) */}
+      {/* Modal Personalizado de Confirmación para Eliminar Producto */}
       <Dialog open={!!productoAEliminar} onOpenChange={(open) => !open && setProductoAEliminar(null)}>
         <DialogContent className="max-w-sm rounded-sm p-5 border border-slate-200 font-sans">
           <DialogHeader className="pb-2 border-b border-slate-200">

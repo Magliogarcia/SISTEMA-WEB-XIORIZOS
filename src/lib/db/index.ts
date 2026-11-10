@@ -42,6 +42,7 @@ export interface DBProduct {
   nombre: string;
   descripcion: string;
   precio: number;
+  costo?: number;
   imagenUrl: string;
   categoria: string;
   marca: string;

@@ -32,7 +32,7 @@ export async function POST(req: Request) {
       );
     }
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       user: {
         id: user.id,
@@ -43,9 +43,17 @@ export async function POST(req: Request) {
         telefono: user.telefono,
       },
     });
+
+    // Guardar cookie de sesión para verificación de seguridad instantánea en Middleware
+    response.cookies.set("xiorizos_role", user.rol, {
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7, // 7 días
+      sameSite: "lax",
+    });
+
+    return response;
   } catch (error) {
     console.error("Error in login route:", error);
     return NextResponse.json({ error: "Error en el servidor al iniciar sesión." }, { status: 500 });
   }
 }
-

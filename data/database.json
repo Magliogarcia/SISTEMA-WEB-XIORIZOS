@@ -288,7 +288,7 @@
       "fecha": "2026-11-16T20:00:00.000Z",
       "hora": "16:00",
       "notas": "Corte en capas redondas para dar volumen arriba.",
-      "estado": "confirmada",
+      "estado": "pendiente",
       "creadoEn": "2026-11-10T12:00:00.000Z"
     }
   ],
@@ -303,7 +303,8 @@
       "marca": "Xiorizos Care",
       "stock": 15,
       "rating": 4.9,
-      "reseñasCount": 48
+      "reseñasCount": 48,
+      "costo": 18.7
     },
     {
       "id": "p2",
@@ -315,7 +316,8 @@
       "marca": "Xiorizos Care",
       "stock": 24,
       "rating": 5,
-      "reseñasCount": 62
+      "reseñasCount": 62,
+      "costo": 15.4
     },
     {
       "id": "p3",
@@ -327,7 +329,8 @@
       "marca": "Xiorizos Care",
       "stock": 30,
       "rating": 4.8,
-      "reseñasCount": 39
+      "reseñasCount": 39,
+      "costo": 14.3
     },
     {
       "id": "p4",
@@ -339,7 +342,8 @@
       "marca": "Xiorizos Care",
       "stock": 20,
       "rating": 4.9,
-      "reseñasCount": 51
+      "reseñasCount": 51,
+      "costo": 12.1
     },
     {
       "id": "p5",
@@ -351,7 +355,8 @@
       "marca": "Etniker",
       "stock": 18,
       "rating": 4.9,
-      "reseñasCount": 42
+      "reseñasCount": 42,
+      "costo": 13.75
     },
     {
       "id": "p6",
@@ -363,7 +368,8 @@
       "marca": "Xiorizos Care",
       "stock": 12,
       "rating": 5,
-      "reseñasCount": 33
+      "reseñasCount": 33,
+      "costo": 20.9
     },
     {
       "id": "p7",
@@ -375,7 +381,8 @@
       "marca": "Ibella",
       "stock": 16,
       "rating": 4.8,
-      "reseñasCount": 29
+      "reseñasCount": 29,
+      "costo": 13.2
     },
     {
       "id": "p8",
@@ -387,7 +394,8 @@
       "marca": "Xiorizos Care",
       "stock": 22,
       "rating": 4.7,
-      "reseñasCount": 21
+      "reseñasCount": 21,
+      "costo": 10.45
     }
   ],
   "orders": [
