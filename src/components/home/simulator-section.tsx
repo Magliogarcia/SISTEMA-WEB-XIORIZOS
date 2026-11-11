@@ -135,6 +135,8 @@ export function SimulatorSection() {
                     src={activeSwatch.afterImage}
                     alt="Cabello rizado teñido"
                     fill
+                    loading="lazy"
+                    sizes="(max-width: 640px) 100vw, 560px"
                     draggable={false}
                     className="object-cover pointer-events-none select-none"
                   />
@@ -158,6 +160,8 @@ export function SimulatorSection() {
                       src="/images/persona_con_cabello_castano_normal.webp"
                       alt="Cabello rizado castaño natural"
                       fill
+                      loading="lazy"
+                      sizes="(max-width: 640px) 100vw, 560px"
                       draggable={false}
                       className="object-cover pointer-events-none select-none"
                     />

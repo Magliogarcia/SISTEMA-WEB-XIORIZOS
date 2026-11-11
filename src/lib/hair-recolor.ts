@@ -76,15 +76,25 @@ export async function recolorHair(
 ): Promise<string> {
   const segmenter = await getHairSegmenter();
 
-  // Ejecutar segmentación de cabello
-  const segmentationResult = segmenter.segment(imgElement);
+  const origWidth = imgElement.naturalWidth || imgElement.width;
+  const origHeight = imgElement.naturalHeight || imgElement.height;
 
-  // Obtener máscara de confianza o de categoría
-  // En hair_segmenter.tflite:
-  // - Si hay confidenceMasks: índice 1 es cabello (o índice 0 según el modelo)
-  // - Si hay categoryMask: valor > 0 es cabello
-  const width = imgElement.naturalWidth || imgElement.width;
-  const height = imgElement.naturalHeight || imgElement.height;
+  // Limitar resolución de procesamiento a máx 1024px para que fotos 4K procesen al instante
+  const MAX_DIM = 1024;
+  const scale = Math.min(1, MAX_DIM / Math.max(origWidth, origHeight));
+  const width = Math.max(1, Math.round(origWidth * scale));
+  const height = Math.max(1, Math.round(origHeight * scale));
+
+  // Preparar canvas de trabajo directamente con la resolución óptima
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  if (!ctx) throw new Error("No se pudo crear el contexto 2D");
+  ctx.drawImage(imgElement, 0, 0, width, height);
+
+  // Ejecutar segmentación de cabello sobre el canvas ya redimensionado
+  const segmentationResult = segmenter.segment(canvas);
 
   let hairMask: Float32Array | null = null;
 
@@ -106,15 +116,6 @@ export async function recolorHair(
     throw new Error("No se pudo obtener la máscara de cabello");
   }
 
-  // Preparar canvas offscreen para procesar píxeles
-  const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext("2d", { willReadFrequently: true });
-  if (!ctx) throw new Error("No se pudo crear el contexto 2D");
-
-  // Dibujar la imagen original
-  ctx.drawImage(imgElement, 0, 0, width, height);
   const imgData = ctx.getImageData(0, 0, width, height);
   const data = imgData.data;
 
@@ -231,10 +232,17 @@ export async function recolorHair(
     data[p + 2] = Math.max(0, Math.min(255, Math.round(newB)));
   }
 
+  // Liberar buffers nativos WASM/WebGL del resultado de segmentación
+  try {
+    segmentationResult.close();
+  } catch {
+    // Ignorar si ya fue liberado
+  }
+
   // Escribir píxeles procesados de vuelta al canvas
   ctx.putImageData(imgData, 0, 0);
 
   // Retornar Data URL en formato JPEG de alta calidad
-  return canvas.toDataURL("image/jpeg", 0.95);
+  return canvas.toDataURL("image/jpeg", 0.92);
 }
 

@@ -49,6 +49,7 @@ export function AdminSidebar() {
               src="/images/Logo_completo_vertical.webp"
               alt="Logo Xiorizos"
               fill
+              sizes="144px"
               className="object-contain"
               priority
             />

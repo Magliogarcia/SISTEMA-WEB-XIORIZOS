@@ -7,16 +7,18 @@ export function HeroSection() {
       {/* Panoramic Full-Bleed Cover Background Image (Starts from top y=0) */}
       <div className="absolute inset-0 w-full h-full">
         <Image
-          src="/images/hero.png"
+          src="/images/hero.webp"
           alt="Salón Xiorizos - Especialistas en cabello ondulado, rizado y afro"
           fill
+          sizes="100vw"
+          quality={82}
           priority
           className="object-cover object-center"
         />
       </div>
 
       {/* Deep Warm/Dark Overlay for Readability & Contrast */}
-      <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-[#18110b]/75 to-black/55 md:to-transparent backdrop-blur-[0.5px]" />
+      <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-[#18110b]/75 to-black/55 md:to-transparent" />
       <div className="absolute inset-0 bg-black/30" />
 
       {/* Centered Inner Content Container */}

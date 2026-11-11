@@ -24,26 +24,35 @@ export function OptimizedVideo({
   useEffect(() => {
     if (!lazy) {
       setIsInView(true);
-      return;
     }
+
+    const container = containerRef.current;
+    if (!container) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
         const [entry] = entries;
-        if (entry?.isIntersecting) {
+        if (!entry) return;
+
+        if (entry.isIntersecting) {
           setIsInView(true);
-          observer.disconnect();
+          // Reanudar reproducción únicamente cuando el video está visible en pantalla
+          if (videoRef.current && videoRef.current.paused) {
+            videoRef.current.play().catch(() => {});
+          }
+        } else {
+          // Pausar decodificador cuando sale del viewport para no consumir CPU/GPU
+          if (videoRef.current && !videoRef.current.paused) {
+            videoRef.current.pause();
+          }
         }
       },
       {
-        rootMargin: "300px", // Comienza a cargar 300px antes de llegar a la pantalla
+        rootMargin: "120px",
       }
     );
 
-    if (containerRef.current) {
-      observer.observe(containerRef.current);
-    }
-
+    observer.observe(container);
     return () => observer.disconnect();
   }, [lazy]);
 
@@ -96,7 +105,7 @@ export function OptimizedVideo({
           playsInline
           controls={false}
           disablePictureInPicture
-          preload="auto"
+          preload="none"
           onCanPlay={() => setIsReady(true)}
           onPlaying={() => setIsReady(true)}
           className={`${className} transition-opacity duration-500 ${

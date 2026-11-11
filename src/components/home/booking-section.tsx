@@ -77,6 +77,8 @@ export function BookingSection() {
                     src="/images/logo_cashea.webp"
                     alt="Logo Cashea"
                     fill
+                    sizes="144px"
+                    loading="lazy"
                     className="object-contain"
                   />
                 </div>

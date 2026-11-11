@@ -333,28 +333,47 @@ function getInitialData(): DatabaseSchema {
   };
 }
 
-// Lectura de la base de datos
+const globalForDB = globalThis as unknown as {
+  __xiorizosDbCache?: { mtimeMs: number; data: DatabaseSchema };
+};
+
+// Lectura de la base de datos con caché en memoria invalidado por fecha de modificación
 export function readDB(): DatabaseSchema {
   try {
+    let mtimeMs: number | null = null;
+    try {
+      mtimeMs = fs.statSync(DB_FILE).mtimeMs;
+    } catch {
+      mtimeMs = null;
+    }
+
+    if (mtimeMs !== null && globalForDB.__xiorizosDbCache?.mtimeMs === mtimeMs) {
+      return structuredClone(globalForDB.__xiorizosDbCache.data);
+    }
+
     if (!fs.existsSync(DATA_DIR)) {
       fs.mkdirSync(DATA_DIR, { recursive: true });
     }
 
-    if (!fs.existsSync(DB_FILE)) {
+    if (mtimeMs === null) {
       const initial = getInitialData();
       fs.writeFileSync(DB_FILE, JSON.stringify(initial, null, 2), "utf-8");
+      const newStat = fs.statSync(DB_FILE);
+      globalForDB.__xiorizosDbCache = { mtimeMs: newStat.mtimeMs, data: structuredClone(initial) };
       return initial;
     }
 
     const content = fs.readFileSync(DB_FILE, "utf-8");
     const parsed = JSON.parse(content) as DatabaseSchema;
-    
+
     // Asegurar que existan todos los arreglos por si el archivo JSON previo no los tenía
     if (!parsed.employees || parsed.employees.length === 0) {
       parsed.employees = getInitialData().employees;
       writeDB(parsed);
+      return parsed;
     }
 
+    globalForDB.__xiorizosDbCache = { mtimeMs, data: structuredClone(parsed) };
     return parsed;
   } catch (error) {
     console.error("Error reading database file:", error);
@@ -372,6 +391,8 @@ export function writeDB(data: DatabaseSchema): boolean {
     const tempFile = `${DB_FILE}.tmp.${Date.now()}`;
     fs.writeFileSync(tempFile, JSON.stringify(data, null, 2), "utf-8");
     fs.renameSync(tempFile, DB_FILE);
+    const stat = fs.statSync(DB_FILE);
+    globalForDB.__xiorizosDbCache = { mtimeMs: stat.mtimeMs, data: structuredClone(data) };
     return true;
   } catch (error) {
     console.error("Error writing database file:", error);

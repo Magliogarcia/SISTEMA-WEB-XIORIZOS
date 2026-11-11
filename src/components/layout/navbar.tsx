@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useCartStore } from "@/store/cart-store";
 import { useAuthStore } from "@/store/auth-store";
 
@@ -18,29 +18,10 @@ const navItems = [
 
 export function Navbar() {
   const pathname = usePathname();
-  const router = useRouter();
   const itemsCount = useCartStore((state) => state.getItemsCount());
   const openCart = useCartStore((state) => state.openCart);
   const { isAuthenticated, user } = useAuthStore();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  // Pre-cargar todas las rutas en la caché del navegador al montar el componente
-  useEffect(() => {
-    navItems.forEach((item) => {
-      try {
-        router.prefetch(item.href);
-      } catch {
-        // Ignorar si el navegador no soporta prefetch
-      }
-    });
-    try {
-      router.prefetch("/citas");
-      router.prefetch("/catalogo");
-      router.prefetch("/login");
-    } catch {
-      // Ignorar
-    }
-  }, [router]);
 
   return (
     <>
@@ -50,7 +31,6 @@ export function Navbar() {
           {/* Brand Logo Pill */}
           <Link
             href="/"
-            prefetch={true}
             className="pointer-events-auto flex items-center bg-surface-container-lowest/90 backdrop-blur-md rounded-full px-3 sm:px-4 py-1.5 sm:py-2 shadow-[0_12px_32px_-4px_rgba(61,34,20,0.08)] transition-all hover:shadow-[0_16px_36px_-4px_rgba(61,34,20,0.12)] hover:scale-[1.02] shrink-0"
             aria-label="Xiorizos Inicio"
           >
@@ -64,7 +44,7 @@ export function Navbar() {
             />
           </Link>
 
-          {/* Desktop Navigation Center Pill with Instant Prefetching */}
+          {/* Desktop Navigation Center Pill */}
           <nav className="pointer-events-auto hidden xl:flex items-center gap-1 bg-surface-container-lowest/90 backdrop-blur-md rounded-full p-1.5 shadow-[0_12px_32px_-4px_rgba(61,34,20,0.08)]">
             {navItems.map((item) => {
               const isActive =
@@ -76,12 +56,6 @@ export function Navbar() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  prefetch={true}
-                  onMouseEnter={() => {
-                    try {
-                      router.prefetch(item.href);
-                    } catch {}
-                  }}
                   className={`px-4 py-2 rounded-full font-label-md text-label-md transition-all ${
                     isActive
                       ? "bg-primary text-on-primary shadow-sm"
@@ -114,12 +88,6 @@ export function Navbar() {
             {/* Cita Online button (desktop) */}
             <Link
               href="/citas"
-              prefetch={true}
-              onMouseEnter={() => {
-                try {
-                  router.prefetch("/citas");
-                } catch {}
-              }}
               className="hidden sm:inline-flex items-center justify-center bg-primary text-on-primary font-label-md text-label-md px-4 sm:px-5 py-2 sm:py-2.5 rounded-full shadow-[0_4px_14px_rgba(18,18,18,0.18)] hover:scale-105 active:scale-95 transition-all text-xs sm:text-sm"
             >
               Cita Online
@@ -139,12 +107,6 @@ export function Navbar() {
             {/* Botón de Perfil / Iniciar Sesión: abre siempre /login al darle clic */}
             <Link
               href="/login"
-              prefetch={true}
-              onMouseEnter={() => {
-                try {
-                  router.prefetch("/login");
-                } catch {}
-              }}
               className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary flex items-center justify-center text-on-primary hover:scale-105 active:scale-95 transition-transform shadow-sm"
               aria-label="Perfil y Login"
               title={isAuthenticated ? `Mi Perfil (${user?.nombre}) - Iniciar sesión / Gestionar cuenta` : "Iniciar sesión"}
@@ -188,7 +150,6 @@ export function Navbar() {
                   <Link
                     key={item.href}
                     href={item.href}
-                    prefetch={true}
                     onClick={() => setMobileMenuOpen(false)}
                     className={`flex items-center justify-between px-4 py-3 rounded-2xl font-title-md text-[15px] font-semibold transition-all ${
                       isActive
@@ -205,7 +166,6 @@ export function Navbar() {
               <div className="pt-3 mt-1 border-t border-surface-container flex flex-col gap-2">
                 <Link
                   href="/login"
-                  prefetch={true}
                   onClick={() => setMobileMenuOpen(false)}
                   className="flex items-center justify-between px-4 py-2.5 rounded-2xl bg-surface-container-low text-primary font-semibold text-sm hover:bg-surface-container"
                 >
@@ -219,7 +179,6 @@ export function Navbar() {
                 {(user?.rol === "admin" || user?.rol === "empleado" || user?.rol === "estilista") && (
                   <Link
                     href={user.rol === "admin" ? "/admin" : "/admin/citas"}
-                    prefetch={true}
                     onClick={() => setMobileMenuOpen(false)}
                     className="w-full text-center bg-secondary text-white font-label-md py-2.5 rounded-full shadow-md text-sm font-bold"
                   >
@@ -229,7 +188,6 @@ export function Navbar() {
 
                 <Link
                   href="/citas"
-                  prefetch={true}
                   onClick={() => setMobileMenuOpen(false)}
                   className="w-full text-center bg-primary text-on-primary font-label-md py-3 rounded-full shadow-md"
                 >

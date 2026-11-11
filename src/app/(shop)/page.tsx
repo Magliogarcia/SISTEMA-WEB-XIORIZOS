@@ -1,12 +1,105 @@
+import dynamic from "next/dynamic";
 import { HeroSection } from "@/components/home/hero-section";
 import { ServicesSection } from "@/components/home/services-section";
-import { AboutSection } from "@/components/home/about-section";
-import { SimulatorSection } from "@/components/home/simulator-section";
-import { ShopSection } from "@/components/home/shop-section";
-import { BookingSection } from "@/components/home/booking-section";
-import { TeamSection } from "@/components/home/team-section";
-import { TestimonialsSection } from "@/components/home/testimonials-section";
-import { CtaLocationSection } from "@/components/home/cta-location-section";
+
+// Secciones pesadas cargadas dinámicamente (solo se descargan cuando el navegador las necesita)
+const AboutSection = dynamic(
+  () =>
+    import("@/components/home/about-section").then((m) => ({
+      default: m.AboutSection,
+    })),
+  {
+    loading: () => (
+      <div className="w-full py-space-xl bg-surface-container-lowest">
+        <div className="max-w-[1320px] mx-auto px-margin-mobile md:px-margin h-96 animate-pulse bg-surface-container-low rounded-3xl" />
+      </div>
+    ),
+  }
+);
+
+const SimulatorSection = dynamic(
+  () =>
+    import("@/components/home/simulator-section").then((m) => ({
+      default: m.SimulatorSection,
+    })),
+  {
+    loading: () => (
+      <div className="w-full py-space-xl">
+        <div className="max-w-[1320px] mx-auto px-margin-mobile md:px-margin h-72 animate-pulse bg-surface-container-low rounded-3xl" />
+      </div>
+    ),
+  }
+);
+
+const ShopSection = dynamic(
+  () =>
+    import("@/components/home/shop-section").then((m) => ({
+      default: m.ShopSection,
+    })),
+  {
+    loading: () => (
+      <div className="w-full py-space-xl bg-surface-container-low">
+        <div className="max-w-[1320px] mx-auto px-margin-mobile md:px-margin h-72 animate-pulse bg-surface-container rounded-3xl" />
+      </div>
+    ),
+  }
+);
+
+const BookingSection = dynamic(
+  () =>
+    import("@/components/home/booking-section").then((m) => ({
+      default: m.BookingSection,
+    })),
+  {
+    loading: () => (
+      <div className="w-full py-space-lg">
+        <div className="max-w-[1320px] mx-auto px-margin-mobile md:px-margin h-48 animate-pulse bg-surface-container-low rounded-3xl" />
+      </div>
+    ),
+  }
+);
+
+const TeamSection = dynamic(
+  () =>
+    import("@/components/home/team-section").then((m) => ({
+      default: m.TeamSection,
+    })),
+  {
+    loading: () => (
+      <div className="w-full py-space-xl">
+        <div className="max-w-[1320px] mx-auto px-margin-mobile md:px-margin h-72 animate-pulse bg-surface-container-low rounded-3xl" />
+      </div>
+    ),
+  }
+);
+
+const TestimonialsSection = dynamic(
+  () =>
+    import("@/components/home/testimonials-section").then((m) => ({
+      default: m.TestimonialsSection,
+    })),
+  {
+    loading: () => (
+      <div className="w-full py-space-xl bg-surface-container-low">
+        <div className="max-w-[1320px] mx-auto px-margin-mobile md:px-margin h-48 animate-pulse bg-surface-container rounded-3xl" />
+      </div>
+    ),
+  }
+);
+
+const CtaLocationSection = dynamic(
+  () =>
+    import("@/components/home/cta-location-section").then((m) => ({
+      default: m.CtaLocationSection,
+    })),
+  {
+    loading: () => (
+      <div className="w-full py-space-xl">
+        <div className="max-w-[1320px] mx-auto px-margin-mobile md:px-margin h-72 animate-pulse bg-surface-container-low rounded-3xl" />
+      </div>
+    ),
+  }
+);
 
 export default function LandingPage() {
   return (

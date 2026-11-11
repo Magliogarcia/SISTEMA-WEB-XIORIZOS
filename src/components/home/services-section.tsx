@@ -75,6 +75,7 @@ function ServiceRow({ services, titleBadge }: ServiceRowProps) {
                     src={service.imagenUrl || "/images/Full_curl.webp"}
                     alt={service.nombre}
                     fill
+                    loading="lazy"
                     sizes="(max-width: 768px) 270px, 290px"
                     className="object-cover transition-transform duration-500 hover:scale-105"
                   />
