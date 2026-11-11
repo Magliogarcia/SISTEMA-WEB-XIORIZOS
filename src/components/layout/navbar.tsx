@@ -125,14 +125,14 @@ export function Navbar() {
               Cita Online
             </Link>
 
-            {/* Acceso directo a Panel Admin si es administrador o empleado */}
+            {/* Acceso directo a Panel si es administrador o empleado */}
             {(user?.rol === "admin" || user?.rol === "empleado" || user?.rol === "estilista") && (
               <Link
                 href={user.rol === "admin" ? "/admin" : "/admin/citas"}
-                className="hidden sm:inline-flex items-center gap-1 px-3 py-1.5 sm:py-2 rounded-full bg-secondary text-white text-xs font-bold shadow-md hover:scale-105 transition-all"
-                title={user.rol === "admin" ? "Ir al Panel de Administración" : "Ir a Mi Agenda"}
+                className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 sm:py-2 rounded-full bg-secondary text-white text-xs font-bold shadow-md hover:scale-105 transition-all"
+                title={user.rol === "admin" ? "Ir al Panel de Administración" : "Ir al Panel de Mi Agenda"}
               >
-                <span>Admin</span>
+                <span>Ir al panel</span>
               </Link>
             )}
 
@@ -223,7 +223,7 @@ export function Navbar() {
                     onClick={() => setMobileMenuOpen(false)}
                     className="w-full text-center bg-secondary text-white font-label-md py-2.5 rounded-full shadow-md text-sm font-bold"
                   >
-                    {user.rol === "admin" ? "Panel de Administración" : "Mi Agenda"}
+                    {user.rol === "admin" ? "Ir al panel" : "Ir al panel (Mi Agenda)"}
                   </Link>
                 )}
 
