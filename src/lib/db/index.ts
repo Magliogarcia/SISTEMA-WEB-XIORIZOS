@@ -33,6 +33,7 @@ export interface DBAppointment {
   fecha: string;
   hora: string;
   notas?: string;
+  motivoCancelacion?: string;
   estado: "pendiente" | "confirmada" | "completada" | "cancelada";
   creadoEn: string;
 }

@@ -208,7 +208,7 @@ export default function AdminDashboardPage() {
           titulo="Ganancia en Productos"
           valor={formatCurrency(totalGanancia)}
           icon={TrendingUp}
-          descripcion={`Margen neto (Ventas: ${formatCurrency(totalVentas)})`}
+          descripcion={`Margen neto ${formatCurrency(totalVentas)}`}
           badgeBg="bg-emerald-50 border-emerald-200"
           badgeText="text-emerald-700"
         />

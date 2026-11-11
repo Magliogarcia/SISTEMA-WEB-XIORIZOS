@@ -17,6 +17,7 @@ import {
   User,
   ShieldCheck,
   CheckCircle2,
+  AlertCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,6 +25,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { formatDate, formatCurrency } from "@/lib/utils";
 import { normalizeName } from "@/lib/booking-availability";
@@ -80,7 +82,7 @@ function getCitaPagoErroneoWhatsAppMessage(cita: DBAppointment): string {
   const reserva = cita.montoReserva || Math.round(cita.servicioPrecio * 0.2 * 100) / 100;
   return (
     `¡Hola ${cita.clienteNombre}! 👋 Te saludamos desde *Estudio Xiorizos* en Naguanagua.\n\n` +
-    `Estuvimos revisando tu reserva para el *${formatDate(new Date(cita.fecha))}* a las *${cita.hora}*, pero no pudimos comprobar el abono del 20% ($${reserva.toFixed(2)}) porque los datos bancarios ingresados presentan alguna inconsistencia.\n\n` +
+    `Estuvimos revisando tu reserva para el *${formatDate(new Date(cita.fecha))}* a las *${cita.hora}*, pero no pudimos comprobar el abono del 20% (${formatCurrency(reserva)}) porque los datos bancarios ingresados presentan alguna inconsistencia.\n\n` +
     `Por favor, reenvíanos los datos correctos por aquí o comparte una captura del comprobante bancario para verificarlo y dejar tu turno confirmado oficialmente:\n\n` +
     `📋 *Formato para comprobar tu pago:*\n` +
     `• Banco emisor:\n` +
@@ -103,11 +105,37 @@ function getCitaWhatsAppUrl(cita: DBAppointment): string {
   return `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
 }
 
+function haPasadoTiempoCita(fechaStr?: string, horaStr?: string): boolean {
+  if (!fechaStr) return false;
+  try {
+    const datePart = fechaStr.split("T")[0];
+    const [year, month, day] = datePart.split("-").map(Number);
+    if (!year || !month || !day) return false;
+
+    let hour = 0;
+    let minute = 0;
+    if (horaStr) {
+      const [h, m] = horaStr.split(":").map(Number);
+      if (!isNaN(h)) hour = h;
+      if (!isNaN(m)) minute = m;
+    }
+
+    const citaDate = new Date(year, month - 1, day, hour, minute);
+    return citaDate.getTime() <= Date.now();
+  } catch {
+    return false;
+  }
+}
+
 export default function AdminCitasPage() {
   const [citas, setCitas] = useState<DBAppointment[]>([]);
   const [cargando, setCargando] = useState(true);
   const [citaDetalle, setCitaDetalle] = useState<DBAppointment | null>(null);
   const [mostrarErrorPago, setMostrarErrorPago] = useState(false);
+  const [modalCancelarOpen, setModalCancelarOpen] = useState(false);
+  const [citaACancelar, setCitaACancelar] = useState<DBAppointment | null>(null);
+  const [motivoCancelacion, setMotivoCancelacion] = useState("");
+  const [guardandoCancelacion, setGuardandoCancelacion] = useState(false);
 
 
   const user = useAuthStore((state) => state.user);
@@ -134,26 +162,44 @@ export default function AdminCitasPage() {
 
   async function cambiarEstado(
     id: string,
-    nuevoEstado: "pendiente" | "confirmada" | "completada" | "cancelada"
+    nuevoEstado: "pendiente" | "confirmada" | "completada" | "cancelada",
+    motivo?: string
   ) {
     try {
       const res = await fetch("/api/citas", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, estado: nuevoEstado }),
+        body: JSON.stringify({ id, estado: nuevoEstado, motivoCancelacion: motivo }),
       });
       const data = await res.json();
       if (data.success) {
         setCitas((prev) =>
-          prev.map((c) => (c.id === id ? { ...c, estado: nuevoEstado } : c))
+          prev.map((c) =>
+            c.id === id ? { ...c, estado: nuevoEstado, motivoCancelacion: motivo ?? c.motivoCancelacion } : c
+          )
         );
         if (citaDetalle?.id === id) {
-          setCitaDetalle((prev) => (prev ? { ...prev, estado: nuevoEstado } : null));
+          setCitaDetalle((prev) =>
+            prev ? { ...prev, estado: nuevoEstado, motivoCancelacion: motivo ?? prev.motivoCancelacion } : null
+          );
         }
         window.dispatchEvent(new CustomEvent("xiorizos-admin-update"));
       }
     } catch (err) {
       console.error(err);
+    }
+  }
+
+  async function handleConfirmarCancelarCita() {
+    if (!citaACancelar) return;
+    setGuardandoCancelacion(true);
+    try {
+      await cambiarEstado(citaACancelar.id, "cancelada", motivoCancelacion.trim());
+      setModalCancelarOpen(false);
+      setCitaACancelar(null);
+      setMotivoCancelacion("");
+    } finally {
+      setGuardandoCancelacion(false);
     }
   }
 
@@ -552,44 +598,56 @@ export default function AdminCitasPage() {
                   </div>
                 )}
 
-                {/* Botones de Acción de Estado Reversibles */}
-                {esAdmin && (
-                  <div className="pt-2 flex flex-wrap items-center justify-end gap-2">
-                    {citaDetalle.estado === "pendiente" && (
-                      <>
-                        <Button
-                          size="sm"
-                          onClick={() => cambiarEstado(citaDetalle.id, "confirmada")}
-                          className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-sm text-xs font-semibold shadow-xs"
-                        >
-                          <Check className="h-3.5 w-3.5 mr-1" />
-                          Confirmar Cita
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setMostrarErrorPago((prev) => !prev)}
-                          className="text-amber-800 hover:text-amber-950 hover:bg-amber-50 border-amber-300 rounded-sm text-xs font-medium"
-                          title="Enviar WhatsApp al cliente indicando que los datos bancarios fueron erróneos"
-                        >
-                          <AlertTriangle className="h-3.5 w-3.5 mr-1 text-amber-600" />
-                          <span>Datos de pago erróneos</span>
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => cambiarEstado(citaDetalle.id, "cancelada")}
-                          className="text-rose-700 hover:text-rose-900 hover:bg-rose-50 border-rose-300 rounded-sm text-xs font-medium"
-                        >
-                          <X className="h-3.5 w-3.5 mr-1" />
-                          Cancelar Cita
-                        </Button>
-                      </>
-                    )}
+                {/* Motivo de cancelación si fue cancelada */}
+                {citaDetalle.estado === "cancelada" && citaDetalle.motivoCancelacion && (
+                  <div className="p-3 bg-rose-50 rounded-sm border border-rose-200 text-xs">
+                    <p className="font-semibold text-rose-800">Motivo de cancelación registrado:</p>
+                    <p className="text-rose-700 mt-0.5">{citaDetalle.motivoCancelacion}</p>
+                  </div>
+                )}
 
-                    {citaDetalle.estado === "confirmada" && (
-                      <>
+                {/* Botones de Acción de Estado Reversibles */}
+                <div className="pt-2 flex flex-wrap items-center justify-end gap-2">
+                  {esAdmin && citaDetalle.estado === "pendiente" && (
+                    <>
+                      <Button
+                        size="sm"
+                        onClick={() => cambiarEstado(citaDetalle.id, "confirmada")}
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-sm text-xs font-semibold shadow-xs"
+                      >
+                        <Check className="h-3.5 w-3.5 mr-1" />
+                        Confirmar Cita
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setMostrarErrorPago((prev) => !prev)}
+                        className="text-amber-800 hover:text-amber-950 hover:bg-amber-50 border-amber-300 rounded-sm text-xs font-medium"
+                        title="Enviar WhatsApp al cliente indicando que los datos bancarios fueron erróneos"
+                      >
+                        <AlertTriangle className="h-3.5 w-3.5 mr-1 text-amber-600" />
+                        <span>Datos de pago erróneos</span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setCitaACancelar(citaDetalle);
+                          setMotivoCancelacion("");
+                          setModalCancelarOpen(true);
+                        }}
+                        className="text-rose-700 hover:text-rose-900 hover:bg-rose-50 border-rose-300 rounded-sm text-xs font-medium"
+                      >
+                        <X className="h-3.5 w-3.5 mr-1" />
+                        Cancelar Cita
+                      </Button>
+                    </>
+                  )}
+
+                  {citaDetalle.estado === "confirmada" && (
+                    <>
+                      {haPasadoTiempoCita(citaDetalle.fecha, citaDetalle.hora) ? (
                         <Button
                           size="sm"
                           onClick={() => cambiarEstado(citaDetalle.id, "completada")}
@@ -598,53 +656,118 @@ export default function AdminCitasPage() {
                           <CalendarCheck className="h-3.5 w-3.5 mr-1" />
                           Marcar Atendida
                         </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => cambiarEstado(citaDetalle.id, "pendiente")}
-                          className="text-amber-800 hover:text-amber-950 hover:bg-amber-50 border-amber-300 rounded-sm text-xs font-medium"
-                          title="Revertir si se confirmó por error"
-                        >
-                          <RotateCcw className="h-3.5 w-3.5 mr-1" />
-                          Revertir a Pendiente
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => cambiarEstado(citaDetalle.id, "cancelada")}
-                          className="text-rose-700 hover:text-rose-900 hover:bg-rose-50 border-rose-300 rounded-sm text-xs font-medium"
-                        >
-                          Cancelar Cita
-                        </Button>
-                      </>
-                    )}
+                      ) : (
+                        esAdmin && (
+                          <>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => cambiarEstado(citaDetalle.id, "pendiente")}
+                              className="text-amber-800 hover:text-amber-950 hover:bg-amber-50 border-amber-300 rounded-sm text-xs font-medium"
+                              title="Revertir si se confirmó por error"
+                            >
+                              <RotateCcw className="h-3.5 w-3.5 mr-1" />
+                              Revertir a Pendiente
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setCitaACancelar(citaDetalle);
+                                setMotivoCancelacion("");
+                                setModalCancelarOpen(true);
+                              }}
+                              className="text-rose-700 hover:text-rose-900 hover:bg-rose-50 border-rose-300 rounded-sm text-xs font-medium"
+                            >
+                              <X className="h-3.5 w-3.5 mr-1" />
+                              Cancelar Cita
+                            </Button>
+                          </>
+                        )
+                      )}
+                    </>
+                  )}
 
-                    {citaDetalle.estado === "completada" && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => cambiarEstado(citaDetalle.id, "confirmada")}
-                        className="text-slate-700 hover:text-slate-900 hover:bg-slate-100 border-slate-300 rounded-sm text-xs font-medium"
-                        title="Reabrir si se marcó por error"
-                      >
-                        <RotateCcw className="h-3.5 w-3.5 mr-1" />
-                        Revertir a Confirmada
-                      </Button>
-                    )}
+                  {esAdmin && citaDetalle.estado === "completada" && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => cambiarEstado(citaDetalle.id, "confirmada")}
+                      className="text-slate-700 hover:text-slate-900 hover:bg-slate-100 border-slate-300 rounded-sm text-xs font-medium"
+                      title="Reabrir si se marcó por error"
+                    >
+                      <RotateCcw className="h-3.5 w-3.5 mr-1" />
+                      Revertir a Confirmada
+                    </Button>
+                  )}
 
-                    {citaDetalle.estado === "cancelada" && (
-                      <Button
-                        size="sm"
-                        onClick={() => cambiarEstado(citaDetalle.id, "confirmada")}
-                        className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-sm text-xs font-semibold shadow-xs"
-                        title="Deshacer cancelación"
-                      >
-                        <RotateCcw className="h-3.5 w-3.5 mr-1" />
-                        Reactivar Cita
-                      </Button>
-                    )}
-                  </div>
-                )}
+                  {esAdmin && citaDetalle.estado === "cancelada" && (
+                    <Button
+                      size="sm"
+                      onClick={() => cambiarEstado(citaDetalle.id, "confirmada")}
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-sm text-xs font-semibold shadow-xs"
+                      title="Deshacer cancelación"
+                    >
+                      <RotateCcw className="h-3.5 w-3.5 mr-1" />
+                      Reactivar Cita
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Modal para ingresar descripción corta al cancelar cita */}
+      {modalCancelarOpen && citaACancelar && (
+        <Dialog open={modalCancelarOpen} onOpenChange={(open) => { if (!open) setModalCancelarOpen(false); }}>
+          <DialogContent className="max-w-md rounded-sm font-sans p-5 sm:p-6 border border-slate-200">
+            <DialogHeader className="pb-3 border-b border-slate-200">
+              <DialogTitle className="text-base font-bold text-slate-900 flex items-center gap-2">
+                <AlertCircle className="h-4 w-4 text-rose-600" />
+                <span>Cancelar Cita</span>
+              </DialogTitle>
+              <DialogDescription className="text-xs text-slate-500 mt-1">
+                Indica una descripción corta o motivo para registrar la cancelación del turno de <strong>{citaACancelar.clienteNombre}</strong> ({citaACancelar.servicioNombre}).
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-3 pt-3">
+              <div className="space-y-1.5">
+                <label htmlFor="motivoCancelacionInput" className="text-xs font-semibold text-slate-700">
+                  Motivo de cancelación <span className="text-rose-500">*</span>
+                </label>
+                <textarea
+                  id="motivoCancelacionInput"
+                  rows={3}
+                  value={motivoCancelacion}
+                  onChange={(e) => setMotivoCancelacion(e.target.value)}
+                  placeholder="Ej: Cliente solicitó cancelar, inconsistencia en comprobante de pago, no se presentó al salón..."
+                  className="w-full text-xs rounded-sm border border-slate-300 p-2.5 focus:outline-none focus:ring-1 focus:ring-slate-400 font-sans"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setModalCancelarOpen(false)}
+                  disabled={guardandoCancelacion}
+                  className="text-xs rounded-sm"
+                >
+                  Regresar
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={handleConfirmarCancelarCita}
+                  disabled={guardandoCancelacion}
+                  className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded-sm shadow-xs"
+                >
+                  {guardandoCancelacion ? "Cancelando..." : "Confirmar Cancelación"}
+                </Button>
               </div>
             </div>
           </DialogContent>

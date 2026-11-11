@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCartStore } from "@/store/cart-store";
+import { formatCurrency } from "@/lib/utils";
 
 export function CartDrawer() {
   const { items, isOpen, closeCart, updateQuantity, removeItem, getTotal } = useCartStore();
@@ -84,7 +85,7 @@ export function CartDrawer() {
                         {item.product.nombre}
                       </p>
                       <p className="font-label-sm text-label-sm text-secondary font-semibold">
-                        ${(itemPrice * item.cantidad).toFixed(2)}
+                        {formatCurrency(itemPrice * item.cantidad)}
                       </p>
                     </div>
 
@@ -155,31 +156,12 @@ export function CartDrawer() {
           <div className="flex items-center justify-between pb-3">
             <span className="font-title-md text-title-md text-on-surface-variant">Total</span>
             <span className="font-headline-sm text-headline-sm text-primary font-bold">
-              ${total.toFixed(2)}
+              {formatCurrency(total)}
             </span>
           </div>
 
           {items.length > 0 ? (
             <div className="flex flex-col gap-2">
-              <a
-                href={`https://wa.me/584127434761?text=${encodeURIComponent(
-                  `¡Hola Xiorizos! Quiero pedir los siguientes productos:\n${items
-                    .map(
-                      (i) =>
-                        `• ${i.product.nombre} x${i.cantidad} ($${(
-                          (i.product.precio + (i.variant?.precioAdicional ?? 0)) *
-                          i.cantidad
-                        ).toFixed(2)})`
-                    )
-                    .join("\n")}\nTotal: $${total.toFixed(2)}`
-                )}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full text-center bg-secondary hover:bg-secondary/90 text-on-secondary font-label-lg text-label-lg py-3 rounded-full shadow-md transition-colors flex items-center justify-center gap-2"
-              >
-                <span className="material-symbols-outlined text-[18px]">chat</span>
-                Pedir por WhatsApp
-              </a>
               <Link
                 href="/checkout"
                 onClick={closeCart}

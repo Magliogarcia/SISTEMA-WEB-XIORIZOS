@@ -54,7 +54,7 @@ function normalizePhoneForWhatsApp(phone: string): string {
 
 function getPedidoWhatsAppMessage(pedido: DBOrder): string {
   const itemsText = pedido.items
-    .map((it) => `• ${it.cantidad}x ${it.nombre} ($${(it.precio * it.cantidad).toFixed(2)})`)
+    .map((it) => `• ${it.cantidad}x ${it.nombre} (${formatCurrency(it.precio * it.cantidad)})`)
     .join("\n");
 
   if (pedido.metodoPago === "efectivo") {
@@ -62,7 +62,7 @@ function getPedidoWhatsAppMessage(pedido: DBOrder): string {
       `¡Hola ${pedido.clienteNombre}! 👋 Te saludamos desde la tienda botánica de *Estudio Xiorizos*.\n\n` +
       `Hemos recibido el registro de tu pedido ${pedido.id} con pago en efectivo al momento de la entrega o retiro:\n` +
       `${itemsText}\n\n` +
-      `💰 *Total:* $${pedido.total.toFixed(2)}\n` +
+      `💰 *Total:* ${formatCurrency(pedido.total)}\n` +
       (pedido.direccion
         ? `📍 *Dirección de entrega:* ${pedido.direccion}\n\n`
         : `📍 *Retiro:* Directamente en nuestro salón en Naguanagua\n\n`) +
@@ -76,7 +76,7 @@ function getPedidoWhatsAppMessage(pedido: DBOrder): string {
     `✅ *¡El pago de tu orden ha sido COMPROBADO con éxito!*\n\n` +
     `🛍️ *Detalles de tu orden ${pedido.id}:*\n` +
     `${itemsText}\n\n` +
-    `💰 *Total:* $${pedido.total.toFixed(2)}\n` +
+    `💰 *Total:* ${formatCurrency(pedido.total)}\n` +
     (pedido.direccion
       ? `📍 *Dirección de entrega:* ${pedido.direccion}\n\n`
       : `📍 *Retiro:* Directamente en nuestro salón en Naguanagua\n\n`) +
@@ -87,7 +87,7 @@ function getPedidoWhatsAppMessage(pedido: DBOrder): string {
 function getPedidoPagoErroneoWhatsAppMessage(pedido: DBOrder): string {
   return (
     `¡Hola ${pedido.clienteNombre}! 👋 Te saludamos desde *Estudio Xiorizos* en Naguanagua.\n\n` +
-    `Estuvimos revisando tu pedido *${pedido.id}*, pero no pudimos comprobar tu Pago Móvil por un monto de *$${pedido.total.toFixed(2)}* porque los datos bancarios registrados presentan alguna inconsistencia.\n\n` +
+    `Estuvimos revisando tu pedido *${pedido.id}*, pero no pudimos comprobar tu Pago Móvil por un monto de *${formatCurrency(pedido.total)}* porque los datos bancarios registrados presentan alguna inconsistencia.\n\n` +
     `Por favor, reenvíanos los datos correctos por aquí o comparte una captura del comprobante bancario para verificarlo y despachar tu paquete:\n\n` +
     `📋 *Formato para comprobar tu pago:*\n` +
     `• Banco emisor:\n` +

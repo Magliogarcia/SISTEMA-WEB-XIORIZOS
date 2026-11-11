@@ -99,6 +99,17 @@ export async function PATCH(req: Request) {
             }
           });
         }
+      } else if (pedido.estado === "cancelado" && estado !== "cancelado") {
+        // Si se reactiva un pedido cancelado, volver a reservar el stock
+        if (Array.isArray(pedido.items)) {
+          pedido.items.forEach((item: any) => {
+            const prodId = item.productId || item.product?.id || item.id;
+            const prod = db.products.find((p) => p.id === prodId);
+            if (prod) {
+              prod.stock = Math.max(0, prod.stock - (item.cantidad || 1));
+            }
+          });
+        }
       }
       pedido.estado = estado;
     }

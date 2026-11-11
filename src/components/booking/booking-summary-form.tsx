@@ -13,6 +13,8 @@ import {
   Banknote,
   CheckCircle2,
   ShieldCheck,
+  Copy,
+  Check,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -69,6 +71,16 @@ export function BookingSummaryForm() {
   const [referenciaError, setReferenciaError] = useState<string | null>(null);
   const [telefonoEmisor, setTelefonoEmisor] = useState("");
   const [telefonoEmisorError, setTelefonoEmisorError] = useState<string | null>(null);
+  const [copiado, setCopiado] = useState(false);
+
+  const handleCopiarDatos = () => {
+    const texto = `BNC (0191)\n30709751\n04145812979`;
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText(texto);
+      setCopiado(true);
+      setTimeout(() => setCopiado(false), 2500);
+    }
+  };
 
   if (!servicio || !profesional || !fecha || !hora) {
     return (
@@ -350,7 +362,7 @@ export function BookingSummaryForm() {
 
         {/* SECCIÓN DEL 20% DE RESERVA */}
         <div className="pt-4 border-t border-border space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3.5 rounded-xl bg-secondary/10 border border-secondary/20">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3.5 rounded-sm bg-secondary/10 border border-secondary/20">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wider text-secondary">
                 Reserva requerida (20%)
@@ -384,7 +396,7 @@ export function BookingSummaryForm() {
               type="button"
               onClick={() => setMetodoPago("pagomovil")}
               className={cn(
-                "flex items-center gap-3 rounded-xl border p-3.5 text-left transition-all cursor-pointer",
+                "flex items-center gap-3 rounded-sm border p-3.5 text-left transition-all cursor-pointer",
                 metodoPago === "pagomovil"
                   ? "border-primary bg-primary/5 ring-2 ring-primary/20 shadow-sm"
                   : "border-border hover:bg-secondary/10"
@@ -401,7 +413,7 @@ export function BookingSummaryForm() {
               type="button"
               onClick={() => setMetodoPago("efectivo")}
               className={cn(
-                "flex items-center gap-3 rounded-xl border p-3.5 text-left transition-all cursor-pointer",
+                "flex items-center gap-3 rounded-sm border p-3.5 text-left transition-all cursor-pointer",
                 metodoPago === "efectivo"
                   ? "border-primary bg-primary/5 ring-2 ring-primary/20 shadow-sm"
                   : "border-border hover:bg-secondary/10"
@@ -417,18 +429,37 @@ export function BookingSummaryForm() {
 
           {/* Formulario Pago Móvil si está seleccionado */}
           {metodoPago === "pagomovil" ? (
-            <div className="space-y-3.5 rounded-xl bg-secondary/5 p-4 sm:p-5 border border-secondary/20">
+            <div className="space-y-3.5 rounded-sm bg-secondary/5 p-4 sm:p-5 border border-secondary/20">
               {/* Datos oficiales de Pago Móvil de Xiorizos */}
-              <div className="rounded-lg bg-card p-3.5 border border-border text-xs space-y-1.5">
+              <div className="rounded-sm bg-card p-3.5 border border-border text-xs space-y-2">
                 <p className="font-bold text-primary text-xs flex items-center gap-1.5">
                   <Landmark className="h-4 w-4 text-secondary shrink-0" />
                   <span>Datos oficiales para transferir el 20% ({formatCurrency(montoReserva)}):</span>
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 pt-1 text-foreground">
-                  <p><strong>Banco:</strong> Banesco (0134)</p>
-                  <p><strong>Teléfono:</strong> 0412 1234567</p>
-                  <p><strong>Cédula / RIF:</strong> V-12.345.678</p>
+                  <p><strong>Banco:</strong> BNC (0191)</p>
+                  <p><strong>Teléfono:</strong> 0414 5812979</p>
+                  <p><strong>Cédula / RIF:</strong> 30709751</p>
                   <p><strong>Titular:</strong> Estudio Xiorizos C.A.</p>
+                </div>
+                <div className="pt-2 border-t border-border/60">
+                  <button
+                    type="button"
+                    onClick={handleCopiarDatos}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-all cursor-pointer shadow-xs"
+                  >
+                    {copiado ? (
+                      <>
+                        <Check className="h-3.5 w-3.5 text-emerald-300" />
+                        <span>¡Datos copiados!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-3.5 w-3.5" />
+                        <span>Copiar datos</span>
+                      </>
+                    )}
+                  </button>
                 </div>
               </div>
 

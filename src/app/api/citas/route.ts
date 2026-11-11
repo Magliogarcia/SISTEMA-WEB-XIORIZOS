@@ -112,7 +112,7 @@ export async function POST(req: Request) {
 export async function PATCH(req: Request) {
   try {
     const body = await req.json();
-    const { id, estado, notificadoWhatsApp } = body;
+    const { id, estado, notificadoWhatsApp, motivoCancelacion } = body;
 
     if (!id) {
       return NextResponse.json({ error: "ID requerido" }, { status: 400 });
@@ -126,6 +126,9 @@ export async function PATCH(req: Request) {
 
     if (estado !== undefined) {
       cita.estado = estado;
+    }
+    if (motivoCancelacion !== undefined) {
+      cita.motivoCancelacion = motivoCancelacion;
     }
     if (notificadoWhatsApp !== undefined) {
       cita.notificadoWhatsApp = notificadoWhatsApp;

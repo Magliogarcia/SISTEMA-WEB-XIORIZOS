@@ -287,13 +287,9 @@ export function BookingCalendar() {
                 </div>
 
                 {/* Receso de Almuerzo */}
-                <div className="rounded-md bg-amber-50/70 border border-amber-200/80 px-3 py-2 text-xs text-amber-900 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                  <span className="font-semibold flex items-center gap-1.5">
-                    <span>🍽️</span> Receso de almuerzo del personal:
-                  </span>
-                  <span className="text-[11px] font-mono text-amber-800">
-                    12:00 m. a 12:30 p.m. (Pausa operativa)
-                  </span>
+                <div className="flex items-center gap-2 py-1.5 px-3 rounded-sm bg-slate-50 border border-slate-200 text-[11px] text-slate-600">
+                  <Clock className="h-3 w-3 text-slate-400 shrink-0" />
+                  <span>Pausa de almuerzo del personal: 12:00 m. a 12:30 p.m.</span>
                 </div>
 
                 {/* Turno Tarde */}

@@ -125,12 +125,12 @@ export function Navbar() {
               Cita Online
             </Link>
 
-            {/* Acceso directo a Panel Admin si es administrador */}
-            {user?.rol === "admin" && (
+            {/* Acceso directo a Panel Admin si es administrador o empleado */}
+            {(user?.rol === "admin" || user?.rol === "empleado" || user?.rol === "estilista") && (
               <Link
-                href="/admin"
+                href={user.rol === "admin" ? "/admin" : "/admin/citas"}
                 className="hidden sm:inline-flex items-center gap-1 px-3 py-1.5 sm:py-2 rounded-full bg-secondary text-white text-xs font-bold shadow-md hover:scale-105 transition-all"
-                title="Ir al Panel de Administración"
+                title={user.rol === "admin" ? "Ir al Panel de Administración" : "Ir a Mi Agenda"}
               >
                 <span>Admin</span>
               </Link>
@@ -216,14 +216,14 @@ export function Navbar() {
                   <span className="material-symbols-outlined text-[18px]">chevron_right</span>
                 </Link>
 
-                {user?.rol === "admin" && (
+                {(user?.rol === "admin" || user?.rol === "empleado" || user?.rol === "estilista") && (
                   <Link
-                    href="/admin"
+                    href={user.rol === "admin" ? "/admin" : "/admin/citas"}
                     prefetch={true}
                     onClick={() => setMobileMenuOpen(false)}
                     className="w-full text-center bg-secondary text-white font-label-md py-2.5 rounded-full shadow-md text-sm font-bold"
                   >
-                    Panel de Administración
+                    {user.rol === "admin" ? "Panel de Administración" : "Mi Agenda"}
                   </Link>
                 )}
 

@@ -6,11 +6,11 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatCurrency(value: number) {
-  return new Intl.NumberFormat("es-VE", {
-    style: "currency",
-    currency: "USD",
+  const formatted = new Intl.NumberFormat("es-VE", {
     minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   }).format(value);
+  return `${formatted}$`;
 }
 
 export function formatDate(date: Date) {
