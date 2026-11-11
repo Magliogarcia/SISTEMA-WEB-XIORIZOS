@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { RefreshCw, Wand2, Lock, ArrowRight } from "lucide-react";
+import { RefreshCw, Wand2, Lock, ArrowRight, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ImageDropzone } from "@/components/simulator/image-dropzone";
 import { DualCanvas } from "@/components/simulator/dual-canvas";
@@ -10,13 +11,54 @@ import { useSimulatorStore } from "@/store/simulator-store";
 import { useAuthStore } from "@/store/auth-store";
 
 export default function SimuladorPage() {
-  const { imagenOriginalUrl, tonoSeleccionado, status, setStatus, reset } = useSimulatorStore();
+  const {
+    imagenOriginalUrl,
+    imagenSegmentadaUrl,
+    tonoSeleccionado,
+    intensidad,
+    status,
+    setStatus,
+    setImagenSegmentada,
+    reset,
+  } = useSimulatorStore();
   const { isAuthenticated } = useAuthStore();
+  const [errorProceso, setErrorProceso] = useState<string | null>(null);
 
-  function handleProcesar() {
+  async function handleProcesar() {
     if (!imagenOriginalUrl || !tonoSeleccionado) return;
+    setErrorProceso(null);
     setStatus("segmentando");
-    setTimeout(() => setStatus("listo"), 1500);
+
+    try {
+      const { recolorHair } = await import("@/lib/hair-recolor");
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.src = imagenOriginalUrl;
+
+      await new Promise<void>((resolve, reject) => {
+        if (img.complete && img.naturalWidth) {
+          resolve();
+        } else {
+          img.onload = () => resolve();
+          img.onerror = () => reject(new Error("Error al cargar la imagen original"));
+        }
+      });
+
+      const resultadoDataUrl = await recolorHair(img, {
+        hexColor: tonoSeleccionado.hex,
+        toneName: tonoSeleccionado.nombre,
+        intensity: intensidad,
+      });
+
+      setImagenSegmentada(resultadoDataUrl);
+      setStatus("listo");
+    } catch (err: any) {
+      console.error("Error al procesar color de cabello:", err);
+      setErrorProceso(
+        "No se pudo procesar la colorimetría. Intenta con otra foto con buena iluminación frontal."
+      );
+      setStatus("imagen_cargada");
+    }
   }
 
   if (!isAuthenticated) {
@@ -58,6 +100,12 @@ export default function SimuladorPage() {
           ) : (
             <>
               <DualCanvas />
+              {errorProceso && (
+                <div className="p-3 bg-rose-50 border border-rose-200 rounded-lg text-xs text-rose-800 flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4 shrink-0 text-rose-600" />
+                  <span>{errorProceso}</span>
+                </div>
+              )}
               <div className="flex flex-wrap gap-3 pt-1">
                 <Button
                   onClick={handleProcesar}

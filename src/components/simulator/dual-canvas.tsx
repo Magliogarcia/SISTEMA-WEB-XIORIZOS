@@ -1,48 +1,12 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { useEffect, useRef } from "react";
 import { Loader2, Sparkles, CheckCircle2 } from "lucide-react";
 import { useSimulatorStore } from "@/store/simulator-store";
 
 export function DualCanvas() {
-  const resultCanvasRef = useRef<HTMLCanvasElement>(null);
   const { imagenOriginalUrl, imagenSegmentadaUrl, tonoSeleccionado, intensidad, status } =
     useSimulatorStore();
-
-  useEffect(() => {
-    // Solo procesar/dibujar el resultado cuando el usuario haya pulsado "Aplicar color" y esté "listo"
-    if (status !== "listo" || !imagenOriginalUrl || !tonoSeleccionado) return;
-
-    // Si ya existe una imagen directa generada por la API de IA
-    if (imagenSegmentadaUrl) return;
-
-    const canvas = resultCanvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    img.src = imagenOriginalUrl;
-    img.onload = () => {
-      const maxWidth = canvas.parentElement?.clientWidth ?? 450;
-      const scale = maxWidth / img.width;
-      canvas.width = img.width * scale;
-      canvas.height = img.height * scale;
-
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-      // Tinte suave armónico en modo color, sin recuadros cortados ni franjas oscuras
-      ctx.save();
-      ctx.globalAlpha = Math.min(0.5, (intensidad / 100) * 0.45);
-      ctx.globalCompositeOperation = "color";
-      ctx.fillStyle = tonoSeleccionado.hex;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.restore();
-    };
-  }, [status, imagenOriginalUrl, imagenSegmentadaUrl, tonoSeleccionado, intensidad]);
 
   if (!imagenOriginalUrl) {
     return (
@@ -118,15 +82,10 @@ export function DualCanvas() {
         {/* Estado 3: Imagen procesada por la IA */}
         {status === "listo" && (
           <div className="relative rounded-2xl overflow-hidden border border-border bg-slate-50 shadow-sm animate-in fade-in duration-300">
-            {imagenSegmentadaUrl ? (
+            {imagenSegmentadaUrl && (
               <img
                 src={imagenSegmentadaUrl}
                 alt={`Resultado con IA ${tonoSeleccionado?.nombre || ""}`}
-                className="w-full h-auto max-h-[500px] object-contain block select-none"
-              />
-            ) : (
-              <canvas
-                ref={resultCanvasRef}
                 className="w-full h-auto max-h-[500px] object-contain block select-none"
               />
             )}

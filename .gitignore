@@ -4,5 +4,9 @@ node_modules
 .DS_Store
 *.tsbuildinfo
 next-env.d.ts
+tests/probe-input/
+tests/probe-output/
+tests/
+public/wasm/
 .agents/
 .agents
