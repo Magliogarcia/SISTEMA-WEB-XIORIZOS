@@ -142,75 +142,76 @@ export async function recolorHair(
     let newG = g;
     let newB = b;
 
-    if (tone.includes("rubio")) {
-      // Rubio Miel / Dorado: aclara con reflejo dorado brillante sobre el rizo
-      const highlightBoost = Math.pow(lum, 0.65);
-      const tintedR = Math.min(255, targetRgb.r * 0.9 + lum * 90);
-      const tintedG = Math.min(255, targetRgb.g * 0.85 + lum * 75);
-      const tintedB = Math.min(255, targetRgb.b * 0.65 + lum * 35);
+    if (tone.includes("rojo")) {
+      // 1. Rojo Fuego: muy vibrante y saturado, contraste instantáneo
+      const curlHighlight = Math.pow(lum, 0.65);
+      const tintedR = Math.min(255, targetRgb.r * 0.85 + lum * 120);
+      const tintedG = Math.min(255, targetRgb.g * 0.35 + lum * 35);
+      const tintedB = Math.min(255, targetRgb.b * 0.35 + lum * 35);
 
-      newR = r * (1 - blendAlpha) + (tintedR * highlightBoost + r * 0.2) * blendAlpha;
-      newG = g * (1 - blendAlpha) + (tintedG * highlightBoost + g * 0.2) * blendAlpha;
-      newB = b * (1 - blendAlpha) + (tintedB * highlightBoost + b * 0.15) * blendAlpha;
-    } else if (tone.includes("borgoña") || tone.includes("vino")) {
-      // Borgoña / Vino Tinto: tono profundo ciruela/vino con reflejo rojizo elegante
-      const highlightBoost = Math.pow(lum, 0.8);
-      const tintedR = Math.min(255, targetRgb.r * 1.1 + lum * 90);
-      const tintedG = Math.min(255, targetRgb.g * 0.7 + lum * 20);
-      const tintedB = Math.min(255, targetRgb.b * 1.0 + lum * 45);
+      newR = r * (1 - blendAlpha) + (tintedR * curlHighlight + r * 0.15) * blendAlpha;
+      newG = g * (1 - blendAlpha) + (tintedG * curlHighlight + g * 0.1) * blendAlpha;
+      newB = b * (1 - blendAlpha) + (tintedB * curlHighlight + b * 0.1) * blendAlpha;
+    } else if (tone.includes("azul")) {
+      // 2. Azul Zafiro: azul eléctrico de alto contraste
+      const curlHighlight = Math.pow(lum, 0.65);
+      const tintedR = Math.min(255, targetRgb.r * 0.35 + lum * 35);
+      const tintedG = Math.min(255, targetRgb.g * 0.65 + lum * 70);
+      const tintedB = Math.min(255, targetRgb.b * 0.95 + lum * 120);
 
-      newR = r * (1 - blendAlpha) + (tintedR * highlightBoost) * blendAlpha;
-      newG = g * (1 - blendAlpha) + (tintedG * highlightBoost) * blendAlpha;
-      newB = b * (1 - blendAlpha) + (tintedB * highlightBoost) * blendAlpha;
-    } else if (tone.includes("chocolate")) {
-      // Chocolate Profundo: castaño oscuro sedoso con matiz café intenso
-      const highlightBoost = Math.pow(lum, 0.9);
-      const tintedR = Math.min(255, targetRgb.r * 0.8 + lum * 80);
-      const tintedG = Math.min(255, targetRgb.g * 0.75 + lum * 55);
-      const tintedB = Math.min(255, targetRgb.b * 0.7 + lum * 40);
+      newR = r * (1 - blendAlpha) + (tintedR * curlHighlight + r * 0.1) * blendAlpha;
+      newG = g * (1 - blendAlpha) + (tintedG * curlHighlight + g * 0.1) * blendAlpha;
+      newB = b * (1 - blendAlpha) + (tintedB * curlHighlight + b * 0.2) * blendAlpha;
+    } else if (tone.includes("rubio")) {
+      // 3. Rubio Dorado: dorado cálido luminoso y brillante
+      const curlHighlight = Math.pow(lum, 0.6);
+      const tintedR = Math.min(255, targetRgb.r * 0.95 + lum * 90);
+      const tintedG = Math.min(255, targetRgb.g * 0.9 + lum * 80);
+      const tintedB = Math.min(255, targetRgb.b * 0.5 + lum * 40);
 
-      newR = r * (1 - blendAlpha) + (tintedR * highlightBoost) * blendAlpha;
-      newG = g * (1 - blendAlpha) + (tintedG * highlightBoost) * blendAlpha;
-      newB = b * (1 - blendAlpha) + (tintedB * highlightBoost) * blendAlpha;
-    } else if (tone.includes("rojo") || tone.includes("cobrizo")) {
-      // Rojo / Cobrizo botánico para rizos:
-      const highlightBoost = Math.pow(lum, 0.7);
-      const tintedR = Math.min(255, targetRgb.r * 0.75 + lum * 140);
-      const tintedG = Math.min(255, targetRgb.g * 0.6 + lum * 50);
-      const tintedB = Math.min(255, targetRgb.b * 0.5 + lum * 20);
+      newR = r * (1 - blendAlpha) + (tintedR * curlHighlight + r * 0.2) * blendAlpha;
+      newG = g * (1 - blendAlpha) + (tintedG * curlHighlight + g * 0.2) * blendAlpha;
+      newB = b * (1 - blendAlpha) + (tintedB * curlHighlight + b * 0.15) * blendAlpha;
+    } else if (tone.includes("verde")) {
+      // 4. Verde Esmeralda: verde botánico vivo y llamativo
+      const curlHighlight = Math.pow(lum, 0.65);
+      const tintedR = Math.min(255, targetRgb.r * 0.35 + lum * 35);
+      const tintedG = Math.min(255, targetRgb.g * 0.95 + lum * 110);
+      const tintedB = Math.min(255, targetRgb.b * 0.65 + lum * 60);
 
-      newR = r * (1 - blendAlpha) + (tintedR * highlightBoost + r * 0.15) * blendAlpha;
-      newG = g * (1 - blendAlpha) + (tintedG * highlightBoost + g * 0.15) * blendAlpha;
-      newB = b * (1 - blendAlpha) + (tintedB * highlightBoost + b * 0.15) * blendAlpha;
-    } else if (tone.includes("castaño") || tone.includes("castano")) {
-      // Castaño botánico: cálido, chocolate con reflejos miel
-      const highlightBoost = Math.pow(lum, 0.85);
-      const tintedR = Math.min(255, targetRgb.r * 0.85 + lum * 110);
-      const tintedG = Math.min(255, targetRgb.g * 0.85 + lum * 80);
-      const tintedB = Math.min(255, targetRgb.b * 0.85 + lum * 50);
+      newR = r * (1 - blendAlpha) + (tintedR * curlHighlight + r * 0.1) * blendAlpha;
+      newG = g * (1 - blendAlpha) + (tintedG * curlHighlight + g * 0.2) * blendAlpha;
+      newB = b * (1 - blendAlpha) + (tintedB * curlHighlight + b * 0.1) * blendAlpha;
+    } else if (tone.includes("morado") || tone.includes("violeta")) {
+      // 5. Morado Violeta: púrpura intenso y audaz
+      const curlHighlight = Math.pow(lum, 0.65);
+      const tintedR = Math.min(255, targetRgb.r * 0.85 + lum * 85);
+      const tintedG = Math.min(255, targetRgb.g * 0.35 + lum * 30);
+      const tintedB = Math.min(255, targetRgb.b * 1.0 + lum * 110);
 
-      newR = r * (1 - blendAlpha) + (tintedR * highlightBoost) * blendAlpha;
-      newG = g * (1 - blendAlpha) + (tintedG * highlightBoost) * blendAlpha;
-      newB = b * (1 - blendAlpha) + (tintedB * highlightBoost) * blendAlpha;
+      newR = r * (1 - blendAlpha) + (tintedR * curlHighlight + r * 0.15) * blendAlpha;
+      newG = g * (1 - blendAlpha) + (tintedG * curlHighlight + g * 0.1) * blendAlpha;
+      newB = b * (1 - blendAlpha) + (tintedB * curlHighlight + b * 0.2) * blendAlpha;
     } else if (tone.includes("negro")) {
-      // Negro profundo natural: profundiza sombras sin aplanar el rizo (mantiene brillo especular)
-      const depthFactor = 0.35 + lum * 0.55;
-      const tintedR = Math.min(255, targetRgb.r + (r * 0.3 * depthFactor));
-      const tintedG = Math.min(255, targetRgb.g + (g * 0.3 * depthFactor));
-      const tintedB = Math.min(255, targetRgb.b + (b * 0.35 * depthFactor));
+      // 6. Negro Ébano: profundiza sombras sin aplanar el rizo (mantiene brillo especular)
+      const depthFactor = 0.25 + lum * 0.45;
+      const tintedR = Math.min(255, targetRgb.r + (r * 0.25 * depthFactor));
+      const tintedG = Math.min(255, targetRgb.g + (g * 0.25 * depthFactor));
+      const tintedB = Math.min(255, targetRgb.b + (b * 0.3 * depthFactor));
 
       newR = r * (1 - blendAlpha) + tintedR * blendAlpha;
       newG = g * (1 - blendAlpha) + tintedG * blendAlpha;
       newB = b * (1 - blendAlpha) + tintedB * blendAlpha;
     } else {
-      // Modo genérico colorimetría
-      const tintedR = (r * 0.4) + (targetRgb.r * 0.6 * lum * 1.5);
-      const tintedG = (g * 0.4) + (targetRgb.g * 0.6 * lum * 1.5);
-      const tintedB = (b * 0.4) + (targetRgb.b * 0.6 * lum * 1.5);
+      // Modo genérico colorimetría de alto contraste
+      const curlHighlight = Math.pow(lum, 0.7);
+      const tintedR = Math.min(255, targetRgb.r * 0.8 + lum * 100);
+      const tintedG = Math.min(255, targetRgb.g * 0.8 + lum * 100);
+      const tintedB = Math.min(255, targetRgb.b * 0.8 + lum * 100);
 
-      newR = r * (1 - blendAlpha) + tintedR * blendAlpha;
-      newG = g * (1 - blendAlpha) + tintedG * blendAlpha;
-      newB = b * (1 - blendAlpha) + tintedB * blendAlpha;
+      newR = r * (1 - blendAlpha) + (tintedR * curlHighlight) * blendAlpha;
+      newG = g * (1 - blendAlpha) + (tintedG * curlHighlight) * blendAlpha;
+      newB = b * (1 - blendAlpha) + (tintedB * curlHighlight) * blendAlpha;
     }
 
     data[p] = Math.max(0, Math.min(255, Math.round(newR)));
