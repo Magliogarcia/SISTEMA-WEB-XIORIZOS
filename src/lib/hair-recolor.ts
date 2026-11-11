@@ -51,7 +51,6 @@ export interface RecolorOptions {
   hexColor: string; // Ej: "#D4A359" (Rubio Miel), "#8C4F27" (Castaño Caramelo)
   toneName: string; // Nombre del tono
   intensity?: number; // 10 a 100
-  isMechas?: boolean; // true para aplicar mechas / balayage iluminadas
 }
 
 function hexToRgb(hex: string): { r: number; g: number; b: number } {
@@ -123,7 +122,6 @@ export async function recolorHair(
   const intensityVal = options.intensity ?? 80;
   const intensityFactor = Math.max(0.2, Math.min(1.0, intensityVal / 100));
   const tone = options.toneName.toLowerCase();
-  const isMechas = !!options.isMechas;
 
   // Recorrer píxel por píxel con la máscara
   const totalPixels = width * height;
@@ -131,9 +129,6 @@ export async function recolorHair(
     const confidence = hairMask[i];
     // Ignorar si no es cabello (umbral suave para bordes de rizos)
     if (confidence <= 0.08) continue;
-
-    const x = i % width;
-    const y = Math.floor(i / width);
 
     const p = i * 4;
     const r = data[p];
@@ -143,23 +138,7 @@ export async function recolorHair(
     // Luminosidad original de la hebra (0 a 1)
     const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
 
-    // Si es modo mechas / balayage: distribuir en mechones naturales siguiendo el flujo del rizo
-    let mechasFactor = 1.0;
-    if (isMechas) {
-      // Ondulación natural de mechones
-      const wave = Math.sin((x * 0.045) + Math.sin(y * 0.02) * 2.8);
-      // Las mechas se iluminan principalmente en los relieves del rizo donde incide la luz
-      const ridge = lum > 0.14 ? Math.min(1, (lum - 0.14) / 0.35) : 0;
-      const strandPattern = (wave > 0 ? wave : 0) * (0.3 + ridge * 0.7);
-
-      // Si el píxel no pertenece a un mechón iluminado, se mantiene el cabello natural base
-      if (strandPattern < 0.22) {
-        continue;
-      }
-      mechasFactor = Math.min(1.25, strandPattern * 1.5);
-    }
-
-    const blendAlpha = Math.min(1, confidence * intensityFactor * mechasFactor);
+    const blendAlpha = Math.min(1, confidence * intensityFactor);
 
     let newR = r;
     let newG = g;

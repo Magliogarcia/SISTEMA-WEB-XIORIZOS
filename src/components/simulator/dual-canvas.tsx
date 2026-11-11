@@ -5,7 +5,7 @@ import { Loader2, Sparkles, CheckCircle2 } from "lucide-react";
 import { useSimulatorStore } from "@/store/simulator-store";
 
 export function DualCanvas() {
-  const { imagenOriginalUrl, imagenSegmentadaUrl, tonoSeleccionado, estiloAplicacion, status } =
+  const { imagenOriginalUrl, imagenSegmentadaUrl, tonoSeleccionado, status } =
     useSimulatorStore();
 
   if (!imagenOriginalUrl) {
@@ -42,7 +42,7 @@ export function DualCanvas() {
           {status === "listo" && tonoSeleccionado && (
             <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1">
               <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>{tonoSeleccionado.nombre} {estiloAplicacion === "mechas" ? "(Mechas)" : ""}</span>
+              <span>{tonoSeleccionado.nombre}</span>
             </span>
           )}
         </div>

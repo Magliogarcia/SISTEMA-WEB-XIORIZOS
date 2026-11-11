@@ -15,7 +15,6 @@ export default function SimuladorPage() {
     imagenOriginalUrl,
     imagenSegmentadaUrl,
     tonoSeleccionado,
-    estiloAplicacion,
     intensidad,
     status,
     setStatus,
@@ -49,7 +48,6 @@ export default function SimuladorPage() {
         hexColor: tonoSeleccionado.hex,
         toneName: tonoSeleccionado.nombre,
         intensity: intensidad || 80,
-        isMechas: estiloAplicacion === "mechas",
       });
 
       setImagenSegmentada(resultadoDataUrl);

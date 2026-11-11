@@ -1,56 +1,16 @@
 "use client";
 
-import { Check, Sparkles, Paintbrush } from "lucide-react";
+import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { mockHairTones } from "@/lib/mock-data";
 import { useSimulatorStore } from "@/store/simulator-store";
 
 export function ColorPaletteSelector() {
-  const { tonoSeleccionado, setTono, estiloAplicacion, setEstiloAplicacion } = useSimulatorStore();
+  const { tonoSeleccionado, setTono } = useSimulatorStore();
 
   return (
-    <div className="space-y-5">
-      {/* Selector de Estilo: Tinte Completo vs Mechas */}
-      <div className="space-y-2">
-        <label className="text-xs font-bold uppercase tracking-wider text-primary block">
-          Técnica de Aplicación
-        </label>
-        <div className="grid grid-cols-2 gap-2">
-          <button
-            type="button"
-            onClick={() => setEstiloAplicacion("completo")}
-            className={cn(
-              "flex flex-col items-center justify-center p-2.5 rounded-xl border text-center transition-all cursor-pointer",
-              estiloAplicacion === "completo"
-                ? "border-primary bg-primary/10 text-primary font-bold shadow-xs ring-1 ring-primary/20"
-                : "border-border text-muted-foreground hover:bg-muted/50"
-            )}
-          >
-            <Paintbrush className="h-4 w-4 mb-1" />
-            <span className="text-xs">Tinte Completo</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setEstiloAplicacion("mechas")}
-            className={cn(
-              "flex flex-col items-center justify-center p-2.5 rounded-xl border text-center transition-all cursor-pointer",
-              estiloAplicacion === "mechas"
-                ? "border-primary bg-primary/10 text-primary font-bold shadow-xs ring-1 ring-primary/20"
-                : "border-border text-muted-foreground hover:bg-muted/50"
-            )}
-          >
-            <Sparkles className="h-4 w-4 mb-1 text-secondary" />
-            <span className="text-xs">Con Mechas</span>
-          </button>
-        </div>
-        <p className="text-[11px] text-muted-foreground leading-tight">
-          {estiloAplicacion === "mechas"
-            ? "✨ Ilumina mechones y destellos sobre tu base natural."
-            : "🎨 Cobertura uniforme en todo el cabello."}
-        </p>
-      </div>
-
-      <div className="pt-2 border-t border-border">
+    <div className="space-y-4">
+      <div>
         <label className="text-xs font-bold uppercase tracking-wider text-primary block mb-2.5">
           Tono de Color
         </label>
