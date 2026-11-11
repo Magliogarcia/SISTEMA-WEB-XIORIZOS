@@ -1,67 +1,109 @@
-# Xiorizos — Sitio Web & Estudio Especializado en Rizos
+# Xiorizos — Sistema Web & Plataforma Integral para Salón Curly
 
-Sitio web oficial, catálogo interactivo, simulación de colorimetría y agendamiento de citas online para el salón y estudio **Xiorizos** en Naguanagua, Valencia, Venezuela. Especialistas certificados en cabello ondulado, rizado y afro.
+Plataforma web oficial, tienda en línea, simulador de colorimetría con Inteligencia Artificial y sistema administrativo completo para **Xiorizos**, estudio especializado certificado en cabello ondulado, rizado y afro en Naguanagua, Valencia, Venezuela.
 
 ---
 
-## 🌟 Características Principales
+## 🌟 Módulos y Características del Sistema
 
-- **Multi-página fluida con Next.js 14 App Router:**
-  - **Inicio (`/`):** Hero visual panorámico, doble carrusel infinito de servicios (Cortes, Color, Terapias y Uñas), sección "Sobre Nosotros" con video recorrido del estudio, fotos del equipo y comunidad, simulador de color, boutique destacada con video de productos, banner con integración oficial de **Cashea**, carrusel continuo de testimonios reales y ubicación con Google Maps.
-  - **Sobre Nosotros (`/nosotros`):** Historia del estudio, video recorrido unificado sin márgenes grises, galería de personal y fichas individuales de las 7 integrantes del equipo real.
-  - **Servicios (`/servicios`):** Catálogo de los 12 servicios especializados con navegación por ancla directa (`#servicio-id`), fichas detalladas y bloque destacado para el Servicio de Uñas con video demostrativo.
-  - **Simulador de Color (`/simulador`):** Previsualización interactiva de tonos con control deslizante protegido contra arrastre fantasma en escritorio.
-  - **Catálogo de Productos (`/catalogo`):** Tienda online con filtros por categoría y marca, buscador reactivo, tarjetas de producto con redondeo ligero (2px en imágenes) y banner con video demostrativo.
-  - **Agendar Cita (`/citas`):** Wizard en 4 pasos (Servicio, Especialista con avatar real, Fecha/Hora, Confirmación) con preselección automática por URL.
-- **Carrito de compras deslizante (Drawer):** Control interactivo de cantidades (`+` y `-`), cálculo de subtotales y eliminación de productos.
-- **Botón Flotante de WhatsApp:** Conexión directa y rápida con el salón (+58 412 7434761).
-- **Diseño Responsivo:** Píldoras de navegación tipo app en desktop y menú drawer móvil optimizado.
-- **Optimización de Producción:** Paquete `sharp` integrado para procesamiento y optimización ultra-rápida de imágenes WebP.
+### 1. Tienda Online & Catálogo Boutique (`/catalogo`, `/checkout`)
+* **Catálogo Reactivo:** Filtros por categoría y marcas especializadas en método curly, buscador instantáneo y vista detallada de productos.
+* **Carrito Deslizante (Cart Drawer):** Gestión interactiva de cantidades, cálculo dinámico de totales e impuestos en formato venezolano `X,XX$`.
+* **Checkout & Pago Móvil:** Pasarela adaptada a Venezuela con soporte para Pago Móvil (bancos nacionales, número de referencia, teléfono emisor) y pago en efectivo.
+* **Integración Cashea:** Indicadores visuales de financiamiento en cuotas sin interés.
+
+### 2. Agendamiento de Citas con Disponibilidad Inteligente (`/citas`)
+* **Flujo en 4 Pasos:** Selección de servicio (12 servicios categorizados), especialista con avatar real, fecha y hora con bloqueo dinámico de colisiones.
+* **Reserva con Abono:** Cálculo automático del 20% de reserva y 80% restante a pagar en salón.
+* **Disponibilidad y Ausencias:** Validación en tiempo real de horarios operativos, días de inoperatividad de estilistas (reposo, vacaciones, permisos especiales) y citas simultáneas.
+* **Confirmación por WhatsApp:** Generación de enlaces automáticos directos a WhatsApp con la plantilla de confirmación de la cita.
+
+### 3. Simulador de Colorimetría con IA en el Cliente (`/simulador`)
+* **Procesamiento 100% en el Navegador:** Impulsado por **Google MediaPipe Hair Segmenter** compilado en **WebAssembly (WASM)** y modelo TFLite.
+* **Cero Costo de APIs:** No consume APIs externas de pago; corre directo en la GPU/CPU del dispositivo del cliente.
+* **Privacidad Total:** Las fotos del cliente nunca abandonan el navegador ni se almacenan en servidores.
+* **Paleta Realista de Salón:** 7 tonos profesionales (Rubio Miel, Castaño Caramelo, Chocolate Profundo, Cobrizo Natural, Borgoña Vino, Negro Azabache y Rubio Cenizo), respetando la textura tridimensional y el brillo de los rizos.
+
+### 4. Panel de Administración Integral (`/admin`)
+* **Dashboard de Métricas:** KPIs en tiempo real de ingresos totales, pedidos completados, citas del día y tasa de ocupación de agenda.
+* **Gestión de Citas (`/admin/citas`):** Visualización de citas en agenda, validación de referencias de Pago Móvil, cambio de estados (*pendiente*, *confirmada*, *completada*, *cancelada*), cancelación justificada y contacto directo por WhatsApp al cliente.
+* **Gestión de Pedidos (`/admin/pedidos`):** Verificación de pagos de transferencias/pago móvil, control de despacho (*por verificar*, *verificado*, *entregado*, *cancelado*) y ficha detallada de entrega.
+* **Gestión de Productos (`/admin/productos`):** Creación, edición, control de inventario/stock, subida de imágenes y precio en divisas.
+* **Gestión de Empleados & Horarios (`/admin/empleados`):** Registro de estilistas, asignación de servicios y control de inoperatividad (vacaciones, reposos médicos o ausencias en fechas específicas para bloquear su agenda automáticamente).
+* **Gestión de Usuarios (`/admin/usuarios`):** Control de acceso por roles (*admin*, *empleado*, *cliente*).
 
 ---
 
 ## 🛠️ Stack Tecnológico
 
-- **Framework:** Next.js 14 (App Router) + TypeScript
-- **Estilos:** Tailwind CSS con tokens de diseño personalizados
-- **Estado Global:** Zustand (carrito, citas, autenticación, simulador)
-- **Componentes:** Radix UI / Shadcn UI + Lucide React + Material Symbols
-- **Imágenes & Multimedia:** Next Image + Sharp + HTML5 Video optimizado
+| Capa | Tecnologías |
+| :--- | :--- |
+| **Framework** | Next.js 14 (App Router) + React 18 + TypeScript 5 |
+| **Estilos & UI** | Tailwind CSS + Radix UI / Shadcn UI + Lucide Icons |
+| **Estado Global** | Zustand (carrito, citas, autenticación, simulador) |
+| **Base de Datos** | Base de datos persistente en JSON (`data/database.json`) con transacciones seguras en Node.js |
+| **Inteligencia Artificial** | Google MediaPipe Vision Tasks (`@mediapipe/tasks-vision`) + WebAssembly + TFLite |
+| **Validación de Datos** | Zod + React Hook Form |
+| **Procesamiento de Imágenes** | Sharp para optimización estática y conversión a WebP |
 
 ---
 
-## 📦 Requisitos Previos
+## 🔐 Cuentas de Acceso para Pruebas
 
-- **Node.js:** v18.18.0 o superior
-- **npm:** v9.0 o superior
+Para demostraciones y pruebas del sistema, se encuentran pre-configuradas las siguientes credenciales:
+
+### Cuenta Administrador
+* **URL:** `/admin/login` o `/login`
+* **Email:** `admin@xiorizos.com`
+* **Contraseña:** `Maglio28$`
+* **Rol:** Acceso total al panel administrativo, finanzas, pedidos, citas y personal.
+
+### Cuenta Empleado / Estilista
+* **Email:** `xioilin@xiorizos.com` *(o cualquier otro miembro del equipo: `axel@xiorizos.com`, `yolennis@xiorizos.com`)*
+* **Contraseña:** `Xioilin28$` *(o `Axel28$`, `Yolennis28$`)*
+* **Rol:** Acceso a citas y pedidos del estudio.
+
+### Cuenta Cliente Demo
+* **Email:** `maria@ejemplo.com`
+* **Contraseña:** `123`
+* **Rol:** Cliente registrado con acceso a agendamiento y pedidos.
 
 ---
 
 ## 🚀 Instalación y Puesta en Marcha
 
-1. Clonar el repositorio (si aún no lo has hecho):
-```bash
-git clone https://github.com/Magliogarcia/SISTEMA-WEB-XIORIZOS.git
-cd SISTEMA-WEB-XIORIZOS
-```
+### Requisitos Previos
+* **Node.js:** v18.18.0 o superior
+* **npm:** v9.0 o superior
 
-2. Instalar dependencias:
-```bash
-npm install --legacy-peer-deps
-```
+### Pasos de Configuración
 
-3. Iniciar el servidor de desarrollo:
-```bash
-npm run dev
-```
+1. **Clonar el repositorio:**
+   ```bash
+   git clone https://github.com/Magliogarcia/SISTEMA-WEB-XIORIZOS.git
+   cd SISTEMA-WEB-XIORIZOS
+   ```
 
-4. Abrir en el navegador: [http://localhost:3000](http://localhost:3000)
+2. **Instalar dependencias:**
+   ```bash
+   npm install --legacy-peer-deps
+   ```
+
+3. **Ejecutar el servidor en modo desarrollo:**
+   ```bash
+   npm run dev
+   ```
+
+4. **Acceder a la aplicación:**
+   * Tienda y sitio público: [http://localhost:3000](http://localhost:3000)
+   * Panel de Administración: [http://localhost:3000/admin](http://localhost:3000/admin)
+   * Simulador de Colorimetría: [http://localhost:3000/simulador](http://localhost:3000/simulador)
 
 ---
 
 ## 🏗️ Compilación para Producción
 
-Para compilar y verificar que todo esté 100% libre de errores:
+Para validar tipos TypeScript y compilar los bundles de producción optimizados:
 
 ```bash
 npm run build
@@ -70,9 +112,9 @@ npm run start
 
 ---
 
-## 📍 Ubicación e Información del Salón
+## 📍 Información del Salón
 
-- **Dirección:** Planta Baja, Torre Anexa del Centro Científico Metropolitano del Norte, Naguanagua, Valencia 2001, Carabobo, Venezuela.
-- **Horario de Atención:** Martes a Sábado de 8:30 a.m. a 5:30 p.m. (Domingos y Lunes cerrado).
-- **WhatsApp:** +58 412 7434761
-- **Métodos de Pago:** Transferencia, Pago Móvil, Efectivo, Cashea (cuotas sin interés).
+* **Ubicación:** Planta Baja, Torre Anexa del Centro Científico Metropolitano del Norte, Naguanagua, Valencia 2001, Carabobo, Venezuela.
+* **Horario:** Martes a Sábado de 8:30 a.m. a 5:30 p.m.
+* **WhatsApp de Atención:** +58 412 7434761
+* **Métodos de Pago:** Pago Móvil, Efectivo, Transferencia, Cashea.
