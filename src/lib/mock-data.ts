@@ -399,10 +399,11 @@ export const mockProfessionals: Professional[] = realStaffMembers
   }));
 
 export const mockHairTones: HairColorTone[] = [
-  { id: "t1", nombre: "Rojo Fuego", hex: "#DC2626", familia: "rojos" },
-  { id: "t2", nombre: "Azul Zafiro", hex: "#2563EB", familia: "fantasia" },
-  { id: "t3", nombre: "Rubio Dorado", hex: "#EAB308", familia: "rubios" },
-  { id: "t4", nombre: "Verde Esmeralda", hex: "#059669", familia: "fantasia" },
-  { id: "t5", nombre: "Morado Violeta", hex: "#7C3AED", familia: "fantasia" },
-  { id: "t6", nombre: "Negro Ébano", hex: "#111827", familia: "negros" },
+  { id: "t1", nombre: "Rubio Miel", hex: "#D4A359", familia: "rubios" },
+  { id: "t2", nombre: "Castaño Caramelo", hex: "#8C4F27", familia: "castaños" },
+  { id: "t3", nombre: "Chocolate Profundo", hex: "#382017", familia: "castaños" },
+  { id: "t4", nombre: "Cobrizo Natural", hex: "#C85A2A", familia: "rojos" },
+  { id: "t5", nombre: "Borgoña Vino", hex: "#631726", familia: "rojos" },
+  { id: "t6", nombre: "Negro Azabache", hex: "#171717", familia: "negros" },
+  { id: "t7", nombre: "Rubio Cenizo", hex: "#C2B29D", familia: "rubios" },
 ];

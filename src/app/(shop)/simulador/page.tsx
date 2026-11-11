@@ -15,6 +15,7 @@ export default function SimuladorPage() {
     imagenOriginalUrl,
     imagenSegmentadaUrl,
     tonoSeleccionado,
+    estiloAplicacion,
     intensidad,
     status,
     setStatus,
@@ -47,7 +48,8 @@ export default function SimuladorPage() {
       const resultadoDataUrl = await recolorHair(img, {
         hexColor: tonoSeleccionado.hex,
         toneName: tonoSeleccionado.nombre,
-        intensity: intensidad,
+        intensity: intensidad || 80,
+        isMechas: estiloAplicacion === "mechas",
       });
 
       setImagenSegmentada(resultadoDataUrl);
