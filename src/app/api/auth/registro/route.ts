@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { readDB, writeDB, DBUser } from "@/lib/db";
+import { validatePassword } from "@/lib/validation";
 
 export async function POST(req: Request) {
   try {
@@ -9,6 +10,15 @@ export async function POST(req: Request) {
     if (!nombre || !email || !password) {
       return NextResponse.json(
         { error: "Todos los campos obligatorios deben ser completados." },
+        { status: 400 }
+      );
+    }
+
+    // Validación estricta de contraseña (mínimo 8 caracteres, mayúscula, minúscula, número y símbolo)
+    const passCheck = validatePassword(password);
+    if (!passCheck.isValid) {
+      return NextResponse.json(
+        { error: passCheck.error || "La contraseña no cumple con los requisitos mínimos de seguridad." },
         { status: 400 }
       );
     }

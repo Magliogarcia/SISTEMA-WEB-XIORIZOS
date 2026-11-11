@@ -338,3 +338,60 @@ export function validateCVV(rawCVV: string): ValidationResult {
   return { isValid: true, formatted: cleaned };
 }
 
+export interface PasswordValidationRules {
+  minLength: boolean;
+  hasUpper: boolean;
+  hasLower: boolean;
+  hasNumber: boolean;
+  hasSpecial: boolean;
+}
+
+export interface PasswordValidationResult {
+  isValid: boolean;
+  error?: string;
+  rules: PasswordValidationRules;
+}
+
+/**
+ * Valida contraseñas estrictas para el registro de usuarios y empleados:
+ * - Mínimo 8 caracteres
+ * - Al menos una letra mayúscula (A-Z)
+ * - Al menos una letra minúscula (a-z)
+ * - Al menos un número (0-9)
+ * - Al menos un símbolo o carácter especial (!@#$%^&*...)
+ */
+export function validatePassword(password: string): PasswordValidationResult {
+  const minLength = password.length >= 8;
+  const hasUpper = /[A-Z]/.test(password);
+  const hasLower = /[a-z]/.test(password);
+  const hasNumber = /\d/.test(password);
+  const hasSpecial = /[^a-zA-Z0-9]/.test(password);
+
+  const isValid = minLength && hasUpper && hasLower && hasNumber && hasSpecial;
+
+  let error: string | undefined;
+  if (!minLength) {
+    error = "La contraseña debe tener al menos 8 caracteres.";
+  } else if (!hasUpper) {
+    error = "La contraseña debe incluir al menos una letra mayúscula (A-Z).";
+  } else if (!hasLower) {
+    error = "La contraseña debe incluir al menos una letra minúscula (a-z).";
+  } else if (!hasNumber) {
+    error = "La contraseña debe incluir al menos un número (0-9).";
+  } else if (!hasSpecial) {
+    error = "La contraseña debe incluir al menos un símbolo o carácter especial (!@#$%^&*...).";
+  }
+
+  return {
+    isValid,
+    error,
+    rules: {
+      minLength,
+      hasUpper,
+      hasLower,
+      hasNumber,
+      hasSpecial,
+    },
+  };
+}
+

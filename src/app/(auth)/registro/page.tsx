@@ -3,12 +3,17 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Check, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuthStore } from "@/store/auth-store";
-import { filterNameInput, validateFullName, validateEmail } from "@/lib/validation";
+import {
+  filterNameInput,
+  validateFullName,
+  validateEmail,
+  validatePassword,
+} from "@/lib/validation";
 
 export default function RegistroPage() {
   const router = useRouter();
@@ -22,7 +27,11 @@ export default function RegistroPage() {
   const [emailError, setEmailError] = useState<string | null>(null);
 
   const [password, setPassword] = useState("");
+  const [mostrarPassword, setMostrarPassword] = useState(false);
   const [passwordError, setPasswordError] = useState<string | null>(null);
+
+  const passValidation = validatePassword(password);
+  const { rules } = passValidation;
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -45,8 +54,9 @@ export default function RegistroPage() {
       setEmailError(null);
     }
 
-    if (password.length < 6) {
-      setPasswordError("La contraseña debe tener al menos 6 caracteres.");
+    const rPass = validatePassword(password);
+    if (!rPass.isValid) {
+      setPasswordError(rPass.error || "La contraseña no cumple con los requisitos de seguridad.");
       hasErrors = true;
     } else {
       setPasswordError(null);
@@ -137,25 +147,108 @@ export default function RegistroPage() {
 
         <div className="space-y-1.5">
           <Label htmlFor="password">Contraseña</Label>
-          <Input
-            id="password"
-            name="password"
-            type="password"
-            required
-            value={password}
-            onChange={(e) => {
-              setPassword(e.target.value);
-              if (passwordError) setPasswordError(null);
-            }}
-            placeholder="••••••••"
-            className={passwordError ? "border-destructive" : ""}
-          />
+          <div className="relative">
+            <Input
+              id="password"
+              name="password"
+              type={mostrarPassword ? "text" : "password"}
+              required
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                if (passwordError) setPasswordError(null);
+              }}
+              placeholder="Ej. SofiRizos2026$"
+              className={`pr-10 ${passwordError ? "border-destructive" : ""}`}
+            />
+            <button
+              type="button"
+              onClick={() => setMostrarPassword(!mostrarPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5"
+              tabIndex={-1}
+              aria-label={mostrarPassword ? "Ocultar contraseña" : "Ver contraseña"}
+            >
+              {mostrarPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
+
           {passwordError && (
-            <p className="text-xs text-destructive flex items-center gap-1">
-              <AlertCircle className="h-3 w-3" />
+            <p className="text-xs text-destructive flex items-center gap-1 pt-0.5">
+              <AlertCircle className="h-3 w-3 shrink-0" />
               {passwordError}
             </p>
           )}
+
+          {/* Requisitos visuales en tiempo real */}
+          <div className="mt-2 rounded-lg border border-border/80 bg-muted/40 p-2.5 text-[11px] space-y-1">
+            <p className="font-semibold text-foreground text-xs mb-1">Requisitos de seguridad:</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-2 gap-y-1">
+              <p
+                className={`flex items-center gap-1.5 transition-colors ${
+                  rules.minLength ? "text-emerald-600 dark:text-emerald-400 font-semibold" : "text-muted-foreground"
+                }`}
+              >
+                {rules.minLength ? (
+                  <Check className="h-3 w-3 shrink-0 stroke-[3]" />
+                ) : (
+                  <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/50 ml-0.5 mr-1" />
+                )}
+                <span>Mínimo 8 caracteres</span>
+              </p>
+
+              <p
+                className={`flex items-center gap-1.5 transition-colors ${
+                  rules.hasUpper ? "text-emerald-600 dark:text-emerald-400 font-semibold" : "text-muted-foreground"
+                }`}
+              >
+                {rules.hasUpper ? (
+                  <Check className="h-3 w-3 shrink-0 stroke-[3]" />
+                ) : (
+                  <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/50 ml-0.5 mr-1" />
+                )}
+                <span>Una letra mayúscula (A-Z)</span>
+              </p>
+
+              <p
+                className={`flex items-center gap-1.5 transition-colors ${
+                  rules.hasLower ? "text-emerald-600 dark:text-emerald-400 font-semibold" : "text-muted-foreground"
+                }`}
+              >
+                {rules.hasLower ? (
+                  <Check className="h-3 w-3 shrink-0 stroke-[3]" />
+                ) : (
+                  <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/50 ml-0.5 mr-1" />
+                )}
+                <span>Una letra minúscula (a-z)</span>
+              </p>
+
+              <p
+                className={`flex items-center gap-1.5 transition-colors ${
+                  rules.hasNumber ? "text-emerald-600 dark:text-emerald-400 font-semibold" : "text-muted-foreground"
+                }`}
+              >
+                {rules.hasNumber ? (
+                  <Check className="h-3 w-3 shrink-0 stroke-[3]" />
+                ) : (
+                  <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/50 ml-0.5 mr-1" />
+                )}
+                <span>Al menos un número (0-9)</span>
+              </p>
+
+              <p
+                className={`flex items-center gap-1.5 sm:col-span-2 transition-colors ${
+                  rules.hasSpecial ? "text-emerald-600 dark:text-emerald-400 font-semibold" : "text-muted-foreground"
+                }`}
+              >
+                {rules.hasSpecial ? (
+                  <Check className="h-3 w-3 shrink-0 stroke-[3]" />
+                ) : (
+                  <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/50 ml-0.5 mr-1" />
+                )}
+                <span>Un símbolo o caracter (!@#$%^&*...)</span>
+              </p>
+            </div>
+          </div>
         </div>
 
         <Button type="submit" className="w-full" disabled={cargando}>

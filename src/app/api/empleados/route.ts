@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { readDB, writeDB, DBEmployee } from "@/lib/db";
+import { validatePassword } from "@/lib/validation";
 
 export async function GET() {
   try {
@@ -28,17 +29,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "La contraseña es requerida para el acceso del empleado" }, { status: 400 });
     }
 
-    // Validación de contraseña: minúscula, mayúscula, número y símbolo
-    const hasLower = /[a-z]/.test(password);
-    const hasUpper = /[A-Z]/.test(password);
-    const hasNumber = /\d/.test(password);
-    const hasSymbol = /[^a-zA-Z0-9]/.test(password);
-
-    if (password.length < 6 || !hasLower || !hasUpper || !hasNumber || !hasSymbol) {
+    // Validación de contraseña: mínimo 8 caracteres, minúscula, mayúscula, número y símbolo
+    const passCheck = validatePassword(password);
+    if (!passCheck.isValid) {
       return NextResponse.json(
         {
           error:
-            "La contraseña debe tener al menos 6 caracteres e incluir una letra minúscula, una mayúscula, un número y un símbolo especial (ej. Xiorizos28$).",
+            passCheck.error ||
+            "La contraseña debe tener al menos 8 caracteres e incluir una letra minúscula, una mayúscula, un número y un símbolo especial (ej. Xiorizos28$).",
         },
         { status: 400 }
       );

@@ -30,6 +30,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { formatDate } from "@/lib/utils";
+import { validatePassword } from "@/lib/validation";
 import type { DBEmployee } from "@/lib/db";
 
 export default function AdminEmpleadosPage() {
@@ -197,14 +198,11 @@ export default function AdminEmpleadosPage() {
         }
       } else {
         // Validación de contraseña segura
-        const hasLower = /[a-z]/.test(password);
-        const hasUpper = /[A-Z]/.test(password);
-        const hasNumber = /\d/.test(password);
-        const hasSpecial = /[^a-zA-Z0-9]/.test(password);
-
-        if (!hasLower || !hasUpper || !hasNumber || !hasSpecial || password.length < 6) {
+        const passCheck = validatePassword(password);
+        if (!passCheck.isValid) {
           setErrorForm(
-            "La contraseña debe tener mínimo 6 caracteres, al menos una mayúscula, una minúscula, un número y un símbolo especial."
+            passCheck.error ||
+            "La contraseña debe tener mínimo 8 caracteres, al menos una mayúscula, una minúscula, un número y un símbolo especial."
           );
           setGuardando(false);
           return;
@@ -531,16 +529,21 @@ export default function AdminEmpleadosPage() {
                   </div>
                 </div>
 
-                <div className="text-[11px] text-slate-500 bg-white p-2 rounded border border-slate-200 space-y-0.5">
+                <div className="text-[11px] text-slate-500 bg-white p-2.5 rounded border border-slate-200 space-y-1">
                   <p className="font-semibold text-slate-700">Requisitos de la contraseña:</p>
                   <p className="flex items-center gap-1.5">
-                    <span className={/[a-z]/.test(password) ? "text-emerald-600 font-bold" : "text-slate-400"}>
-                      {/[a-z]/.test(password) ? "✓" : "•"} Al menos una letra minúscula (a-z)
+                    <span className={password.length >= 8 ? "text-emerald-600 font-bold" : "text-slate-400"}>
+                      {password.length >= 8 ? "✓" : "•"} Mínimo 8 caracteres
                     </span>
                   </p>
                   <p className="flex items-center gap-1.5">
                     <span className={/[A-Z]/.test(password) ? "text-emerald-600 font-bold" : "text-slate-400"}>
                       {/[A-Z]/.test(password) ? "✓" : "•"} Al menos una letra mayúscula (A-Z)
+                    </span>
+                  </p>
+                  <p className="flex items-center gap-1.5">
+                    <span className={/[a-z]/.test(password) ? "text-emerald-600 font-bold" : "text-slate-400"}>
+                      {/[a-z]/.test(password) ? "✓" : "•"} Al menos una letra minúscula (a-z)
                     </span>
                   </p>
                   <p className="flex items-center gap-1.5">
@@ -550,7 +553,7 @@ export default function AdminEmpleadosPage() {
                   </p>
                   <p className="flex items-center gap-1.5">
                     <span className={/[^a-zA-Z0-9]/.test(password) ? "text-emerald-600 font-bold" : "text-slate-400"}>
-                      {/[^a-zA-Z0-9]/.test(password) ? "✓" : "•"} Al menos un símbolo (!@#$%^&*...)
+                      {/[^a-zA-Z0-9]/.test(password) ? "✓" : "•"} Al menos un símbolo o carácter especial (!@#$%^&*...)
                     </span>
                   </p>
                 </div>
