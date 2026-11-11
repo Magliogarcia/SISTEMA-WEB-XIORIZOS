@@ -3,10 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "predev": "node scripts/copy-wasm.js",
     "dev": "next dev",
+    "prebuild": "node scripts/copy-wasm.js",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "postinstall": "node scripts/copy-wasm.js"
   },
   "dependencies": {
     "@mediapipe/tasks-vision": "^1.2.2",

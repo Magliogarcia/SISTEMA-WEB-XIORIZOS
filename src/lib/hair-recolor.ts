@@ -22,20 +22,37 @@ export async function getHairSegmenter(): Promise<ImageSegmenter> {
       let vision;
       try {
         vision = await FilesetResolver.forVisionTasks(wasmPath);
-      } catch {
+      } catch (localWasmErr) {
+        console.warn("Fallo carga de WASM local, intentando CDN de respaldo:", localWasmErr);
         wasmPath = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm";
         vision = await FilesetResolver.forVisionTasks(wasmPath);
       }
 
-      const segmenter = await ImageSegmenter.createFromOptions(vision, {
-        baseOptions: {
-          modelAssetPath: "/models/hair_segmenter.tflite",
-          delegate: "GPU",
-        },
-        outputCategoryMask: true,
-        outputConfidenceMasks: true,
-        runningMode: "IMAGE",
-      });
+      let segmenter: ImageSegmenter;
+      try {
+        // Intento 1: GPU (máxima velocidad cuando está disponible)
+        segmenter = await ImageSegmenter.createFromOptions(vision, {
+          baseOptions: {
+            modelAssetPath: "/models/hair_segmenter.tflite",
+            delegate: "GPU",
+          },
+          outputCategoryMask: true,
+          outputConfidenceMasks: true,
+          runningMode: "IMAGE",
+        });
+      } catch (gpuError) {
+        // Intento 2: CPU (fallback para laptops con gráficos integrados o WebGL limitado)
+        console.warn("Fallo aceleración GPU en simulador, activando modo CPU:", gpuError);
+        segmenter = await ImageSegmenter.createFromOptions(vision, {
+          baseOptions: {
+            modelAssetPath: "/models/hair_segmenter.tflite",
+            delegate: "CPU",
+          },
+          outputCategoryMask: true,
+          outputConfidenceMasks: true,
+          runningMode: "IMAGE",
+        });
+      }
 
       segmenterInstance = segmenter;
       return segmenter;
