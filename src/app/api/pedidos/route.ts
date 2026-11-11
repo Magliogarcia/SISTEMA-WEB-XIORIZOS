@@ -35,6 +35,18 @@ export async function POST(req: Request) {
     }
 
     const db = readDB();
+
+    // Descontar stock real de cada producto comprado
+    if (Array.isArray(items)) {
+      items.forEach((item: any) => {
+        const prodId = item.productId || item.product?.id || item.id;
+        const prod = db.products.find((p) => p.id === prodId);
+        if (prod) {
+          prod.stock = Math.max(0, prod.stock - (item.cantidad || 1));
+        }
+      });
+    }
+
     const nuevoPedido: DBOrder = {
       id: `ORD-2026-${Math.floor(1000 + Math.random() * 9000)}`,
       clienteNombre: clienteNombre.trim(),
@@ -76,6 +88,18 @@ export async function PATCH(req: Request) {
     }
 
     if (estado !== undefined) {
+      // Si se cancela el pedido, restablecer el stock a los productos
+      if (estado === "cancelado" && pedido.estado !== "cancelado") {
+        if (Array.isArray(pedido.items)) {
+          pedido.items.forEach((item: any) => {
+            const prodId = item.productId || item.product?.id || item.id;
+            const prod = db.products.find((p) => p.id === prodId);
+            if (prod) {
+              prod.stock += (item.cantidad || 1);
+            }
+          });
+        }
+      }
       pedido.estado = estado;
     }
     if (notificadoWhatsApp !== undefined) {

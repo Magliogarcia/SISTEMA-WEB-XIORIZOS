@@ -88,35 +88,50 @@ export function CartDrawer() {
                       </p>
                     </div>
 
-                    {/* Quantity Controls (+ / -) */}
-                    <div className="flex items-center gap-1.5 bg-surface-container-lowest px-2 py-1 rounded-full border border-surface-container">
-                      <button
-                        onClick={() => {
-                          if (item.cantidad > 1) {
-                            updateQuantity(item.product.id, item.cantidad - 1, item.variant?.id);
-                          } else {
-                            removeItem(item.product.id, item.variant?.id);
-                          }
-                        }}
-                        className="w-6 h-6 rounded-full hover:bg-surface-container-high flex items-center justify-center text-primary text-sm font-bold transition-colors"
-                        aria-label="Restar una unidad"
-                        type="button"
-                      >
-                        -
-                      </button>
-                      <span className="font-label-md text-[13px] font-bold px-1 min-w-[16px] text-center">
-                        {item.cantidad}
-                      </span>
-                      <button
-                        onClick={() => {
-                          updateQuantity(item.product.id, item.cantidad + 1, item.variant?.id);
-                        }}
-                        className="w-6 h-6 rounded-full hover:bg-surface-container-high flex items-center justify-center text-primary text-sm font-bold transition-colors"
-                        aria-label="Sumar una unidad"
-                        type="button"
-                      >
-                        +
-                      </button>
+                    {/* Quantity Controls (+ / -) con límite de stock estricto */}
+                    <div className="flex flex-col items-end gap-1">
+                      <div className="flex items-center gap-1.5 bg-surface-container-lowest px-2 py-1 rounded-full border border-surface-container">
+                        <button
+                          onClick={() => {
+                            if (item.cantidad > 1) {
+                              updateQuantity(item.product.id, item.cantidad - 1, item.variant?.id);
+                            } else {
+                              removeItem(item.product.id, item.variant?.id);
+                            }
+                          }}
+                          className="w-6 h-6 rounded-full hover:bg-surface-container-high flex items-center justify-center text-primary text-sm font-bold transition-colors cursor-pointer"
+                          aria-label="Restar una unidad"
+                          type="button"
+                        >
+                          -
+                        </button>
+                        <span className="font-label-md text-[13px] font-bold px-1 min-w-[16px] text-center">
+                          {item.cantidad}
+                        </span>
+                        <button
+                          onClick={() => {
+                            const maxStock = item.variant?.stock ?? item.product.stock ?? 999;
+                            if (item.cantidad < maxStock) {
+                              updateQuantity(item.product.id, item.cantidad + 1, item.variant?.id);
+                            }
+                          }}
+                          disabled={item.cantidad >= (item.variant?.stock ?? item.product.stock ?? 999)}
+                          className={`w-6 h-6 rounded-full flex items-center justify-center text-primary text-sm font-bold transition-colors ${
+                            item.cantidad >= (item.variant?.stock ?? item.product.stock ?? 999)
+                              ? "opacity-30 cursor-not-allowed"
+                              : "hover:bg-surface-container-high cursor-pointer"
+                          }`}
+                          aria-label="Sumar una unidad"
+                          type="button"
+                        >
+                          +
+                        </button>
+                      </div>
+                      {item.cantidad >= (item.variant?.stock ?? item.product.stock ?? 999) && (
+                        <span className="text-[10px] text-amber-700 font-semibold">
+                          Máx: {item.product.stock}
+                        </span>
+                      )}
                     </div>
 
                     {/* Delete button */}

@@ -92,7 +92,21 @@ export async function POST(req: Request) {
 export async function PUT(req: Request) {
   try {
     const body = await req.json();
-    const { id, nombre, telefono, cargo, especialidad, avatarUrl, serviciosIds, activo, motivoInoperativo } = body;
+    const {
+      id,
+      nombre,
+      telefono,
+      cargo,
+      especialidad,
+      avatarUrl,
+      serviciosIds,
+      activo,
+      tipoInoperatividad,
+      fechaInicioInoperatividad,
+      fechaFinInoperatividad,
+      fechasAusente,
+      motivoInoperativo,
+    } = body;
 
     if (!id) {
       return NextResponse.json({ error: "ID de empleado requerido" }, { status: 400 });
@@ -115,6 +129,10 @@ export async function PUT(req: Request) {
       avatarUrl: avatarUrl !== undefined ? avatarUrl : current.avatarUrl,
       serviciosIds: serviciosIds !== undefined ? serviciosIds : current.serviciosIds,
       activo: activo !== undefined ? activo : current.activo,
+      tipoInoperatividad: tipoInoperatividad !== undefined ? tipoInoperatividad : current.tipoInoperatividad,
+      fechaInicioInoperatividad: fechaInicioInoperatividad !== undefined ? fechaInicioInoperatividad : current.fechaInicioInoperatividad,
+      fechaFinInoperatividad: fechaFinInoperatividad !== undefined ? fechaFinInoperatividad : current.fechaFinInoperatividad,
+      fechasAusente: fechasAusente !== undefined ? fechasAusente : current.fechasAusente,
       motivoInoperativo: motivoInoperativo !== undefined ? motivoInoperativo : current.motivoInoperativo,
     };
 

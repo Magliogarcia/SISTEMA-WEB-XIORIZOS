@@ -85,7 +85,11 @@ export interface DBEmployee {
   especialidad: string;
   avatarUrl?: string;
   serviciosIds: string[];
-  activo: boolean; // true = Operativo (en agenda), false = Inoperativo (enfermedad, reposo, vacaciones)
+  activo: boolean; // true = Operativo (en agenda), false = Inoperativo
+  tipoInoperatividad?: "activo" | "reposo" | "vacaciones" | "permiso" | "fechas_especificas" | "indefinido";
+  fechaInicioInoperatividad?: string; // YYYY-MM-DD
+  fechaFinInoperatividad?: string; // YYYY-MM-DD
+  fechasAusente?: string[]; // Fechas específicas de inasistencia (YYYY-MM-DD)
   motivoInoperativo?: string;
   creadoEn: string;
 }

@@ -294,6 +294,19 @@
   ],
   "products": [
     {
+      "id": "prod-1794354889990",
+      "nombre": "Base para cabello",
+      "descripcion": "",
+      "precio": 25,
+      "costo": 12,
+      "imagenUrl": "/images/productos/1794354887790_elamormio.webp",
+      "categoria": "Definidores",
+      "marca": "Xiorizos",
+      "stock": 2,
+      "rating": 5,
+      "reseñasCount": 1
+    },
+    {
       "id": "p1",
       "nombre": "Curl Butter Mascarilla",
       "descripcion": "Nutrición intensa para rizos y ondas con lípidos naturales.",
@@ -399,6 +412,31 @@
     }
   ],
   "orders": [
+    {
+      "id": "ORD-2026-8101",
+      "clienteNombre": "Administrador Xiorizos",
+      "clienteTelefono": "0414 581 2979",
+      "clienteEmail": "admin@xiorizos.com",
+      "direccion": "Los guayos",
+      "items": [
+        {
+          "productId": "prod-1794354889990",
+          "nombre": "Base para cabello",
+          "precio": 25,
+          "cantidad": 5,
+          "imagenUrl": "/images/productos/1794354887790_elamormio.webp"
+        }
+      ],
+      "total": 125,
+      "metodoPago": "pagomovil",
+      "pagoMovil": {
+        "banco": "Banco Exterior",
+        "referencia": "45645645",
+        "telefonoEmisor": "0414 589 7233"
+      },
+      "estado": "pendiente_verificacion",
+      "creadoEn": "2026-11-10T23:56:17.376Z"
+    },
     {
       "id": "ORD-2026-1041",
       "clienteNombre": "Elena Rivas",
@@ -727,8 +765,12 @@
       "serviciosIds": [
         "s12"
       ],
-      "activo": true,
-      "creadoEn": "2026-11-05T20:28:09.470Z"
+      "activo": false,
+      "creadoEn": "2026-11-05T20:28:09.470Z",
+      "tipoInoperatividad": "reposo",
+      "motivoInoperativo": "Reposo médico por 15 días",
+      "fechaInicioInoperatividad": "2026-11-05",
+      "fechaFinInoperatividad": "2026-11-20"
     },
     {
       "id": "emp-5",

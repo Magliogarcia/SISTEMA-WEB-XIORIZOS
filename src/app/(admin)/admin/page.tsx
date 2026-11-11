@@ -10,11 +10,15 @@ import {
   UserCheck,
   Phone,
   Package,
+  AlertTriangle,
+  CalendarOff,
+  Ban,
 } from "lucide-react";
 import { MetricCard } from "@/components/admin/metric-card";
 import { Button } from "@/components/ui/button";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { readDB } from "@/lib/db";
+import { mockServices } from "@/lib/mock-data";
 
 export const dynamic = "force-dynamic";
 
@@ -57,9 +61,54 @@ export default function AdminDashboardPage() {
 
   const ultimasCitas = db.appointments.slice(0, 4);
   const ultimosPedidos = db.orders.slice(0, 4);
-  const empleadosOperativos = (db.employees || []).filter((e) => e.activo !== false).length;
+  const empleadosOperativos = (db.employees || []).filter(
+    (e) => e.activo !== false && (!e.tipoInoperatividad || e.tipoInoperatividad === "activo")
+  ).length;
   const totalEmpleados = (db.employees || []).length;
   const totalProductos = db.products.length;
+
+  // Detección automática de personal inoperativo y servicios deshabilitados
+  const hoyStr = new Date().toISOString().split("T")[0];
+
+  const serviciosCriticos = mockServices
+    .map((servicio) => {
+      const especialistasAsignados = (db.employees || []).filter((e) =>
+        Array.isArray(e.serviciosIds) && e.serviciosIds.includes(servicio.id)
+      );
+
+      const especialistasOperativos = especialistasAsignados.filter((e) => {
+        if (e.activo === false) return false;
+        if (e.tipoInoperatividad === "reposo" || e.tipoInoperatividad === "vacaciones") {
+          if (e.fechaInicioInoperatividad && e.fechaFinInoperatividad) {
+            if (hoyStr >= e.fechaInicioInoperatividad && hoyStr <= e.fechaFinInoperatividad) {
+              return false;
+            }
+          } else {
+            return false;
+          }
+        }
+        return true;
+      });
+
+      return {
+        servicio,
+        asignados: especialistasAsignados,
+        operativos: especialistasOperativos,
+        deshabilitado: especialistasAsignados.length > 0 && especialistasOperativos.length === 0,
+      };
+    })
+    .filter((item) => item.deshabilitado);
+
+  const personalEnReposo = (db.employees || []).filter((e) => {
+    if (e.activo === false) return true;
+    if (e.tipoInoperatividad === "reposo" || e.tipoInoperatividad === "vacaciones") {
+      if (e.fechaInicioInoperatividad && e.fechaFinInoperatividad) {
+        return hoyStr >= e.fechaInicioInoperatividad && hoyStr <= e.fechaFinInoperatividad;
+      }
+      return true;
+    }
+    return false;
+  });
 
   return (
     <div className="space-y-6">
@@ -75,12 +124,83 @@ export default function AdminDashboardPage() {
         </div>
 
         <div className="flex items-center gap-2 self-start sm:self-auto">
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-medium">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-            <span>Sistema Operativo</span>
-          </span>
+          {serviciosCriticos.length > 0 ? (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm bg-rose-50 text-rose-800 border border-rose-300 text-xs font-bold animate-pulse">
+              <AlertTriangle className="h-3.5 w-3.5 text-rose-600" />
+              <span>{serviciosCriticos.length} Alerta(s) Operativa(s)</span>
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-medium">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              <span>Sistema Operativo</span>
+            </span>
+          )}
         </div>
       </div>
+
+      {/* Alerta Crítica si algún servicio no tiene personal que lo realice */}
+      {serviciosCriticos.length > 0 && (
+        <div className="rounded-sm border-2 border-rose-400 bg-rose-50/90 p-4 sm:p-5 shadow-sm space-y-3 font-sans">
+          <div className="flex items-start gap-3">
+            <div className="p-2 rounded-sm bg-rose-600 text-white shrink-0 shadow-xs">
+              <AlertTriangle className="h-5 w-5" />
+            </div>
+            <div className="flex-1 space-y-1">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <h2 className="text-sm font-bold text-rose-950 uppercase tracking-wide">
+                  Alerta Crítica: {serviciosCriticos.length} servicio(s) deshabilitado(s) por falta de personal operativo
+                </h2>
+                <Button asChild size="sm" variant="outline" className="h-7 text-xs font-semibold rounded-sm bg-white border-rose-300 text-rose-800 hover:bg-rose-100 self-start sm:self-auto">
+                  <Link href="/admin/empleados">Gestionar personal</Link>
+                </Button>
+              </div>
+
+              <p className="text-xs text-rose-900 leading-relaxed">
+                El sistema detectó que los siguientes servicios no cuentan con ningún colaborador disponible en turno. Han sido <strong>deshabilitados automáticamente en la agenda del cliente</strong> para evitar agendamientos inviables:
+              </p>
+
+              <div className="mt-3 space-y-2 pt-1">
+                {serviciosCriticos.map(({ servicio, asignados }) => (
+                  <div
+                    key={servicio.id}
+                    className="p-3 bg-white rounded-sm border border-rose-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs"
+                  >
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-xs text-slate-900">{servicio.nombre}</span>
+                        <span className="text-[10px] uppercase font-semibold text-rose-700 bg-rose-100 px-2 py-0.5 rounded-sm">
+                          {servicio.categoria}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-rose-800 mt-1 flex items-center gap-1.5 flex-wrap">
+                        <CalendarOff className="h-3 w-3 text-rose-600" />
+                        <span>
+                          Especialista asignada:{" "}
+                          <strong>
+                            {asignados
+                              .map(
+                                (e) =>
+                                  `${e.nombre} (${e.motivoInoperativo || "En reposo"}${
+                                    e.fechaFinInoperatividad ? ` hasta ${e.fechaFinInoperatividad}` : ""
+                                  })`
+                              )
+                              .join(", ")}
+                          </strong>
+                        </span>
+                      </p>
+                    </div>
+
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-sm text-[10px] font-bold uppercase tracking-wider bg-rose-600 text-white self-start sm:self-auto shrink-0 shadow-xs">
+                      <Ban className="h-3 w-3" />
+                      <span>Deshabilitado en Agenda</span>
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 4 Métricas Clave */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -128,7 +248,7 @@ export default function AdminDashboardPage() {
             <div>
               <p className="text-sm font-semibold text-slate-900">Personal y Especialistas</p>
               <p className="text-xs text-slate-500">
-                {empleadosOperativos} de {totalEmpleados} especialistas operativos en turno
+                {empleadosOperativos} de {totalEmpleados} operativos &bull; {personalEnReposo.length} en reposo/permiso
               </p>
             </div>
           </div>
@@ -145,7 +265,7 @@ export default function AdminDashboardPage() {
             <div>
               <p className="text-sm font-semibold text-slate-900">Inventario y Catálogo</p>
               <p className="text-xs text-slate-500">
-                {totalProductos} productos activos en tienda online
+                {totalProductos} productos en catálogo &bull; {stockBajo} en stock crítico
               </p>
             </div>
           </div>

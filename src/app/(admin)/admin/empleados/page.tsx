@@ -13,7 +13,11 @@ import {
   Briefcase,
   Sparkles,
   CheckCircle2,
-  XCircle,
+  CalendarClock,
+  Calendar,
+  CalendarOff,
+  AlertTriangle,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +29,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { formatDate } from "@/lib/utils";
 import type { DBEmployee } from "@/lib/db";
 
 export default function AdminEmpleadosPage() {
@@ -34,17 +39,29 @@ export default function AdminEmpleadosPage() {
   const [modoEdicion, setModoEdicion] = useState(false);
   const [idSeleccionado, setIdSeleccionado] = useState<string | null>(null);
 
-  // Form states
+  // Form states perfil empleado
   const [nombre, setNombre] = useState("");
   const [telefono, setTelefono] = useState("");
   const [cargo, setCargo] = useState("");
   const [especialidad, setEspecialidad] = useState("");
-  const [activo, setActivo] = useState(true);
-  const [motivoInoperativo, setMotivoInoperativo] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [errorForm, setErrorForm] = useState("");
   const [guardando, setGuardando] = useState(false);
+
+  // Modal de disponibilidad / reposo
+  const [empleadoReposo, setEmpleadoReposo] = useState<DBEmployee | null>(null);
+  const [tipoInop, setTipoInop] = useState<
+    "activo" | "reposo" | "vacaciones" | "permiso" | "fechas_especificas" | "indefinido"
+  >("activo");
+  const [fechaInicio, setFechaInicio] = useState("");
+  const [fechaFin, setFechaFin] = useState("");
+  const [motivoReposo, setMotivoReposo] = useState("");
+  const [fechasAusente, setFechasAusente] = useState<string[]>([]);
+  const [nuevaFechaAusente, setNuevaFechaAusente] = useState("");
+  const [guardandoReposo, setGuardandoReposo] = useState(false);
+
+  // Modal eliminación
   const [empleadoAEliminar, setEmpleadoAEliminar] = useState<{ id: string; nombre: string } | null>(null);
   const [eliminando, setEliminando] = useState(false);
 
@@ -74,8 +91,6 @@ export default function AdminEmpleadosPage() {
     setTelefono("");
     setCargo("");
     setEspecialidad("");
-    setActivo(true);
-    setMotivoInoperativo("");
     setUsername("");
     setPassword("");
     setErrorForm("");
@@ -89,33 +104,67 @@ export default function AdminEmpleadosPage() {
     setTelefono(emp.telefono || "");
     setCargo(emp.cargo);
     setEspecialidad(emp.especialidad);
-    setActivo(emp.activo !== false);
-    setMotivoInoperativo(emp.motivoInoperativo || "");
     setUsername("");
     setPassword("");
     setErrorForm("");
     setModalAbierto(true);
   }
 
-  async function toggleEstado(emp: DBEmployee) {
-    const nuevoEstado = !emp.activo;
+  function abrirGestionReposo(emp: DBEmployee) {
+    setEmpleadoReposo(emp);
+    setTipoInop(emp.tipoInoperatividad || (emp.activo === false ? "indefinido" : "activo"));
+    setFechaInicio(emp.fechaInicioInoperatividad || "");
+    setFechaFin(emp.fechaFinInoperatividad || "");
+    setMotivoReposo(emp.motivoInoperativo || "");
+    setFechasAusente(emp.fechasAusente || []);
+    setNuevaFechaAusente("");
+  }
+
+  function agregarFechaAusente() {
+    if (!nuevaFechaAusente) return;
+    if (!fechasAusente.includes(nuevaFechaAusente)) {
+      setFechasAusente([...fechasAusente, nuevaFechaAusente].sort());
+    }
+    setNuevaFechaAusente("");
+  }
+
+  function eliminarFechaAusente(fechaParaEliminar: string) {
+    setFechasAusente(fechasAusente.filter((f) => f !== fechaParaEliminar));
+  }
+
+  async function guardarDisponibilidad() {
+    if (!empleadoReposo) return;
+    setGuardandoReposo(true);
+
     try {
+      const estaActivo = tipoInop === "activo";
+      const payload = {
+        id: empleadoReposo.id,
+        activo: estaActivo,
+        tipoInoperatividad: tipoInop,
+        fechaInicioInoperatividad: tipoInop === "reposo" ? fechaInicio : undefined,
+        fechaFinInoperatividad: tipoInop === "reposo" ? fechaFin : undefined,
+        fechasAusente: tipoInop === "fechas_especificas" ? fechasAusente : [],
+        motivoInoperativo: tipoInop !== "activo" ? motivoReposo : "",
+      };
+
       const res = await fetch("/api/empleados", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: emp.id,
-          activo: nuevoEstado,
-        }),
+        body: JSON.stringify(payload),
       });
+
       const data = await res.json();
-      if (data.success) {
+      if (data.success && data.employee) {
         setEmpleados((prev) =>
-          prev.map((e) => (e.id === emp.id ? { ...e, activo: nuevoEstado } : e))
+          prev.map((e) => (e.id === empleadoReposo.id ? data.employee : e))
         );
+        setEmpleadoReposo(null);
       }
     } catch (err) {
-      console.error("Error al cambiar estado:", err);
+      console.error("Error al guardar disponibilidad:", err);
+    } finally {
+      setGuardandoReposo(false);
     }
   }
 
@@ -135,8 +184,6 @@ export default function AdminEmpleadosPage() {
             telefono,
             cargo,
             especialidad,
-            activo,
-            motivoInoperativo: !activo ? motivoInoperativo : "",
           }),
         });
         const data = await res.json();
@@ -149,21 +196,15 @@ export default function AdminEmpleadosPage() {
           setErrorForm(data.error || "Error al actualizar empleado");
         }
       } else {
-        // Validar credenciales de acceso para el nuevo empleado
-        if (!username.trim()) {
-          setErrorForm("Ingresa un nombre de usuario para el inicio de sesión.");
-          setGuardando(false);
-          return;
-        }
-
+        // Validación de contraseña segura
         const hasLower = /[a-z]/.test(password);
         const hasUpper = /[A-Z]/.test(password);
         const hasNumber = /\d/.test(password);
-        const hasSymbol = /[^a-zA-Z0-9]/.test(password);
+        const hasSpecial = /[^a-zA-Z0-9]/.test(password);
 
-        if (password.length < 6 || !hasLower || !hasUpper || !hasNumber || !hasSymbol) {
+        if (!hasLower || !hasUpper || !hasNumber || !hasSpecial || password.length < 6) {
           setErrorForm(
-            "La contraseña debe tener mínimo 6 caracteres e incluir al menos una minúscula, una mayúscula, un número y un símbolo especial (ej. Xio28$)."
+            "La contraseña debe tener mínimo 6 caracteres, al menos una mayúscula, una minúscula, un número y un símbolo especial."
           );
           setGuardando(false);
           return;
@@ -177,8 +218,7 @@ export default function AdminEmpleadosPage() {
             telefono,
             cargo,
             especialidad,
-            activo,
-            username: username.trim(),
+            username,
             password,
           }),
         });
@@ -215,8 +255,9 @@ export default function AdminEmpleadosPage() {
     }
   }
 
-  const operativosCount = empleados.filter((e) => e.activo !== false).length;
-  const inoperativosCount = empleados.filter((e) => e.activo === false).length;
+  const operativosCount = empleados.filter((e) => e.activo !== false && (!e.tipoInoperatividad || e.tipoInoperatividad === "activo")).length;
+  const enReposoCount = empleados.filter((e) => e.tipoInoperatividad === "reposo" || e.tipoInoperatividad === "vacaciones").length;
+  const inoperativosCount = empleados.filter((e) => e.activo === false || e.tipoInoperatividad === "indefinido").length;
 
   return (
     <div className="space-y-6">
@@ -227,194 +268,206 @@ export default function AdminEmpleadosPage() {
             Personal y Especialistas
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Gestiona al equipo del salón y activa o desactiva su disponibilidad para las citas de los clientes.
+            Gestión de equipo, reposos médicos, vacaciones e inasistencias en el calendario.
           </p>
         </div>
 
         <Button
           onClick={abrirNuevo}
-          className="bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-sm flex items-center gap-1.5 text-xs shadow-sm self-start sm:self-auto"
+          size="sm"
+          className="rounded-sm bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold flex items-center gap-1.5 shadow-xs"
         >
           <Plus className="h-4 w-4" />
-          <span>Añadir Empleado</span>
+          <span>Añadir empleado</span>
         </Button>
       </div>
 
-      {/* Métricas Rápidas con esquinas sutiles (rounded-sm) */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="rounded-sm border border-slate-200 bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)] flex items-center justify-between">
-          <div>
-            <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Total de Empleados</p>
-            <p className="text-2xl font-bold text-slate-900 mt-1">{empleados.length}</p>
+      {/* Resumen de Estado Operativo */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="p-3.5 rounded-sm border border-emerald-200 bg-emerald-50/50 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <UserCheck className="h-4 w-4 text-emerald-600" />
+            <div>
+              <p className="text-xs font-semibold text-emerald-950">Operativos en Agenda</p>
+              <p className="text-[11px] text-emerald-700">Disponibles para citas de clientes</p>
+            </div>
           </div>
-          <div className="w-10 h-10 rounded-sm bg-blue-50 text-blue-700 flex items-center justify-center border border-blue-200">
-            <Users className="h-5 w-5" />
-          </div>
+          <span className="text-lg font-bold text-emerald-700">{operativosCount}</span>
         </div>
 
-        <div className="rounded-sm border border-slate-200 bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)] flex items-center justify-between">
-          <div>
-            <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Operativos en Agenda</p>
-            <p className="text-2xl font-bold text-emerald-700 mt-1">{operativosCount}</p>
+        <div className="p-3.5 rounded-sm border border-amber-200 bg-amber-50/50 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <CalendarOff className="h-4 w-4 text-amber-600" />
+            <div>
+              <p className="text-xs font-semibold text-amber-950">En Reposo / Vacaciones</p>
+              <p className="text-[11px] text-amber-700">Pausados temporalmente por fechas</p>
+            </div>
           </div>
-          <div className="w-10 h-10 rounded-sm bg-emerald-50 text-emerald-700 flex items-center justify-center border border-emerald-200">
-            <UserCheck className="h-5 w-5" />
-          </div>
+          <span className="text-lg font-bold text-amber-700">{enReposoCount}</span>
         </div>
 
-        <div className="rounded-sm border border-slate-200 bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)] flex items-center justify-between">
-          <div>
-            <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Inoperativos / Reposo</p>
-            <p className="text-2xl font-bold text-amber-700 mt-1">{inoperativosCount}</p>
+        <div className="p-3.5 rounded-sm border border-slate-200 bg-white flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <Users className="h-4 w-4 text-slate-500" />
+            <div>
+              <p className="text-xs font-semibold text-slate-900">Total en Equipo</p>
+              <p className="text-[11px] text-slate-500">Especialistas y dirección</p>
+            </div>
           </div>
-          <div className="w-10 h-10 rounded-sm bg-amber-50 text-amber-700 flex items-center justify-center border border-amber-200">
-            <UserX className="h-5 w-5" />
-          </div>
+          <span className="text-lg font-bold text-slate-800">{empleados.length}</span>
         </div>
       </div>
 
-      {/* Directorio de Empleados */}
-      <div className="rounded-sm border border-slate-200 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)] overflow-hidden">
-        <div className="p-4 border-b border-slate-200">
-          <h2 className="text-sm font-bold text-slate-900">Directorio del Personal</h2>
+      {/* Listado de Empleados */}
+      <div className="rounded-sm border border-slate-200 bg-white overflow-hidden shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+        <div className="p-4 border-b border-slate-200 bg-slate-50/50 flex items-center justify-between">
+          <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+            Equipo de Trabajo ({empleados.length})
+          </h2>
+          <span className="text-[11px] text-slate-500">
+            Haz clic en <strong>Disponibilidad / Reposo</strong> para programar permisos o inasistencias
+          </span>
         </div>
 
         {cargando ? (
-          <div className="p-8 text-center text-xs text-slate-500">Cargando equipo...</div>
+          <div className="p-8 text-center text-xs text-slate-500">
+            Cargando equipo de colaboradores...
+          </div>
         ) : empleados.length === 0 ? (
           <div className="p-8 text-center text-xs text-slate-500">
-            No hay empleados registrados. Haz clic en &quot;Añadir Empleado&quot; para registrar uno.
+            No hay empleados registrados.
           </div>
         ) : (
           <div className="divide-y divide-slate-100">
-            {empleados.map((emp) => (
-              <div
-                key={emp.id}
-                className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 hover:bg-slate-50/80 transition-colors"
-              >
-                {/* Foto y Datos del Empleado */}
-                <div className="flex items-center gap-3.5">
-                  <div className="relative h-11 w-11 rounded-sm overflow-hidden bg-slate-100 border border-slate-200 shrink-0">
-                    {emp.avatarUrl ? (
-                      <Image src={emp.avatarUrl} alt={emp.nombre} fill className="object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center font-bold text-slate-700 text-sm">
-                        {emp.nombre.charAt(0)}
-                      </div>
-                    )}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-semibold text-sm text-slate-900">{emp.nombre}</h3>
-                      {emp.nombre.toLowerCase().includes("germán") || emp.cargo.toLowerCase().includes("gerente") || emp.serviciosIds.length === 0 ? (
-                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600">
-                          <span className="w-2 h-2 rounded-full bg-slate-400 shrink-0" />
-                          Rol Gerencial (No Agendable)
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold">
-                          <span
-                            className={`w-2 h-2 rounded-full shrink-0 ${
-                              emp.activo !== false ? "bg-emerald-500" : "bg-rose-500"
-                            }`}
-                          />
-                          <span className={emp.activo !== false ? "text-emerald-700" : "text-rose-700"}>
-                            {emp.activo !== false ? "Operativo en Agenda" : "Inoperativo"}
-                          </span>
-                        </span>
-                      )}
+            {empleados.map((emp) => {
+              const esAdminOgerente =
+                emp.nombre.toLowerCase().includes("germán") ||
+                emp.cargo.toLowerCase().includes("gerente") ||
+                emp.serviciosIds.length === 0;
+
+              return (
+                <div
+                  key={emp.id}
+                  className="p-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between hover:bg-slate-50/50 transition-colors"
+                >
+                  {/* Foto y Datos del Especialista */}
+                  <div className="flex items-start sm:items-center gap-3 min-w-0">
+                    <div className="relative h-12 w-12 rounded-full overflow-hidden bg-slate-100 border border-slate-200 shrink-0">
+                      <Image
+                        src={emp.avatarUrl || "/images/fundadora_xioilin_guzman.webp"}
+                        alt={emp.nombre}
+                        fill
+                        unoptimized={true}
+                        className="object-cover"
+                      />
                     </div>
-                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500 mt-0.5">
-                      <span className="flex items-center gap-1 text-slate-700 font-medium">
+
+                    <div className="min-w-0 space-y-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="font-bold text-sm text-slate-900 truncate">{emp.nombre}</p>
+
+                        {/* Status Badge de Disponibilidad / Reposo */}
+                        {esAdminOgerente ? (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-sm text-[10px] font-semibold uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200">
+                            Dirección General
+                          </span>
+                        ) : emp.tipoInoperatividad === "reposo" || emp.tipoInoperatividad === "vacaciones" ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-sm text-[10px] font-bold uppercase tracking-wider bg-amber-50 text-amber-800 border border-amber-300">
+                            <CalendarOff className="h-2.5 w-2.5" />
+                            <span>
+                              En Reposo {emp.fechaFinInoperatividad ? `(hasta ${emp.fechaFinInoperatividad})` : ""}
+                            </span>
+                          </span>
+                        ) : emp.tipoInoperatividad === "fechas_especificas" && emp.fechasAusente && emp.fechasAusente.length > 0 ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-sm text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200">
+                            <Calendar className="h-2.5 w-2.5" />
+                            <span>Ausente en {emp.fechasAusente.length} fecha(s)</span>
+                          </span>
+                        ) : emp.activo === false ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-sm text-[10px] font-bold uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200">
+                            <UserX className="h-2.5 w-2.5" />
+                            <span>Inoperativo</span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-sm text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                            <span>Operativo (Disponible)</span>
+                          </span>
+                        )}
+                      </div>
+
+                      <p className="text-xs font-medium text-slate-600 flex items-center gap-1.5">
                         <Briefcase className="h-3 w-3 text-slate-400" />
                         <span>{emp.cargo}</span>
-                      </span>
-                      {emp.especialidad && (
-                        <span className="flex items-center gap-1">
-                          <Sparkles className="h-3 w-3 text-amber-500" />
-                          <span>{emp.especialidad}</span>
-                        </span>
+                        {emp.especialidad && (
+                          <span className="text-slate-400 text-[11px]">&bull; {emp.especialidad}</span>
+                        )}
+                      </p>
+
+                      {emp.motivoInoperativo && (emp.tipoInoperatividad === "reposo" || emp.tipoInoperatividad === "vacaciones" || emp.activo === false) && (
+                        <p className="text-[11px] text-amber-800 bg-amber-50/60 px-2 py-0.5 rounded-sm border border-amber-200 inline-block">
+                          Motivo: <strong>{emp.motivoInoperativo}</strong>
+                          {emp.fechaInicioInoperatividad && emp.fechaFinInoperatividad && (
+                            <span className="ml-1 text-amber-900">
+                              ({emp.fechaInicioInoperatividad} al {emp.fechaFinInoperatividad})
+                            </span>
+                          )}
+                        </p>
                       )}
-                      {emp.telefono && (
-                        <span className="flex items-center gap-1">
-                          <Phone className="h-3 w-3 text-slate-400" />
-                          <span>{emp.telefono}</span>
-                        </span>
+
+                      {emp.fechasAusente && emp.fechasAusente.length > 0 && emp.tipoInoperatividad === "fechas_especificas" && (
+                        <p className="text-[11px] text-blue-800 bg-blue-50/60 px-2 py-0.5 rounded-sm border border-blue-200 inline-block">
+                          Fechas ausente: <strong>{emp.fechasAusente.join(", ")}</strong>
+                        </p>
                       )}
                     </div>
-                    {emp.activo === false && emp.motivoInoperativo && (
-                      <p className="text-xs text-amber-700 bg-amber-50 px-2 py-0.5 rounded-sm border border-amber-200 mt-1.5 w-fit">
-                        Motivo: {emp.motivoInoperativo}
-                      </p>
-                    )}
                   </div>
-                </div>
 
-                {/* Acciones y Toggle */}
-                <div className="flex items-center gap-2 self-end sm:self-auto">
-                  {emp.nombre.toLowerCase().includes("germán") || emp.cargo.toLowerCase().includes("gerente") || emp.serviciosIds.length === 0 ? (
-                    <span className="text-xs text-slate-400 font-medium italic">
-                      Administración General
-                    </span>
-                  ) : (
+                  {/* Acciones Rediseñadas */}
+                  <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+                    {!esAdminOgerente && (
+                      <button
+                        type="button"
+                        onClick={() => abrirGestionReposo(emp)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-xs font-semibold border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 transition-colors cursor-pointer shadow-xs"
+                        title="Gestionar reposo médico, vacaciones o fechas de inasistencia"
+                      >
+                        <CalendarClock className="h-3.5 w-3.5 text-slate-600" />
+                        <span>Disponibilidad / Reposo</span>
+                      </button>
+                    )}
+
                     <button
                       type="button"
-                      onClick={() => toggleEstado(emp)}
-                      className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-sm text-xs font-semibold border transition-colors cursor-pointer ${
-                        emp.activo !== false
-                          ? "text-amber-700 bg-amber-50 hover:bg-amber-100 border-amber-200"
-                          : "text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border-emerald-200"
-                      }`}
-                      title={
-                        emp.activo !== false
-                          ? "Hacer clic para marcar como Inoperativo (ocultar de la agenda del cliente)"
-                          : "Hacer clic para activar y habilitar en la agenda del cliente"
-                      }
+                      onClick={() => abrirEditar(emp)}
+                      className="p-1.5 rounded-sm text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 transition-colors cursor-pointer"
+                      title="Editar información personal"
                     >
-                      {emp.activo !== false ? (
-                        <>
-                          <XCircle className="h-3 w-3 text-amber-600" />
-                          <span>Desactivar</span>
-                        </>
-                      ) : (
-                        <>
-                          <CheckCircle2 className="h-3 w-3 text-emerald-600" />
-                          <span>Activar en Agenda</span>
-                        </>
-                      )}
+                      <Pencil className="h-3.5 w-3.5" />
                     </button>
-                  )}
 
-                  <button
-                    type="button"
-                    onClick={() => abrirEditar(emp)}
-                    className="p-1.5 rounded text-slate-600 hover:bg-slate-100 border border-slate-200 transition-colors cursor-pointer"
-                    title="Editar información"
-                  >
-                    <Pencil className="h-3.5 w-3.5" />
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setEmpleadoAEliminar({ id: emp.id, nombre: emp.nombre })}
-                    className="p-1.5 rounded text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-colors cursor-pointer"
-                    title="Eliminar empleado"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
+                    <button
+                      type="button"
+                      onClick={() => setEmpleadoAEliminar({ id: emp.id, nombre: emp.nombre })}
+                      className="p-1.5 rounded-sm text-rose-600 hover:text-rose-900 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-colors cursor-pointer"
+                      title="Eliminar empleado"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
 
-      {/* Modal Añadir / Editar Empleado (rounded-sm y max-h-[85vh]) */}
+      {/* Modal 1: Añadir / Editar Perfil de Empleado (SIN ESTADO DE AGENDA como se solicitó) */}
       <Dialog open={modalAbierto} onOpenChange={setModalAbierto}>
-        <DialogContent className="max-w-md rounded-sm max-h-[85vh] overflow-y-auto p-5 sm:p-6 border border-slate-200">
+        <DialogContent className="max-w-md rounded-sm max-h-[85vh] overflow-y-auto p-5 sm:p-6 border border-slate-200 font-sans">
           <DialogHeader className="pb-2 border-b border-slate-200">
             <DialogTitle className="text-base font-bold text-slate-900">
-              {modoEdicion ? "Editar empleado" : "Registrar nuevo empleado"}
+              {modoEdicion ? "Editar información de empleado" : "Registrar nuevo empleado"}
             </DialogTitle>
           </DialogHeader>
 
@@ -546,52 +599,20 @@ export default function AdminEmpleadosPage() {
               />
             </div>
 
-            <div className="space-y-2 pt-2 border-t border-slate-200">
-              <Label className="text-xs font-semibold text-slate-700">Estado en Agenda</Label>
-              <div className="flex items-center gap-4">
-                <label className="flex items-center gap-1.5 cursor-pointer text-xs font-medium text-slate-700">
-                  <input
-                    type="radio"
-                    name="estadoOperativo"
-                    checked={activo === true}
-                    onChange={() => setActivo(true)}
-                    className="accent-slate-900"
-                  />
-                  <span>Operativo (Disponible)</span>
-                </label>
-                <label className="flex items-center gap-1.5 cursor-pointer text-xs font-medium text-slate-700">
-                  <input
-                    type="radio"
-                    name="estadoOperativo"
-                    checked={activo === false}
-                    onChange={() => setActivo(false)}
-                    className="accent-slate-900"
-                  />
-                  <span>Inoperativo (Reposo / Ausente)</span>
-                </label>
-              </div>
-
-              {!activo && (
-                <div className="pt-2">
-                  <Label htmlFor="motivo" className="text-xs font-semibold text-amber-800">
-                    Motivo de inoperatividad (opcional)
-                  </Label>
-                  <Input
-                    id="motivo"
-                    value={motivoInoperativo}
-                    onChange={(e) => setMotivoInoperativo(e.target.value)}
-                    placeholder="Ej. Reposo médico, vacaciones"
-                    className="mt-1 rounded-sm text-xs"
-                  />
-                </div>
-              )}
-            </div>
-
             <DialogFooter className="pt-3 border-t border-slate-200 flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => setModalAbierto(false)} className="rounded-sm text-xs">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setModalAbierto(false)}
+                className="rounded-sm text-xs font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-100 border-slate-200"
+              >
                 Cancelar
               </Button>
-              <Button type="submit" disabled={guardando} className="bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-sm text-xs shadow-sm">
+              <Button
+                type="submit"
+                disabled={guardando}
+                className="bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-sm text-xs shadow-xs"
+              >
                 {guardando ? "Guardando..." : modoEdicion ? "Guardar cambios" : "Registrar"}
               </Button>
             </DialogFooter>
@@ -599,7 +620,225 @@ export default function AdminEmpleadosPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Modal Personalizado de Confirmación para Eliminar Empleado (sin alert/confirm del navegador) */}
+      {/* Modal 2: Gestión Dedicada de Disponibilidad, Reposo e Inasistencias en Calendario */}
+      {empleadoReposo && (
+        <Dialog open={!!empleadoReposo} onOpenChange={(open) => !open && setEmpleadoReposo(null)}>
+          <DialogContent className="max-w-lg rounded-sm max-h-[85vh] overflow-y-auto p-5 sm:p-6 border border-slate-200 font-sans">
+            <DialogHeader className="pb-3 border-b border-slate-200">
+              <DialogTitle className="text-base font-bold text-slate-900 flex items-center gap-2">
+                <CalendarClock className="h-5 w-5 text-slate-700" />
+                <span>Disponibilidad y Reposo: {empleadoReposo.nombre}</span>
+              </DialogTitle>
+              <p className="text-xs text-slate-500 mt-1">
+                Especifica si el especialista se encuentra activo, en reposo médico por un rango de tiempo, o si no asistirá en fechas específicas del calendario.
+              </p>
+            </DialogHeader>
+
+            <div className="space-y-4 py-3 text-xs">
+              {/* Opción 1: Operativo */}
+              <label className={`p-3 rounded-sm border flex items-start gap-3 cursor-pointer transition-all ${
+                tipoInop === "activo"
+                  ? "border-emerald-500 bg-emerald-50/40 ring-1 ring-emerald-500"
+                  : "border-slate-200 hover:bg-slate-50"
+              }`}>
+                <input
+                  type="radio"
+                  name="tipoDisponibilidad"
+                  checked={tipoInop === "activo"}
+                  onChange={() => setTipoInop("activo")}
+                  className="mt-0.5 accent-emerald-600"
+                />
+                <div>
+                  <p className="font-bold text-slate-900">Operativo (Disponible para todas las citas)</p>
+                  <p className="text-slate-500 text-[11px] mt-0.5">
+                    El especialista atiende con normalidad y los clientes pueden agendarlo en la página.
+                  </p>
+                </div>
+              </label>
+
+              {/* Opción 2: Reposo médico / vacaciones / permiso por rango de fechas */}
+              <div className={`p-3 rounded-sm border space-y-3 transition-all ${
+                tipoInop === "reposo"
+                  ? "border-amber-500 bg-amber-50/40 ring-1 ring-amber-500"
+                  : "border-slate-200"
+              }`}>
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="tipoDisponibilidad"
+                    checked={tipoInop === "reposo"}
+                    onChange={() => setTipoInop("reposo")}
+                    className="mt-0.5 accent-amber-600"
+                  />
+                  <div>
+                    <p className="font-bold text-slate-900">Poner en reposo médico, vacaciones o permiso temporal</p>
+                    <p className="text-slate-500 text-[11px] mt-0.5">
+                      Define desde qué fecha hasta qué fecha no asistirá. La agenda online bloqueará su selección durante ese lapso.
+                    </p>
+                  </div>
+                </label>
+
+                {tipoInop === "reposo" && (
+                  <div className="pl-6 pt-2 space-y-3 border-t border-amber-200">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <Label htmlFor="repInicio" className="text-[11px] font-semibold text-slate-700">
+                          Fecha inicio de reposo *
+                        </Label>
+                        <Input
+                          id="repInicio"
+                          type="date"
+                          value={fechaInicio}
+                          onChange={(e) => setFechaInicio(e.target.value)}
+                          className="rounded-sm text-xs bg-white h-8"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label htmlFor="repFin" className="text-[11px] font-semibold text-slate-700">
+                          Fecha fin de reposo *
+                        </Label>
+                        <Input
+                          id="repFin"
+                          type="date"
+                          value={fechaFin}
+                          onChange={(e) => setFechaFin(e.target.value)}
+                          className="rounded-sm text-xs bg-white h-8"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label htmlFor="repMotivo" className="text-[11px] font-semibold text-slate-700">
+                        Motivo del reposo / permiso *
+                      </Label>
+                      <Input
+                        id="repMotivo"
+                        value={motivoReposo}
+                        onChange={(e) => setMotivoReposo(e.target.value)}
+                        placeholder="Ej. Reposo médico por 5 días, Vacaciones anuales, Permiso personal"
+                        className="rounded-sm text-xs bg-white h-8"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Opción 3: Fechas específicas de inasistencia en el calendario */}
+              <div className={`p-3 rounded-sm border space-y-3 transition-all ${
+                tipoInop === "fechas_especificas"
+                  ? "border-blue-500 bg-blue-50/40 ring-1 ring-blue-500"
+                  : "border-slate-200"
+              }`}>
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="tipoDisponibilidad"
+                    checked={tipoInop === "fechas_especificas"}
+                    onChange={() => setTipoInop("fechas_especificas")}
+                    className="mt-0.5 accent-blue-600"
+                  />
+                  <div>
+                    <p className="font-bold text-slate-900">Inasistencia en fechas específicas del calendario</p>
+                    <p className="text-slate-500 text-[11px] mt-0.5">
+                      Para días puntuales en que el especialista no trabajará (ej. citas médicas, trámites, descansos acordados).
+                    </p>
+                  </div>
+                </label>
+
+                {tipoInop === "fechas_especificas" && (
+                  <div className="pl-6 pt-2 space-y-3 border-t border-blue-200">
+                    <div className="space-y-1">
+                      <Label className="text-[11px] font-semibold text-slate-700">
+                        Seleccionar fecha de inasistencia:
+                      </Label>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="date"
+                          value={nuevaFechaAusente}
+                          onChange={(e) => setNuevaFechaAusente(e.target.value)}
+                          className="rounded-sm text-xs bg-white h-8 flex-1"
+                        />
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={agregarFechaAusente}
+                          disabled={!nuevaFechaAusente}
+                          className="rounded-sm text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white h-8 px-3"
+                        >
+                          Añadir fecha
+                        </Button>
+                      </div>
+                    </div>
+
+                    {fechasAusente.length > 0 ? (
+                      <div className="space-y-1.5">
+                        <p className="text-[11px] font-semibold text-slate-700">
+                          Días en que no asistirá ({fechasAusente.length}):
+                        </p>
+                        <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto p-1 bg-white rounded border border-slate-200">
+                          {fechasAusente.map((f) => (
+                            <span
+                              key={f}
+                              className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-blue-50 text-blue-800 border border-blue-200 text-xs font-semibold"
+                            >
+                              <span>{f}</span>
+                              <button
+                                type="button"
+                                onClick={() => eliminarFechaAusente(f)}
+                                className="text-blue-500 hover:text-rose-600 transition-colors"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-[11px] text-slate-400 italic">
+                        No has añadido ninguna fecha aún.
+                      </p>
+                    )}
+
+                    <div className="space-y-1">
+                      <Label htmlFor="motivoPuntual" className="text-[11px] font-semibold text-slate-700">
+                        Motivo de la inasistencia (opcional):
+                      </Label>
+                      <Input
+                        id="motivoPuntual"
+                        value={motivoReposo}
+                        onChange={(e) => setMotivoReposo(e.target.value)}
+                        placeholder="Ej. Cita odontológica, trámite personal"
+                        className="rounded-sm text-xs bg-white h-8"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <DialogFooter className="pt-3 border-t border-slate-200 flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setEmpleadoReposo(null)}
+                className="rounded-sm text-xs font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-100 border-slate-200"
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="button"
+                onClick={guardarDisponibilidad}
+                disabled={guardandoReposo}
+                className="bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-sm text-xs shadow-xs"
+              >
+                {guardandoReposo ? "Guardando..." : "Guardar disponibilidad"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Modal 3: Confirmación para Eliminar Empleado */}
       <Dialog open={!!empleadoAEliminar} onOpenChange={(open) => !open && setEmpleadoAEliminar(null)}>
         <DialogContent className="max-w-sm rounded-sm p-5 border border-slate-200 font-sans">
           <DialogHeader className="pb-2 border-b border-slate-200">

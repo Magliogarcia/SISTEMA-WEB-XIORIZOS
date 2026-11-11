@@ -36,6 +36,22 @@ export function BookingCalendar() {
   );
   const [hora, setHora] = useState<string | null>(storedHora);
   const [citasExistentes, setCitasExistentes] = useState<DBAppointment[]>([]);
+  const [empleadoData, setEmpleadoData] = useState<any | null>(null);
+
+  useEffect(() => {
+    if (!profesional) return;
+    fetch("/api/empleados")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.employees)) {
+          const emp = data.employees.find(
+            (e: any) => e.id === profesional.id || e.nombre === profesional.nombre
+          );
+          if (emp) setEmpleadoData(emp);
+        }
+      })
+      .catch(() => {});
+  }, [profesional]);
 
   // Cargar citas existentes del sistema para validar disponibilidad en tiempo real
   const cargarCitas = useCallback(async () => {
@@ -68,6 +84,28 @@ export function BookingCalendar() {
     // 0 = Domingo, 1 = Lunes (Cerrado)
     const dayOfWeek = target.getDay();
     if (dayOfWeek === 0 || dayOfWeek === 1) return true;
+
+    // Si el especialista seleccionado tiene reposo o inasistencia específica en este día
+    if (empleadoData) {
+      const year = target.getFullYear();
+      const month = String(target.getMonth() + 1).padStart(2, "0");
+      const day = String(target.getDate()).padStart(2, "0");
+      const dateStr = `${year}-${month}-${day}`;
+
+      if (Array.isArray(empleadoData.fechasAusente) && empleadoData.fechasAusente.includes(dateStr)) {
+        return true;
+      }
+
+      if (
+        (empleadoData.tipoInoperatividad === "reposo" || empleadoData.tipoInoperatividad === "vacaciones") &&
+        empleadoData.fechaInicioInoperatividad &&
+        empleadoData.fechaFinInoperatividad
+      ) {
+        if (dateStr >= empleadoData.fechaInicioInoperatividad && dateStr <= empleadoData.fechaFinInoperatividad) {
+          return true;
+        }
+      }
+    }
 
     return false;
   }
