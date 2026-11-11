@@ -6,13 +6,13 @@ import { mockHairTones } from "@/lib/mock-data";
 import { useSimulatorStore } from "@/store/simulator-store";
 
 export function ColorPaletteSelector() {
-  const { tonoSeleccionado, setTono, intensidad, setIntensidad } = useSimulatorStore();
+  const { tonoSeleccionado, setTono } = useSimulatorStore();
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div>
         <p className="text-xs text-muted-foreground mb-3">
-          Tonos disponibles formulados para rizos:
+          Selecciona el tono botánico que deseas probar:
         </p>
         <div className="flex flex-col gap-2.5">
           {mockHairTones.map((tono) => {
@@ -47,28 +47,6 @@ export function ColorPaletteSelector() {
               </button>
             );
           })}
-        </div>
-      </div>
-
-      <div className="pt-2 border-t border-border">
-        <div className="mb-2 flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-primary">Intensidad del matiz</h3>
-          <span className="text-xs font-bold text-secondary bg-secondary/10 px-2 py-0.5 rounded-full">
-            {intensidad}%
-          </span>
-        </div>
-        <input
-          type="range"
-          min={10}
-          max={100}
-          value={intensidad}
-          onChange={(e) => setIntensidad(Number(e.target.value))}
-          className="w-full accent-primary cursor-pointer"
-        />
-        <div className="flex justify-between text-[10px] text-muted-foreground mt-1">
-          <span>Sutil (10%)</span>
-          <span>Medio (50%)</span>
-          <span>Intenso (100%)</span>
         </div>
       </div>
     </div>

@@ -59,7 +59,7 @@ export function DualCanvas() {
             <p className="text-xs text-muted-foreground max-w-xs mt-1.5 leading-relaxed">
               {tonoSeleccionado
                 ? `Tono "${tonoSeleccionado.nombre}" seleccionado. Haz clic en "Aplicar color" para que la IA procese la imagen.`
-                : "Elige uno de los 3 tonos en el panel derecho y haz clic en 'Aplicar color' para procesar tu cabello con IA."}
+                : "Elige uno de los tonos en el panel derecho y haz clic en 'Aplicar color' para procesar tu cabello con IA."}
             </p>
           </div>
         )}
@@ -74,7 +74,7 @@ export function DualCanvas() {
               La IA está procesando tu imagen...
             </p>
             <p className="text-xs text-muted-foreground max-w-xs mt-1.5 leading-relaxed">
-              Analizando las hebras capilares y aplicando el tono <strong>{tonoSeleccionado?.nombre}</strong> al {intensidad}%.
+              Analizando las hebras capilares y aplicando el tono <strong>{tonoSeleccionado?.nombre}</strong>.
             </p>
           </div>
         )}

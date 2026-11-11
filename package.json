@@ -6,8 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "test:muse": "node --experimental-strip-types scripts/test-muse.ts"
+    "lint": "next lint"
   },
   "dependencies": {
     "@mediapipe/tasks-vision": "^1.2.2",

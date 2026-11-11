@@ -142,9 +142,38 @@ export async function recolorHair(
     let newG = g;
     let newB = b;
 
-    if (tone.includes("rojo")) {
+    if (tone.includes("rubio")) {
+      // Rubio Miel / Dorado: aclara con reflejo dorado brillante sobre el rizo
+      const highlightBoost = Math.pow(lum, 0.65);
+      const tintedR = Math.min(255, targetRgb.r * 0.9 + lum * 90);
+      const tintedG = Math.min(255, targetRgb.g * 0.85 + lum * 75);
+      const tintedB = Math.min(255, targetRgb.b * 0.65 + lum * 35);
+
+      newR = r * (1 - blendAlpha) + (tintedR * highlightBoost + r * 0.2) * blendAlpha;
+      newG = g * (1 - blendAlpha) + (tintedG * highlightBoost + g * 0.2) * blendAlpha;
+      newB = b * (1 - blendAlpha) + (tintedB * highlightBoost + b * 0.15) * blendAlpha;
+    } else if (tone.includes("borgoña") || tone.includes("vino")) {
+      // Borgoña / Vino Tinto: tono profundo ciruela/vino con reflejo rojizo elegante
+      const highlightBoost = Math.pow(lum, 0.8);
+      const tintedR = Math.min(255, targetRgb.r * 1.1 + lum * 90);
+      const tintedG = Math.min(255, targetRgb.g * 0.7 + lum * 20);
+      const tintedB = Math.min(255, targetRgb.b * 1.0 + lum * 45);
+
+      newR = r * (1 - blendAlpha) + (tintedR * highlightBoost) * blendAlpha;
+      newG = g * (1 - blendAlpha) + (tintedG * highlightBoost) * blendAlpha;
+      newB = b * (1 - blendAlpha) + (tintedB * highlightBoost) * blendAlpha;
+    } else if (tone.includes("chocolate")) {
+      // Chocolate Profundo: castaño oscuro sedoso con matiz café intenso
+      const highlightBoost = Math.pow(lum, 0.9);
+      const tintedR = Math.min(255, targetRgb.r * 0.8 + lum * 80);
+      const tintedG = Math.min(255, targetRgb.g * 0.75 + lum * 55);
+      const tintedB = Math.min(255, targetRgb.b * 0.7 + lum * 40);
+
+      newR = r * (1 - blendAlpha) + (tintedR * highlightBoost) * blendAlpha;
+      newG = g * (1 - blendAlpha) + (tintedG * highlightBoost) * blendAlpha;
+      newB = b * (1 - blendAlpha) + (tintedB * highlightBoost) * blendAlpha;
+    } else if (tone.includes("rojo") || tone.includes("cobrizo")) {
       // Rojo / Cobrizo botánico para rizos:
-      // Conservar luces y sombras con reflejo cobrizo cálido
       const highlightBoost = Math.pow(lum, 0.7);
       const tintedR = Math.min(255, targetRgb.r * 0.75 + lum * 140);
       const tintedG = Math.min(255, targetRgb.g * 0.6 + lum * 50);
