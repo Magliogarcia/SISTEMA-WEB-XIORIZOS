@@ -1,0 +1,119 @@
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  username  String   @unique
+  nombre    String
+  email     String   @unique
+  password  String
+  rol       String   @default("cliente") // "admin", "cliente", "empleado", "estilista"
+  telefono  String?
+  creadoEn  DateTime @default(now())
+
+  @@map("users")
+}
+
+model Employee {
+  id                        String   @id @default(uuid())
+  nombre                    String
+  telefono                  String
+  cargo                     String
+  especialidad              String
+  avatarUrl                 String?
+  serviciosIds              String[] @default([])
+  activo                    Boolean  @default(true)
+  tipoInoperatividad        String?  // "activo", "reposo", "vacaciones", "permiso", etc.
+  motivoInoperativo         String?
+  fechaInicioInoperatividad String?
+  fechaFinInoperatividad    String?
+  fechasAusente             String[] @default([])
+  creadoEn                  DateTime @default(now())
+
+  @@map("employees")
+}
+
+model Product {
+  id           String      @id
+  nombre       String
+  descripcion  String?
+  precio       Float
+  costo        Float?
+  imagenUrl    String?
+  categoria    String
+  marca        String?     @default("Xiorizos Care")
+  stock        Int         @default(0)
+  rating       Float       @default(5.0)
+  resenasCount Int         @default(0) @map("reseñasCount")
+  orderItems   OrderItem[]
+
+  @@map("products")
+}
+
+model Appointment {
+  id                      String   @id
+  clienteNombre           String
+  clienteTelefono         String
+  servicioNombre          String
+  servicioPrecio          Float
+  montoReserva            Float    // Abono 20%
+  montoRestante           Float    // Salón 80%
+  metodoPago              String   @default("pagomovil") // "pagomovil", "efectivo"
+  pagoMovilBanco          String?
+  pagoMovilReferencia     String?
+  pagoMovilTelefonoEmisor String?
+  notificadoWhatsApp      Boolean  @default(false)
+  duracionMin             Int?
+  profesionalNombre       String
+  fecha                   String   // YYYY-MM-DD
+  hora                    String   // HH:mm
+  notas                   String?
+  motivoCancelacion       String?
+  estado                  String   @default("pendiente") // "pendiente", "confirmada", "completada", "cancelada"
+  creadoEn                DateTime @default(now())
+
+  @@map("appointments")
+}
+
+model Order {
+  id                      String      @id
+  usuarioId               String?
+  clienteNombre           String
+  clienteTelefono         String
+  clienteEmail            String?
+  direccion               String?
+  total                   Float
+  metodoPago              String      @default("pagomovil") // "pagomovil", "efectivo"
+  pagoMovilBanco          String?
+  pagoMovilReferencia     String?
+  pagoMovilTelefonoEmisor String?
+  estado                  String      @default("pendiente_verificacion") // "pendiente_verificacion", "verificado", "entregado", "cancelado"
+  motivoCancelacion       String?
+  notificadoWhatsApp      Boolean     @default(false)
+  creadoEn                DateTime    @default(now())
+  items                   OrderItem[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id        String   @id @default(uuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  nombre    String
+  precio    Float
+  cantidad  Int      @default(1)
+  imagenUrl String?
+
+  @@map("order_items")
+}
+

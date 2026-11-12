@@ -442,6 +442,256 @@
       "motivoCancelacion": "Viaje de trabajo fuera del estado.",
       "estado": "cancelada",
       "creadoEn": "2026-11-08T11:00:00.000Z"
+    },
+    {
+      "id": "cita-1794361001019",
+      "clienteNombre": "Paola Villegas",
+      "clienteTelefono": "0414 772 3344",
+      "servicioNombre": "TRATAMIENTO RENACER CAPILAR",
+      "servicioPrecio": 40,
+      "montoReserva": 8,
+      "montoRestante": 32,
+      "metodoPago": "pagomovil",
+      "pagoMovil": {
+        "banco": "Banesco",
+        "referencia": "48201948",
+        "telefonoEmisor": "04147723344"
+      },
+      "duracionMin": 60,
+      "profesionalNombre": "Xioilin Guzmán",
+      "fecha": "2026-11-13T10:00:00.000Z",
+      "hora": "10:00",
+      "notas": "Nutrición botánica profunda post-alisado.",
+      "estado": "confirmada",
+      "creadoEn": "2026-11-10T14:00:00.000Z"
+    },
+    {
+      "id": "cita-1794361001020",
+      "clienteNombre": "Rodrigo Morales",
+      "clienteTelefono": "0424 661 2288",
+      "servicioNombre": "CURLY MEN",
+      "servicioPrecio": 25,
+      "montoReserva": 5,
+      "montoRestante": 20,
+      "metodoPago": "efectivo",
+      "duracionMin": 50,
+      "profesionalNombre": "Germán Jácome",
+      "fecha": "2026-11-14T09:30:00.000Z",
+      "hora": "09:30",
+      "notas": "Corte fade bajo y perfilado.",
+      "estado": "confirmada",
+      "creadoEn": "2026-11-10T16:00:00.000Z"
+    },
+    {
+      "id": "cita-1794361001021",
+      "clienteNombre": "Vanessa Chacón",
+      "clienteTelefono": "0412 559 8811",
+      "servicioNombre": "TRATAMIENTO RENACER CAPILAR",
+      "servicioPrecio": 40,
+      "montoReserva": 8,
+      "montoRestante": 32,
+      "metodoPago": "pagomovil",
+      "pagoMovil": {
+        "banco": "Mercantil",
+        "referencia": "91028473",
+        "telefonoEmisor": "04125598811"
+      },
+      "duracionMin": 60,
+      "profesionalNombre": "Axel Alvarado",
+      "fecha": "2026-11-12T14:30:00.000Z",
+      "hora": "14:30",
+      "notas": "Recuperación capilar con ozonoterapia.",
+      "estado": "pendiente",
+      "creadoEn": "2026-11-11T12:00:00.000Z"
+    },
+    {
+      "id": "cita-1794361001022",
+      "clienteNombre": "Mariángel Soto",
+      "clienteTelefono": "0416 331 4400",
+      "servicioNombre": "FULL CURL PREMIUM",
+      "servicioPrecio": 45,
+      "montoReserva": 9,
+      "montoRestante": 36,
+      "metodoPago": "pagomovil",
+      "pagoMovil": {
+        "banco": "Banco de Venezuela (BDV)",
+        "referencia": "33948201",
+        "telefonoEmisor": "04163314400"
+      },
+      "duracionMin": 90,
+      "profesionalNombre": "Xioilin Guzmán",
+      "fecha": "2026-11-10T16:00:00.000Z",
+      "hora": "16:00",
+      "notas": "Corte cascada para volumen en raíz.",
+      "estado": "completada",
+      "creadoEn": "2026-11-08T10:00:00.000Z"
+    },
+    {
+      "id": "cita-1794361001023",
+      "clienteNombre": "Fabiana Rivas",
+      "clienteTelefono": "0414 990 1122",
+      "servicioNombre": "DEFINICIÓN CURL ESTÁNDAR",
+      "servicioPrecio": 35,
+      "montoReserva": 7,
+      "montoRestante": 28,
+      "metodoPago": "efectivo",
+      "duracionMin": 60,
+      "profesionalNombre": "Yolennis Yélamo",
+      "fecha": "2026-11-09T11:30:00.000Z",
+      "hora": "11:30",
+      "notas": "Definición para evento de grado.",
+      "estado": "completada",
+      "creadoEn": "2026-11-07T11:00:00.000Z"
+    },
+    {
+      "id": "cita-1794361001024",
+      "clienteNombre": "Patricia Arismendi",
+      "clienteTelefono": "0424 112 9900",
+      "servicioNombre": "CURLY COLOR",
+      "servicioPrecio": 85,
+      "montoReserva": 17,
+      "montoRestante": 68,
+      "metodoPago": "pagomovil",
+      "pagoMovil": {
+        "banco": "Bancamiga",
+        "referencia": "77281903",
+        "telefonoEmisor": "04241129900"
+      },
+      "duracionMin": 180,
+      "profesionalNombre": "Axel Alvarado",
+      "fecha": "2026-11-15T11:00:00.000Z",
+      "hora": "11:00",
+      "notas": "Retoque de raíz y balayage avellana.",
+      "estado": "confirmada",
+      "creadoEn": "2026-11-10T17:00:00.000Z"
+    },
+    {
+      "id": "cita-1794361001025",
+      "clienteNombre": "Adriana Cordero",
+      "clienteTelefono": "0412 884 1029",
+      "servicioNombre": "TRATAMIENTO REFRESH",
+      "servicioPrecio": 30,
+      "montoReserva": 6,
+      "montoRestante": 24,
+      "metodoPago": "pagomovil",
+      "pagoMovil": {
+        "banco": "BBVA Provincial",
+        "referencia": "66190284",
+        "telefonoEmisor": "04128841029"
+      },
+      "duracionMin": 45,
+      "profesionalNombre": "Yolennis Yélamo",
+      "fecha": "2026-11-13T16:30:00.000Z",
+      "hora": "16:30",
+      "notas": "Saneamiento de puntas abiertas.",
+      "estado": "pendiente",
+      "creadoEn": "2026-11-11T13:30:00.000Z"
+    },
+    {
+      "id": "cita-1794361001026",
+      "clienteNombre": "Natalia Benítez",
+      "clienteTelefono": "0416 771 9023",
+      "servicioNombre": "SERVICIO DE UÑAS",
+      "servicioPrecio": 25,
+      "montoReserva": 5,
+      "montoRestante": 20,
+      "metodoPago": "pagomovil",
+      "pagoMovil": {
+        "banco": "Banesco",
+        "referencia": "11049281",
+        "telefonoEmisor": "04167719023"
+      },
+      "duracionMin": 60,
+      "profesionalNombre": "Yakeline Daboin",
+      "fecha": "2026-11-11T14:30:00.000Z",
+      "hora": "14:30",
+      "notas": "Esmaltado semipermanente nude.",
+      "estado": "completada",
+      "creadoEn": "2026-11-09T18:00:00.000Z"
+    },
+    {
+      "id": "cita-1794361001027",
+      "clienteNombre": "Esteban Valera",
+      "clienteTelefono": "0414 229 0184",
+      "servicioNombre": "CURLY BOY",
+      "servicioPrecio": 25,
+      "montoReserva": 5,
+      "montoRestante": 20,
+      "metodoPago": "efectivo",
+      "duracionMin": 45,
+      "profesionalNombre": "Xioilin Guzmán",
+      "fecha": "2026-11-12T15:00:00.000Z",
+      "hora": "15:00",
+      "notas": "Corte a tijera para niño de 6 años.",
+      "estado": "confirmada",
+      "creadoEn": "2026-11-10T18:30:00.000Z"
+    },
+    {
+      "id": "cita-1794361001028",
+      "clienteNombre": "Carolina Hurtado",
+      "clienteTelefono": "0424 338 1902",
+      "servicioNombre": "FULL CURL PREMIUM",
+      "servicioPrecio": 45,
+      "montoReserva": 9,
+      "montoRestante": 36,
+      "metodoPago": "pagomovil",
+      "pagoMovil": {
+        "banco": "Mercantil",
+        "referencia": "55019284",
+        "telefonoEmisor": "04243381902"
+      },
+      "duracionMin": 90,
+      "profesionalNombre": "Xioilin Guzmán",
+      "fecha": "2026-11-14T15:30:00.000Z",
+      "hora": "15:30",
+      "notas": "Diagnóstico de porosidad y corte de rizo 3B.",
+      "estado": "pendiente",
+      "creadoEn": "2026-11-11T14:15:00.000Z"
+    },
+    {
+      "id": "cita-1794361001029",
+      "clienteNombre": "Grecia Albornoz",
+      "clienteTelefono": "0412 443 9012",
+      "servicioNombre": "TRATAMIENTO RENACER CAPILAR",
+      "servicioPrecio": 40,
+      "montoReserva": 8,
+      "montoRestante": 32,
+      "metodoPago": "pagomovil",
+      "pagoMovil": {
+        "banco": "Banco de Venezuela (BDV)",
+        "referencia": "88201948",
+        "telefonoEmisor": "04124439012"
+      },
+      "duracionMin": 60,
+      "profesionalNombre": "Axel Alvarado",
+      "fecha": "2026-11-10T11:00:00.000Z",
+      "hora": "11:00",
+      "notas": "Sesión de mantenimiento mensual.",
+      "estado": "completada",
+      "creadoEn": "2026-11-08T15:20:00.000Z"
+    },
+    {
+      "id": "cita-1794361001030",
+      "clienteNombre": "Julieta Marcano",
+      "clienteTelefono": "0416 119 4029",
+      "servicioNombre": "CURLY COLOR",
+      "servicioPrecio": 85,
+      "montoReserva": 17,
+      "montoRestante": 68,
+      "metodoPago": "pagomovil",
+      "pagoMovil": {
+        "banco": "Banesco",
+        "referencia": "00001234",
+        "telefonoEmisor": "04161194029"
+      },
+      "duracionMin": 180,
+      "profesionalNombre": "Axel Alvarado",
+      "fecha": "2026-11-11T12:00:00.000Z",
+      "hora": "12:00",
+      "notas": "Cliente registró referencia inexistente.",
+      "motivoCancelacion": "Pago no comprobado (datos bancarios erróneos)",
+      "estado": "cancelada",
+      "creadoEn": "2026-11-10T11:00:00.000Z"
     }
   ],
   "products": [
@@ -453,7 +703,7 @@
       "imagenUrl": "/images/mascarilla_nutritiva.webp",
       "categoria": "Tratamientos",
       "marca": "Xiorizos Care",
-      "stock": 7,
+      "stock": 6,
       "rating": 4.9,
       "reseñasCount": 48,
       "costo": 18.7
@@ -551,6 +801,31 @@
     }
   ],
   "orders": [
+    {
+      "id": "ORD-2026-5111",
+      "clienteNombre": "Administrador Xiorizos",
+      "clienteTelefono": "0414 581 2979",
+      "clienteEmail": "admin@xiorizos.com",
+      "direccion": "Los guayos",
+      "items": [
+        {
+          "productId": "p1",
+          "nombre": "Curl Butter Mascarilla",
+          "precio": 34,
+          "cantidad": 1,
+          "imagenUrl": "/images/mascarilla_nutritiva.webp"
+        }
+      ],
+      "total": 34,
+      "metodoPago": "pagomovil",
+      "pagoMovil": {
+        "banco": "Banco de Venezuela (BDV)",
+        "referencia": "65645642",
+        "telefonoEmisor": "04145897233"
+      },
+      "estado": "pendiente_verificacion",
+      "creadoEn": "2026-11-11T23:54:37.311Z"
+    },
     {
       "id": "ORD-2026-1001",
       "clienteNombre": "Valeria Mendoza",
@@ -689,7 +964,7 @@
         "referencia": "11928374",
         "telefonoEmisor": "04125554321"
       },
-      "estado": "pendiente_verificacion",
+      "estado": "entregado",
       "creadoEn": "2026-11-10T22:55:00.000Z"
     },
     {
@@ -1045,6 +1320,346 @@
       "metodoPago": "efectivo",
       "estado": "cancelado",
       "creadoEn": "2026-11-09T09:15:00.000Z"
+    },
+    {
+      "id": "ORD-2026-1019",
+      "clienteNombre": "Mariángel Soto",
+      "clienteTelefono": "0416 331 4400",
+      "clienteEmail": "mariangel.soto@gmail.com",
+      "direccion": "Urb. El Parral, Torre Titanium, Apto 5-A, Valencia",
+      "items": [
+        {
+          "productId": "p1",
+          "nombre": "Curl Butter Mascarilla",
+          "precio": 34,
+          "cantidad": 1,
+          "imagenUrl": "/images/mascarilla_nutritiva.webp"
+        },
+        {
+          "productId": "p4",
+          "nombre": "Gel Definidor Rizos & Ondas",
+          "precio": 22,
+          "cantidad": 1,
+          "imagenUrl": "/images/gel_definidor.webp"
+        }
+      ],
+      "total": 56,
+      "metodoPago": "pagomovil",
+      "pagoMovil": {
+        "banco": "Banesco",
+        "referencia": "98201923",
+        "telefonoEmisor": "04163314400"
+      },
+      "estado": "verificado",
+      "creadoEn": "2026-11-11T18:40:00.000Z"
+    },
+    {
+      "id": "ORD-2026-1020",
+      "clienteNombre": "Rodrigo Morales",
+      "clienteTelefono": "0424 661 2288",
+      "clienteEmail": "rodrigo.m@gmail.com",
+      "direccion": "",
+      "items": [
+        {
+          "productId": "p3",
+          "nombre": "Shampoo Hidratante",
+          "precio": 26,
+          "cantidad": 2,
+          "imagenUrl": "/images/shampoo_hidratante.webp"
+        }
+      ],
+      "total": 52,
+      "metodoPago": "pagomovil",
+      "pagoMovil": {
+        "banco": "Mercantil",
+        "referencia": "44910283",
+        "telefonoEmisor": "04246612288"
+      },
+      "estado": "pendiente_verificacion",
+      "creadoEn": "2026-11-11T19:30:00.000Z"
+    },
+    {
+      "id": "ORD-2026-1021",
+      "clienteNombre": "Vanessa Chacón",
+      "clienteTelefono": "0412 559 8811",
+      "clienteEmail": "vanessa.ch@hotmail.com",
+      "direccion": "Naguanagua, Urb. La Granja, Res. Las Palmeras, Valencia",
+      "items": [
+        {
+          "productId": "p6",
+          "nombre": "Tratamiento Profundo Reparador",
+          "precio": 38,
+          "cantidad": 1,
+          "imagenUrl": "/images/tratamiento_profundo.webp"
+        },
+        {
+          "productId": "p2",
+          "nombre": "Óleo Argán & Cacao",
+          "precio": 28,
+          "cantidad": 1,
+          "imagenUrl": "/images/oleo_capilar.webp"
+        }
+      ],
+      "total": 66,
+      "metodoPago": "pagomovil",
+      "pagoMovil": {
+        "banco": "Banco de Venezuela (BDV)",
+        "referencia": "88201934",
+        "telefonoEmisor": "04125598811"
+      },
+      "estado": "verificado",
+      "creadoEn": "2026-11-10T17:15:00.000Z"
+    },
+    {
+      "id": "ORD-2026-1022",
+      "clienteNombre": "Patricia Arismendi",
+      "clienteTelefono": "0424 112 9900",
+      "clienteEmail": "patricia.a@gmail.com",
+      "direccion": "",
+      "items": [
+        {
+          "productId": "p5",
+          "nombre": "Crema de Peinar Etniker",
+          "precio": 25,
+          "cantidad": 2,
+          "imagenUrl": "/images/crema_de_peinar_etniker.webp"
+        }
+      ],
+      "total": 50,
+      "metodoPago": "efectivo",
+      "estado": "entregado",
+      "creadoEn": "2026-11-09T16:00:00.000Z"
+    },
+    {
+      "id": "ORD-2026-1023",
+      "clienteNombre": "Adriana Cordero",
+      "clienteTelefono": "0412 884 1029",
+      "clienteEmail": "adriana.cordero@gmail.com",
+      "direccion": "Urb. Guaparo, Calle Los Naranjos, Qta. Flor, Valencia",
+      "items": [
+        {
+          "productId": "p7",
+          "nombre": "Crema de Peinar Ibella",
+          "precio": 24,
+          "cantidad": 1,
+          "imagenUrl": "/images/crema_de_peinar_ibella.webp"
+        },
+        {
+          "productId": "p8",
+          "nombre": "Gel Capilar Hidratante",
+          "precio": 19,
+          "cantidad": 1,
+          "imagenUrl": "/images/gel_capilar.webp"
+        }
+      ],
+      "total": 43,
+      "metodoPago": "pagomovil",
+      "pagoMovil": {
+        "banco": "BBVA Provincial",
+        "referencia": "55190284",
+        "telefonoEmisor": "04128841029"
+      },
+      "estado": "pendiente_verificacion",
+      "creadoEn": "2026-11-11T20:00:00.000Z"
+    },
+    {
+      "id": "ORD-2026-1024",
+      "clienteNombre": "Paola Villegas",
+      "clienteTelefono": "0414 772 3344",
+      "clienteEmail": "paola.villegas@gmail.com",
+      "direccion": "Urb. Tazajal, Conjunto Residencial Manantial, Valencia",
+      "items": [
+        {
+          "productId": "p1",
+          "nombre": "Curl Butter Mascarilla",
+          "precio": 34,
+          "cantidad": 2,
+          "imagenUrl": "/images/mascarilla_nutritiva.webp"
+        },
+        {
+          "productId": "p2",
+          "nombre": "Óleo Argán & Cacao",
+          "precio": 28,
+          "cantidad": 1,
+          "imagenUrl": "/images/oleo_capilar.webp"
+        }
+      ],
+      "total": 96,
+      "metodoPago": "pagomovil",
+      "pagoMovil": {
+        "banco": "Bancamiga",
+        "referencia": "11920384",
+        "telefonoEmisor": "04147723344"
+      },
+      "estado": "entregado",
+      "creadoEn": "2026-11-08T15:00:00.000Z"
+    },
+    {
+      "id": "ORD-2026-1025",
+      "clienteNombre": "Grecia Albornoz",
+      "clienteTelefono": "0412 443 9012",
+      "clienteEmail": "grecia.albornoz@gmail.com",
+      "direccion": "",
+      "items": [
+        {
+          "productId": "p6",
+          "nombre": "Tratamiento Profundo Reparador",
+          "precio": 38,
+          "cantidad": 2,
+          "imagenUrl": "/images/tratamiento_profundo.webp"
+        }
+      ],
+      "total": 76,
+      "metodoPago": "pagomovil",
+      "pagoMovil": {
+        "banco": "Banesco",
+        "referencia": "33019284",
+        "telefonoEmisor": "04124439012"
+      },
+      "estado": "verificado",
+      "creadoEn": "2026-11-07T11:20:00.000Z"
+    },
+    {
+      "id": "ORD-2026-1026",
+      "clienteNombre": "Julieta Marcano",
+      "clienteTelefono": "0416 119 4029",
+      "clienteEmail": "julieta.marcano@yahoo.es",
+      "direccion": "",
+      "items": [
+        {
+          "productId": "p4",
+          "nombre": "Gel Definidor Rizos & Ondas",
+          "precio": 22,
+          "cantidad": 1,
+          "imagenUrl": "/images/gel_definidor.webp"
+        }
+      ],
+      "total": 22,
+      "metodoPago": "pagomovil",
+      "pagoMovil": {
+        "banco": "Mercantil",
+        "referencia": "00009988",
+        "telefonoEmisor": "04161194029"
+      },
+      "estado": "cancelado",
+      "motivoCancelacion": "Pago no comprobado (comprobante erróneo)",
+      "creadoEn": "2026-11-09T18:30:00.000Z"
+    },
+    {
+      "id": "ORD-2026-1027",
+      "clienteNombre": "Carolina Hurtado",
+      "clienteTelefono": "0424 338 1902",
+      "clienteEmail": "carolina.h@gmail.com",
+      "direccion": "Urb. Los Nísperos, Calle Los Cedros, Valencia",
+      "items": [
+        {
+          "productId": "p3",
+          "nombre": "Shampoo Hidratante",
+          "precio": 26,
+          "cantidad": 1,
+          "imagenUrl": "/images/shampoo_hidratante.webp"
+        },
+        {
+          "productId": "p5",
+          "nombre": "Crema de Peinar Etniker",
+          "precio": 25,
+          "cantidad": 1,
+          "imagenUrl": "/images/crema_de_peinar_etniker.webp"
+        }
+      ],
+      "total": 51,
+      "metodoPago": "pagomovil",
+      "pagoMovil": {
+        "banco": "Banesco",
+        "referencia": "77491028",
+        "telefonoEmisor": "04243381902"
+      },
+      "estado": "verificado",
+      "creadoEn": "2026-11-10T12:00:00.000Z"
+    },
+    {
+      "id": "ORD-2026-1028",
+      "clienteNombre": "Esteban Valera",
+      "clienteTelefono": "0414 229 0184",
+      "clienteEmail": "esteban.v@gmail.com",
+      "direccion": "",
+      "items": [
+        {
+          "productId": "p8",
+          "nombre": "Gel Capilar Hidratante",
+          "precio": 19,
+          "cantidad": 2,
+          "imagenUrl": "/images/gel_capilar.webp"
+        }
+      ],
+      "total": 38,
+      "metodoPago": "efectivo",
+      "estado": "entregado",
+      "creadoEn": "2026-11-06T14:45:00.000Z"
+    },
+    {
+      "id": "ORD-2026-1029",
+      "clienteNombre": "Fabiana Rivas",
+      "clienteTelefono": "0414 990 1122",
+      "clienteEmail": "fabiana.rivas@gmail.com",
+      "direccion": "Naguanagua, Urb. El Rincón, Av. 1, Valencia",
+      "items": [
+        {
+          "productId": "p1",
+          "nombre": "Curl Butter Mascarilla",
+          "precio": 34,
+          "cantidad": 1,
+          "imagenUrl": "/images/mascarilla_nutritiva.webp"
+        },
+        {
+          "productId": "p6",
+          "nombre": "Tratamiento Profundo Reparador",
+          "precio": 38,
+          "cantidad": 1,
+          "imagenUrl": "/images/tratamiento_profundo.webp"
+        }
+      ],
+      "total": 72,
+      "metodoPago": "pagomovil",
+      "pagoMovil": {
+        "banco": "Banco de Venezuela (BDV)",
+        "referencia": "22019482",
+        "telefonoEmisor": "04149901122"
+      },
+      "estado": "pendiente_verificacion",
+      "creadoEn": "2026-11-11T20:20:00.000Z"
+    },
+    {
+      "id": "ORD-2026-1030",
+      "clienteNombre": "Natalia Benítez",
+      "clienteTelefono": "0416 771 9023",
+      "clienteEmail": "natalia.b@gmail.com",
+      "direccion": "",
+      "items": [
+        {
+          "productId": "p2",
+          "nombre": "Óleo Argán & Cacao",
+          "precio": 28,
+          "cantidad": 1,
+          "imagenUrl": "/images/oleo_capilar.webp"
+        },
+        {
+          "productId": "p7",
+          "nombre": "Crema de Peinar Ibella",
+          "precio": 24,
+          "cantidad": 1,
+          "imagenUrl": "/images/crema_de_peinar_ibella.webp"
+        }
+      ],
+      "total": 52,
+      "metodoPago": "pagomovil",
+      "pagoMovil": {
+        "banco": "BBVA Provincial",
+        "referencia": "99102938",
+        "telefonoEmisor": "04167719023"
+      },
+      "estado": "verificado",
+      "creadoEn": "2026-11-06T10:10:00.000Z"
     }
   ],
   "employees": [
@@ -1069,7 +1684,10 @@
         "s11"
       ],
       "activo": true,
-      "creadoEn": "2026-11-05T20:28:09.470Z"
+      "creadoEn": "2026-11-05T20:28:09.470Z",
+      "tipoInoperatividad": "activo",
+      "fechasAusente": [],
+      "motivoInoperativo": ""
     },
     {
       "id": "emp-2",

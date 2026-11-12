@@ -75,7 +75,7 @@ export async function POST(req: Request) {
 export async function PATCH(req: Request) {
   try {
     const body = await req.json();
-    const { id, estado, notificadoWhatsApp } = body;
+    const { id, estado, notificadoWhatsApp, motivoCancelacion } = body;
 
     if (!id) {
       return NextResponse.json({ error: "ID requerido" }, { status: 400 });
@@ -112,6 +112,9 @@ export async function PATCH(req: Request) {
         }
       }
       pedido.estado = estado;
+    }
+    if (motivoCancelacion !== undefined) {
+      pedido.motivoCancelacion = motivoCancelacion;
     }
     if (notificadoWhatsApp !== undefined) {
       pedido.notificadoWhatsApp = notificadoWhatsApp;

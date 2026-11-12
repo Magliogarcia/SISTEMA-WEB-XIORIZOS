@@ -61,6 +61,7 @@ export function BookingSummaryForm() {
 
   const [notas, setNotas] = useState("");
   const [enviando, setEnviando] = useState(false);
+  const [enviadoExitoso, setEnviadoExitoso] = useState(false);
   const [errorGeneral, setErrorGeneral] = useState<string | null>(null);
 
   // Estados del abono del 20%
@@ -261,13 +262,40 @@ export function BookingSummaryForm() {
         return;
       }
 
-      reset();
+      setEnviadoExitoso(true);
       router.push("/citas/confirmacion");
     } catch (err) {
       console.error("Error al guardar cita:", err);
       setErrorGeneral("Error de conexión al procesar la cita. Inténtalo nuevamente.");
       setEnviando(false);
     }
+  }
+
+  if (enviadoExitoso) {
+    return (
+      <div className="rounded-2xl border border-emerald-300 bg-emerald-50/80 p-8 sm:p-12 text-center space-y-4 shadow-sm animate-in fade-in duration-300">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 shadow-inner">
+          <CheckCircle2 className="h-10 w-10 animate-in zoom-in-50 duration-300" />
+        </div>
+        <div className="space-y-1">
+          <span className="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-200/60 text-emerald-900">
+            Solicitud Registrada
+          </span>
+          <h3 className="font-heading text-2xl font-bold text-emerald-950">
+            ¡Tu cita ha sido enviada a comprobación!
+          </h3>
+          <p className="text-xs text-emerald-800 max-w-md mx-auto leading-relaxed">
+            Estamos transfiriéndote a tu comprobante oficial para que veas los detalles. Por favor espera un momento...
+          </p>
+        </div>
+        <div className="pt-2 flex justify-center">
+          <div className="inline-flex items-center gap-2 text-xs font-semibold text-emerald-700 bg-white px-4 py-2 rounded-full border border-emerald-200">
+            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+            <span>Redirigiendo a confirmación...</span>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (

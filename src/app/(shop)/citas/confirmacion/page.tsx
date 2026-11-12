@@ -1,8 +1,19 @@
+"use client";
+
+import { useEffect } from "react";
 import Link from "next/link";
-import { Clock, ShieldCheck, Store, MessageCircle } from "lucide-react";
+import { Clock, Store, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useBookingStore } from "@/store/booking-store";
 
 export default function ConfirmacionCitaPage() {
+  const reset = useBookingStore((s) => s.reset);
+
+  useEffect(() => {
+    // Limpia la reserva en el almacén una vez montada la pantalla de confirmación
+    reset();
+  }, [reset]);
+
   return (
     <div className="mx-auto flex max-w-lg flex-col items-center px-4 pt-32 pb-24 text-center">
       <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-600 shadow-sm border border-amber-500/20">

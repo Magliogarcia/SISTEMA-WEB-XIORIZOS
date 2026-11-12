@@ -74,6 +74,7 @@ export interface DBOrder {
     telefonoEmisor?: string;
   };
   estado: "pendiente_verificacion" | "verificado" | "entregado" | "cancelado";
+  motivoCancelacion?: string;
   notificadoWhatsApp?: boolean;
   creadoEn: string;
 }
@@ -381,7 +382,7 @@ export function readDB(): DatabaseSchema {
   }
 }
 
-// Escritura atómica en la base de datos
+// Escritura atómica en la base de datos con respaldo sincronizado a PostgreSQL
 export function writeDB(data: DatabaseSchema): boolean {
   try {
     if (!fs.existsSync(DATA_DIR)) {
@@ -393,6 +394,81 @@ export function writeDB(data: DatabaseSchema): boolean {
     fs.renameSync(tempFile, DB_FILE);
     const stat = fs.statSync(DB_FILE);
     globalForDB.__xiorizosDbCache = { mtimeMs: stat.mtimeMs, data: structuredClone(data) };
+
+    // Sincronización en segundo plano hacia PostgreSQL (Supabase) sin bloquear la respuesta
+    if (process.env.DATABASE_URL) {
+      import("@/lib/prisma").then(({ prisma }) => {
+        // Sincronizar citas
+        Promise.all([
+          ...data.appointments.map((c) =>
+            prisma.appointment.upsert({
+              where: { id: c.id },
+              update: {
+                estado: c.estado,
+                motivoCancelacion: c.motivoCancelacion || null,
+                notificadoWhatsApp: Boolean(c.notificadoWhatsApp),
+              },
+              create: {
+                id: c.id,
+                clienteNombre: c.clienteNombre,
+                clienteTelefono: c.clienteTelefono,
+                servicioNombre: c.servicioNombre,
+                servicioPrecio: Number(c.servicioPrecio || 0),
+                montoReserva: Number(c.montoReserva || c.servicioPrecio * 0.2 || 0),
+                montoRestante: Number(c.montoRestante || c.servicioPrecio * 0.8 || 0),
+                metodoPago: c.metodoPago || "pagomovil",
+                pagoMovilBanco: c.pagoMovil?.banco || null,
+                pagoMovilReferencia: c.pagoMovil?.referencia || null,
+                pagoMovilTelefonoEmisor: c.pagoMovil?.telefonoEmisor || null,
+                notificadoWhatsApp: Boolean(c.notificadoWhatsApp),
+                duracionMin: c.duracionMin ? Number(c.duracionMin) : null,
+                profesionalNombre: c.profesionalNombre,
+                fecha: c.fecha,
+                hora: c.hora,
+                notas: c.notas || null,
+                motivoCancelacion: c.motivoCancelacion || null,
+                estado: c.estado || "pendiente",
+                creadoEn: c.creadoEn ? new Date(c.creadoEn) : new Date(),
+              },
+            })
+          ),
+          ...data.orders.map((o) =>
+            prisma.order.upsert({
+              where: { id: o.id },
+              update: {
+                estado: o.estado,
+                motivoCancelacion: o.motivoCancelacion || null,
+                notificadoWhatsApp: Boolean(o.notificadoWhatsApp),
+              },
+              create: {
+                id: o.id,
+                usuarioId: o.usuarioId || null,
+                clienteNombre: o.clienteNombre,
+                clienteTelefono: o.clienteTelefono,
+                clienteEmail: o.clienteEmail || null,
+                direccion: o.direccion || null,
+                total: Number(o.total || 0),
+                metodoPago: o.metodoPago || "pagomovil",
+                pagoMovilBanco: o.pagoMovil?.banco || null,
+                pagoMovilReferencia: o.pagoMovil?.referencia || null,
+                pagoMovilTelefonoEmisor: o.pagoMovil?.telefonoEmisor || null,
+                estado: o.estado || "pendiente_verificacion",
+                motivoCancelacion: o.motivoCancelacion || null,
+                notificadoWhatsApp: Boolean(o.notificadoWhatsApp),
+                creadoEn: o.creadoEn ? new Date(o.creadoEn) : new Date(),
+              },
+            })
+          ),
+          ...data.products.map((p) =>
+            prisma.product.update({
+              where: { id: p.id },
+              data: { stock: Number(p.stock || 0) },
+            })
+          ),
+        ]).catch(() => {});
+      }).catch(() => {});
+    }
+
     return true;
   } catch (error) {
     console.error("Error writing database file:", error);

@@ -1,0 +1,254 @@
+================================================================================
+GUIA MAESTRA Y ESTRUCTURA TECNICA PARA LA DEFENSA DE TESIS
+PROYECTO: SISTEMA WEB Y SIMULADOR DE COLORIMETRIA XIORIZOS SALON & STUDIO
+================================================================================
+
+Este informe resume y estructura todos los componentes tecnicos, de arquitectura,
+base de datos y modelo de negocio del proyecto Xiorizos para que puedas defenderlo
+con total seguridad y solvencia ante el jurado evaluador.
+
+--------------------------------------------------------------------------------
+1. RESUMEN EJECUTIVO (DISCURSO DE APERTURA - 1 MINUTO)
+--------------------------------------------------------------------------------
+"Estimado jurado evaluador, el proyecto Xiorizos es una plataforma web progresiva
+e integral concebida para transformar y modernizar la operacion comercial de un
+salon y estudio especializado en cabello ondulado, rizado y afro en Valencia,
+Venezuela.
+
+La plataforma resuelve tres pilares fundamentales:
+1. Comercial y Pagos: Comercio electronico y citas con adaptacion a la realidad
+   venezolana (Pago Movil interbancario, divisas normalizadas y anticipos del 20%).
+2. Gestion Administrativa: Panel de control en tiempo real para citas, ordenes,
+   inventario y disponibilidad operativa de estilistas (reposos, vacaciones).
+3. Innovacion Tecnologica: Un simulador de colorimetria capilar basado en Vision
+   por Computadora y Redes Neuronales convolucionales de Google MediaPipe que se
+   ejecuta 100% en el navegador del cliente mediante WebAssembly (Edge Computing),
+   garantizando costo cero en servidores de IA y absoluta privacidad para el usuario."
+
+
+--------------------------------------------------------------------------------
+2. ARQUITECTURA GLOBAL DEL SISTEMA (EN CAPAS)
+--------------------------------------------------------------------------------
+El sistema esta construido bajo un patron Monolitico Moderno con Next.js 14,
+desacoplado funcionalmente en 3 capas:
+
+A) CAPA DE PRESENTACION / FRONTEND (En el navegador del cliente):
+   - Tecnologias: React 18, Next.js App Router, Tailwind CSS, Lucide Icons.
+   - Estado Global Reactivo: Zustand (mantiene en memoria el carrito de compras,
+     el progreso del agendamiento y la sesion del usuario de forma ultraligera <1KB).
+   - Inferencia de IA en el Cliente: Google MediaPipe Tasks Vision + WebAssembly
+     (procesamiento local en memoria RAM/GPU del dispositivo, 0 llamadas a APIs externas).
+
+B) CAPA DE APLICACION / BACKEND (Servidor Node.js con Next.js Route Handlers):
+   - Controladores de API REST (/api/citas, /api/pedidos, /api/productos,
+     /api/empleados, /api/auth/*).
+   - Middleware de Control de Acceso basado en Roles (RBAC): protege rutas /admin
+     verificando la cookie de sesion y permisos (admin vs empleado).
+   - Logica de Negocio: Validacion anti-solapamiento de citas, calculo de reservas
+     (20% inicial, 80% en salon), reglas de contraseñas robustas y gestion de stock.
+
+C) CAPA DE PERSISTENCIA Y DATOS (data/database.json):
+   - Base de datos documental transaccional en JSON con operaciones de lectura/escritura
+     atomicas (fs.renameSync) y cache de alta velocidad en memoria invalidado por mtime.
+
+
+--------------------------------------------------------------------------------
+3. TECNOLOGIAS SELECCIONADAS Y JUSTIFICACION TECNICA ANTE EL JURADO
+--------------------------------------------------------------------------------
+* Next.js 14 (App Router):
+  Por que? Permite unificar Frontend y Backend en un solo entorno de ejecucion.
+  Ofrece Server-Side Rendering (SSR) para maximo rendimiento y posicionamiento,
+  junto a Client-Side Rendering (CSR) para interactividad fluida sin recargar pagina.
+
+* TypeScript 5:
+  Por que? Aporta tipado estatico riguroso. Detecta errores de tipo en tiempo de
+  desarrollo/compilacion en vez de tiempo de ejecucion en produccion.
+
+* Tailwind CSS:
+  Por que? Genera estilos atomicos bajo demanda, eliminando codigo CSS muerto y
+  asegurando una interfaz 100% adaptable a computadoras, tablets y telefonos moviles.
+
+* Google MediaPipe (Tasks Vision) + WebAssembly (WASM):
+  Por que? En lugar de depender de costosas APIs en la nube (como Gemini o Replicate)
+  que cobran por cada foto y requieren internet constante, el modelo de IA se
+  descarga una sola vez y corre de forma autonoma en el procesador del usuario.
+
+* Zustand:
+  Por que? Alternativa moderna y mucho mas eficiente que Redux. Pesa menos de 1 KB,
+  tiene cero dependencias complejas y actualiza reactivamente componentes como el
+  contador de la bolsa y los pasos de citas sin re-renderizar arboles enteros.
+
+* Zod & Validaciones Centralizadas:
+  Por que? Garantiza que datos criticos (precios, stock, telefonos venezolanos y
+  contraseñas seguras con mayusculas, minusculas, numeros y simbolos) cumplan con
+  los estandares de seguridad requeridos.
+
+
+--------------------------------------------------------------------------------
+4. ¿DONDE SE GUARDAN EXACTAMENTE LOS DATOS Y COMO FUNCIONA LA BASE DE DATOS?
+--------------------------------------------------------------------------------
+Ubicacion Fisica:
+Toda la persistencia del sistema se almacena en el archivo:
+📁 data/database.json
+
+Modulo Gestor:
+📄 src/lib/db/index.ts (contiene las interfaces TypeScript y funciones de lectura/escritura).
+
+Colecciones almacenadas:
+
+1. USUARIOS Y CREDENCIALES (db.users):
+   - ID unico, nombre completo, correo, telefono, rol ('admin', 'empleado', 'cliente').
+   - Contraseñas protegidas que exigen minimo 8 caracteres, mayuscula, minuscula,
+     numero y caracter especial.
+   - Cuentas maestras pre-sembradas:
+     * Administrador: admin / Maglio28$
+     * Empleados: xioilin / Xioilin28$, axel / Axel28$, etc.
+
+2. CITAS Y AGENDAS (db.appointments):
+   - Cliente, telefono de contacto, servicio solicitado, especialista asignado.
+   - Fecha y hora precisa de la cita.
+   - Desglose Financiero Obligatorio:
+     * Monto total del servicio (ej. 35,00$).
+     * Monto de Reserva (20% de anticipo para garantizar asistencia).
+     * Monto Restante (80% a pagar directamente en el estudio).
+     * Datos de Pago Movil: Banco emisor, numero de referencia y telefono del emisor.
+   - Estado: 'pendiente', 'confirmada', 'completada' o 'cancelada'.
+   - Bandera de Notificacion por WhatsApp.
+
+3. PEDIDOS DE PRODUCTOS (db.orders):
+   - Codigo de identificacion (ej. #ORD-2026-9102), datos de envio y direccion.
+   - Detalle de articulos comprados (producto, cantidad, precio unitario).
+   - Metodo de pago (Pago Movil o Efectivo) y estado de despacho.
+
+4. INVENTARIO DE PRODUCTOS (db.products):
+   - Nombre del producto, marca botánica, categoria, precio en USD ($), costo unitario,
+     stock fisico en tiempo real y calificacion de clientas.
+
+5. EMPLEADOS Y CONTROL DE INOPERATIVIDAD (db.employees):
+   - Nombre, cargo, servicios que puede atender y estado operativo.
+   - Sistema de Inoperatividad Medica/Vacacional: Permite registrar fechas de inicio y
+     fin de reposos medicos o vacaciones; el calendario de citas bloquea
+     automaticamente a dicho especialista mientras dure su ausencia.
+
+
+--------------------------------------------------------------------------------
+5. ¿COMO FUNCIONA EL BACKEND? (LOGICA DEL SERVIDOR)
+--------------------------------------------------------------------------------
+El backend reside en rutas modulares tipo Next.js Route Handlers (src/app/api/):
+
+1. /api/citas (GET, POST, PATCH):
+   - En el POST, ejecuta el algoritmo de deteccion de colisiones (src/lib/booking-availability.ts).
+     Si otro cliente intenta reservar en el mismo rango de tiempo con el mismo especialista,
+     el backend rechaza la transaccion devolviendo un error HTTP 409 (Conflicto).
+   - En el PATCH, permite al administrador confirmar citas, cancelarlas o registrar el
+     envio de mensajes por WhatsApp.
+
+2. /api/pedidos (GET, POST, PATCH):
+   - Al crearse un pedido, descuenta inmediatamente el stock real del producto.
+   - Si un pedido se cancela, el backend restaura automaticamente el inventario.
+
+3. /api/productos (GET, POST, PUT, DELETE):
+   - CRUD completo con validacion de costos y margenes de ganancia.
+
+4. /api/empleados (GET, POST, PUT, DELETE):
+   - Registra nuevos miembros del equipo creando simultaneamente su usuario de acceso
+     con contraseña fuerte y asignacion de servicios.
+
+5. Seguridad de Escritura Atomica:
+   - Para evitar que la base de datos JSON se corrompa si ocurre un corte electrico,
+     la funcion writeDB() escribe primero en un archivo temporal (.tmp) y luego hace
+     un renombramiento atomico del sistema de archivos (atomic rename).
+
+
+--------------------------------------------------------------------------------
+6. ¿COMO FUNCIONA EL FRONTEND? (EXPERIENCIA DE USUARIO)
+--------------------------------------------------------------------------------
+- Navegacion Ultrarrapida (Single Page Application):
+  La navegacion entre paginas es instantanea gracias a la arquitectura basada en
+  componentes y el pre-renderizado estatico de rutas.
+
+- Wizard de Agendamiento en 4 Pasos (/citas):
+  Paso 1: Seleccion de servicio con duracion e indicador de disponibilidad.
+  Paso 2: Seleccion de especialista capacitado (filtrado segun ausencias o reposos).
+  Paso 3: Calendario interactivo con deteccion de cupos en bloques de 30-45 minutos.
+  Paso 4: Resumen con calculo del 20% de reserva y formulario de Pago Movil.
+
+- Adaptacion Financiera Venezolana:
+  * Formato monetario: 35,00$ (sin prefijos confusos como USD).
+  * Soporte bancario nacional para Pago Movil: Banco de Venezuela, Banesco, Mercantil,
+    Bancamiga, Provincial, BNC.
+  * Botones con enlace directo a WhatsApp Web / WhatsApp App con mensajes predefinidos.
+
+
+--------------------------------------------------------------------------------
+7. EL GRAN DIFERENCIADOR: ¿COMO ES POSIBLE LA COLORIMETRIA CON IA?
+--------------------------------------------------------------------------------
+Este punto es fundamental para la tesis. Demuestra aplicacion real de Inteligencia
+Artificial sin costes operativos.
+
+1. Modelo de Red Neuronal:
+   - Se utiliza 'hair_segmenter.tflite' de Google Research.
+   - Es un modelo de segmentacion semantica convolucional optimizado para detectar
+     especificamente fibra capilar humana.
+
+2. Motor de Ejecucion WebAssembly (WASM):
+   - Los binarios WASM (public/wasm/) permiten ejecutar codigo compilarlo en C++
+     a velocidad casi nativa dentro del motor V8 del navegador.
+
+3. Deteccion de Hardware y Doble Motor (GPU -> CPU):
+   - El sistema intenta primero aceleracion por WebGL/GPU (ultra rapido en 100ms).
+   - Si la computadora o laptop no cuenta con GPU compatible, el codigo conmuta
+     automaticamente a ejecucion en CPU, garantizando que nunca falle en ninguna maquina.
+
+4. Algoritmo de Luminosidad y Brillo de Rizos:
+   - Para no aplicar un "color plano de pintura", el algoritmo analiza cada pixel y
+     calcula su luminosidad natural:
+       Luminosidad = (0.299 * Rojo) + (0.587 * Verde) + (0.114 * Azul)
+   - Esto preserva las luces, sombras, profundidad y patron de rizo natural.
+
+5. Formulación Cromatica de Salon:
+   - Se aplican curvas de transferencia de color especificas para 7 tonos:
+     Rubio Miel, Rubio Cenizo, Castaño Caramelo, Chocolate Profundo, Cobrizo Natural,
+     Borgoña Vino y Negro Azabache.
+
+6. Ventajas frente a servicios Cloud:
+   - Costo Cero ($0 de factura mensual).
+   - Privacidad total: La foto de la clienta jamas sale de su dispositivo.
+   - Funciona incluso sin conexion a internet tras cargar la pagina.
+
+
+--------------------------------------------------------------------------------
+8. PREGUNTAS CLAVE DEL JURADO Y RESPUESTAS PREPARADAS
+--------------------------------------------------------------------------------
+
+P1: "¿Por que usar JSON y no una base de datos relacional como PostgreSQL/MySQL?"
+R: "Para la escala y objetivos de un salon boutique, un archivo documental JSON
+permitio desarrollar una solucion 100% portable y ligera, sin necesidad de instalar
+servidores de bases de datos adicionales. Ademas, la capa de acceso a datos esta
+desacoplada en src/lib/db/index.ts, por lo que migrar a PostgreSQL o Prisma toma
+pocas horas sin alterar la interfaz de usuario ni las reglas de negocio."
+
+P2: "¿Como se asegura la integridad de datos si dos personas agendan a la vez?"
+R: "Existe una doble proteccion: en el Frontend el calendario consulta las citas y
+deshabilita visualmente los horarios ocupados. En el Backend, la ruta /api/citas
+vuelve a verificar la disponibilidad en el momento de procesar la solicitud; si
+detecta que el horario fue tomado milisegundos antes, rechaza la peticion con un
+codigo HTTP 409 de conflicto."
+
+P3: "¿Como esta protegida el area de administracion?"
+R: "El acceso esta controlado por un Middleware de Next.js que intercepta las rutas
+/admin/* en el servidor. Verifica las cookies de sesion y el rol del usuario (RBAC).
+Cualquier intento de acceso no autorizado es redirigido inmediatamente a /admin/login."
+
+P4: "¿Como se logro que el sitio web cargue rapido en cualquier equipo?"
+R: "Implementamos tecnicas de alto rendimiento:
+1. Las imagenes se convirtieron a formato WebP moderno y se redimensionaron a resoluciones
+   reales de pantalla, reduciendo el peso en mas de un 65%.
+2. La fuente de iconos Material Symbols se redujo de 3.9 MB a solo 5.8 KB conservando
+   exactamente los 26 iconos utilizados.
+3. Se implemento carga diferida dinamica (next/dynamic) para las secciones por debajo
+   del pliegue de la pantalla."
+
+================================================================================
+Documento preparado para la defensa de grado. Proyecto Xiorizos.
+================================================================================

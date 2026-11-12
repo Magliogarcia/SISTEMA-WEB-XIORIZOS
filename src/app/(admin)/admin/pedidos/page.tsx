@@ -16,6 +16,8 @@ import {
   RotateCcw,
   X,
   Package,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -115,6 +117,13 @@ export default function AdminPedidosPage() {
   const [cargando, setCargando] = useState(true);
   const [pedidoDetalle, setPedidoDetalle] = useState<DBOrder | null>(null);
   const [mostrarErrorPago, setMostrarErrorPago] = useState(false);
+  const [paginaActual, setPaginaActual] = useState(1);
+  const ELEMENTOS_POR_PAGINA = 20;
+
+  const totalPaginas = Math.ceil(pedidos.length / ELEMENTOS_POR_PAGINA) || 1;
+  const inicioIdx = (paginaActual - 1) * ELEMENTOS_POR_PAGINA;
+  const finIdx = Math.min(inicioIdx + ELEMENTOS_POR_PAGINA, pedidos.length);
+  const pedidosPaginados = pedidos.slice(inicioIdx, finIdx);
 
 
   async function cargarPedidos() {
@@ -138,21 +147,26 @@ export default function AdminPedidosPage() {
 
   async function cambiarEstado(
     id: string,
-    nuevoEstado: "pendiente_verificacion" | "verificado" | "entregado" | "cancelado"
+    nuevoEstado: "pendiente_verificacion" | "verificado" | "entregado" | "cancelado",
+    motivoCancelacion?: string
   ) {
     try {
       const res = await fetch("/api/pedidos", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, estado: nuevoEstado }),
+        body: JSON.stringify({ id, estado: nuevoEstado, motivoCancelacion }),
       });
       const data = await res.json();
       if (data.success) {
         setPedidos((prev) =>
-          prev.map((p) => (p.id === id ? { ...p, estado: nuevoEstado } : p))
+          prev.map((p) =>
+            p.id === id ? { ...p, estado: nuevoEstado, motivoCancelacion: motivoCancelacion ?? p.motivoCancelacion } : p
+          )
         );
         if (pedidoDetalle?.id === id) {
-          setPedidoDetalle((prev) => (prev ? { ...prev, estado: nuevoEstado } : null));
+          setPedidoDetalle((prev) =>
+            prev ? { ...prev, estado: nuevoEstado, motivoCancelacion: motivoCancelacion ?? prev.motivoCancelacion } : null
+          );
         }
         window.dispatchEvent(new CustomEvent("xiorizos-admin-update"));
       }
@@ -233,7 +247,7 @@ export default function AdminPedidosPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-xs">
-                {pedidos.map((pedido) => {
+                {pedidosPaginados.map((pedido) => {
                   const puedeEnviarWhatsApp =
                     pedido.estado === "verificado" || pedido.metodoPago === "efectivo";
 
@@ -336,12 +350,70 @@ export default function AdminPedidosPage() {
             </table>
           )}
         </div>
+
+        {/* Barra de Paginación (20 pedidos por página) */}
+        {pedidos.length > 0 && (
+          <div className="p-3.5 border-t border-slate-200 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs text-slate-600">
+            <div>
+              <span>Mostrando </span>
+              <strong className="text-slate-900 font-mono">{inicioIdx + 1}</strong>
+              <span> a </span>
+              <strong className="text-slate-900 font-mono">{finIdx}</strong>
+              <span> de </span>
+              <strong className="text-slate-900 font-mono">{pedidos.length}</strong>
+              <span> pedidos</span>
+            </div>
+
+            {totalPaginas > 1 && (
+              <div className="flex items-center gap-1 self-center sm:self-auto">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPaginaActual((prev) => Math.max(1, prev - 1))}
+                  disabled={paginaActual === 1}
+                  className="h-8 px-2.5 text-xs rounded-sm border-slate-200 bg-white"
+                >
+                  <ChevronLeft className="h-3.5 w-3.5 mr-1" />
+                  Anterior
+                </Button>
+
+                <div className="flex items-center gap-1 px-1">
+                  {Array.from({ length: totalPaginas }, (_, i) => i + 1).map((num) => (
+                    <button
+                      key={num}
+                      type="button"
+                      onClick={() => setPaginaActual(num)}
+                      className={`h-8 w-8 rounded-sm text-xs font-semibold font-mono transition-colors ${
+                        paginaActual === num
+                          ? "bg-slate-900 text-white shadow-xs"
+                          : "bg-white text-slate-700 hover:bg-slate-100 border border-slate-200"
+                      }`}
+                    >
+                      {num}
+                    </button>
+                  ))}
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPaginaActual((prev) => Math.min(totalPaginas, prev + 1))}
+                  disabled={paginaActual === totalPaginas}
+                  className="h-8 px-2.5 text-xs rounded-sm border-slate-200 bg-white"
+                >
+                  Siguiente
+                  <ChevronRight className="h-3.5 w-3.5 ml-1" />
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* Modal Rediseñado: Detalle de Pedido y Acciones Reversibles */}
+      {/* Modal Rediseñado: Tamaño específico max-w-2xl sin scroll y distribución en 2 columnas */}
       {pedidoDetalle && (
         <Dialog open={!!pedidoDetalle} onOpenChange={() => { setPedidoDetalle(null); setMostrarErrorPago(false); }}>
-          <DialogContent className="max-w-xl rounded-sm max-h-[90vh] overflow-y-auto font-sans p-5 sm:p-6 border border-slate-200">
+          <DialogContent className="max-w-2xl rounded-lg font-sans p-5 sm:p-6 border border-slate-200">
             <DialogHeader className="pb-3 border-b border-slate-200">
               <div className="flex items-center justify-between">
                 <div>
@@ -380,252 +452,218 @@ export default function AdminPedidosPage() {
                       : pedidoDetalle.estado === "entregado"
                       ? "Entregado"
                       : pedidoDetalle.estado === "cancelado"
-                      ? "Cancelado"
+                      ? "Cancelado (Stock devuelto)"
                       : "Pendiente"}
                   </span>
                 </span>
               </div>
             </DialogHeader>
 
-            <div className="space-y-3.5 text-xs pt-2 divide-y divide-slate-100">
-              {/* Sección 1: Datos del Cliente y Envío */}
-              <div className="pt-1">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Cliente & Entrega</span>
-                <p className="font-bold text-slate-900 text-sm">{pedidoDetalle.clienteNombre}</p>
-                <p className="flex items-center gap-1.5 text-slate-600 font-mono text-xs mt-0.5">
-                  <Phone className="h-3.5 w-3.5 text-slate-400" />
-                  <span>{pedidoDetalle.clienteTelefono}</span>
-                </p>
-                {pedidoDetalle.clienteEmail && (
-                  <p className="flex items-center gap-1.5 text-slate-500 text-xs mt-0.5">
-                    <Mail className="h-3.5 w-3.5 text-slate-400" />
-                    <span>{pedidoDetalle.clienteEmail}</span>
-                  </p>
-                )}
-                {pedidoDetalle.direccion && (
-                  <p className="flex items-start gap-1.5 text-slate-700 text-xs mt-1.5 bg-slate-50 p-2 rounded-sm border border-slate-200">
-                    <MapPin className="h-3.5 w-3.5 text-slate-400 shrink-0 mt-0.5" />
-                    <span><strong>Dirección:</strong> {pedidoDetalle.direccion}</span>
-                  </p>
-                )}
-              </div>
-
-              {/* Sección 2: Productos Comprados */}
-              <div className="pt-3 space-y-1.5">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
-                  Productos en la Orden ({pedidoDetalle.items.length})
-                </span>
-                <div className="divide-y divide-slate-200 bg-slate-50 rounded-sm border border-slate-200 p-2 max-h-44 overflow-y-auto">
-                  {pedidoDetalle.items.map((it, idx) => (
-                    <div key={idx} className="py-2 first:pt-0 last:pb-0 flex items-center justify-between">
-                      <div>
-                        <p className="font-semibold text-slate-900 text-xs">{it.nombre}</p>
-                        <p className="text-[11px] text-slate-500 font-mono mt-0.5">
-                          {it.cantidad} {it.cantidad === 1 ? "unidad" : "unidades"} &times; {formatCurrency(it.precio)}
-                        </p>
-                      </div>
-                      <p className="font-bold text-slate-900 text-xs">{formatCurrency(it.precio * it.cantidad)}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Sección 3: Datos del Pago */}
-              <div className="pt-3 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Detalles del Pago</span>
-                  <span className="font-bold text-sm text-slate-900">
-                    Total: {formatCurrency(pedidoDetalle.total)}
-                  </span>
-                </div>
-
-                {pedidoDetalle.metodoPago === "pagomovil" && pedidoDetalle.pagoMovil ? (
-                  <div className="bg-slate-50 p-2.5 rounded-sm border border-slate-200 space-y-1 text-slate-700">
-                    <p className="font-semibold text-slate-900 flex items-center gap-1.5">
-                      <Landmark className="h-3.5 w-3.5 text-blue-600" />
-                      <span>Pago Móvil</span>
+            <div className="space-y-3 pt-2 text-xs">
+              {/* Contenido en 2 Columnas Equilibradas */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-start">
+                {/* Columna Izquierda: Cliente & Pago */}
+                <div className="space-y-2.5">
+                  <div className="p-3 bg-slate-50 rounded-sm border border-slate-200 space-y-1">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Cliente & Entrega</span>
+                    <p className="font-bold text-slate-900 text-sm">{pedidoDetalle.clienteNombre}</p>
+                    <p className="flex items-center gap-1.5 text-slate-600 font-mono text-xs">
+                      <Phone className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                      <span>{pedidoDetalle.clienteTelefono}</span>
                     </p>
-                    <p><strong>Banco Emisor:</strong> {pedidoDetalle.pagoMovil.banco}</p>
-                    <p>
-                      <strong>Número de Referencia:</strong>{" "}
-                      <span className="font-mono font-bold bg-white px-2 py-0.5 rounded-sm border border-slate-200 text-slate-900">
-                        {pedidoDetalle.pagoMovil.referencia}
-                      </span>
-                    </p>
-                    {pedidoDetalle.pagoMovil.telefonoEmisor && (
-                      <p>
-                        <strong>Teléfono Emisor:</strong>{" "}
-                        <span className="font-mono">{pedidoDetalle.pagoMovil.telefonoEmisor}</span>
+                    {pedidoDetalle.direccion ? (
+                      <p className="flex items-start gap-1 text-slate-600 text-[11px] pt-1 border-t border-slate-200/60">
+                        <MapPin className="h-3 w-3 text-slate-400 shrink-0 mt-0.5" />
+                        <span className="line-clamp-2">{pedidoDetalle.direccion}</span>
                       </p>
-                    )}
-                  </div>
-                ) : (
-                  <div className="bg-slate-50 p-2.5 rounded-sm border border-slate-200 text-slate-700 space-y-0.5">
-                    <p className="font-semibold text-slate-900 flex items-center gap-1.5">
-                      <Banknote className="h-3.5 w-3.5 text-emerald-600" />
-                      <span>Pago en Efectivo</span>
-                    </p>
-                    <p className="text-[11px] text-slate-500">
-                      El cliente abonará el total en efectivo al momento de recibir o retirar los productos.
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* Sección 4: Opciones de Contacto WhatsApp (AL FINAL DEL MODAL) */}
-              <div className="pt-3 space-y-2">
-                {/* Contacto tras verificación */}
-                {pedidoDetalle.estado === "verificado" && (
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-emerald-50 rounded-sm border border-emerald-200">
-                    <div>
-                      <p className="font-bold text-emerald-950 flex items-center gap-1.5">
-                        <WhatsAppIcon className="w-3.5 h-3.5 text-[#25D366]" />
-                        <span>Confirmación por WhatsApp</span>
-                      </p>
-                      <p className="text-[11px] text-emerald-800 mt-0.5">
-                        {pedidoDetalle.notificadoWhatsApp
-                          ? "Ya se notificó la verificación oficial al cliente."
-                          : "Envía el mensaje oficial confirmando el despacho del paquete."}
-                      </p>
-                    </div>
-                    {pedidoDetalle.notificadoWhatsApp ? (
-                      <span className="text-[11px] font-semibold text-emerald-800 bg-emerald-100 px-2.5 py-1 rounded-sm shrink-0">
-                        ✓ Ya notificado
-                      </span>
                     ) : (
-                      <a
-                        href={getPedidoWhatsAppUrl(pedidoDetalle)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={() => marcarNotificadoWhatsApp(pedidoDetalle.id)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-xs font-bold text-white bg-[#25D366] hover:bg-[#20bd5a] transition-all shadow-xs shrink-0"
-                      >
-                        <WhatsAppIcon className="w-3.5 h-3.5" />
-                        <span>Abrir WhatsApp</span>
-                      </a>
+                      <p className="text-[11px] text-slate-500 pt-1 border-t border-slate-200/60">
+                        📍 Retiro directo en salón
+                      </p>
                     )}
                   </div>
-                )}
 
-                {/* Subpanel de Reportar Pago Erróneo (cuando está pendiente de verificación) */}
-                {mostrarErrorPago && pedidoDetalle.estado === "pendiente_verificacion" && (
-                  <div className="p-3 bg-amber-50 rounded-sm border border-amber-300 space-y-2 animate-in fade-in duration-200">
-                    <p className="font-bold text-amber-950 flex items-center gap-1.5">
-                      <AlertTriangle className="w-4 h-4 text-amber-600" />
-                      <span>Notificar inconsistencia en datos del pago</span>
-                    </p>
-                    <p className="text-[11px] text-amber-900 leading-relaxed">
-                      Se enviará un mensaje directo al WhatsApp del cliente ({pedidoDetalle.clienteTelefono}) indicando que no se pudo verificar el Pago Móvil y solicitando los datos con el formato correspondiente o la captura del comprobante bancario.
-                    </p>
-                    <div className="flex items-center gap-2 pt-1">
+                  <div className="p-3 bg-slate-50 rounded-sm border border-slate-200 space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Pago</span>
+                      <span className="font-bold text-sm text-slate-900 font-mono">
+                        {formatCurrency(pedidoDetalle.total)}
+                      </span>
+                    </div>
+
+                    {pedidoDetalle.metodoPago === "pagomovil" && pedidoDetalle.pagoMovil ? (
+                      <div className="p-2 bg-blue-50/60 rounded-sm border border-blue-200 text-[11px] text-slate-700 space-y-0.5">
+                        <p className="flex justify-between">
+                          <span><strong>Banco:</strong> {pedidoDetalle.pagoMovil.banco}</span>
+                          <span><strong>Ref:</strong> <span className="font-mono font-bold bg-white px-1.5 py-0.5 rounded-sm border border-blue-300 text-slate-900">{pedidoDetalle.pagoMovil.referencia}</span></span>
+                        </p>
+                        {pedidoDetalle.pagoMovil.telefonoEmisor && (
+                          <p><strong>Tel. Emisor:</strong> <span className="font-mono">{pedidoDetalle.pagoMovil.telefonoEmisor}</span></p>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="p-2 bg-emerald-50/60 rounded-sm border border-emerald-200 text-[11px] text-emerald-900 flex items-center gap-1.5">
+                        <Banknote className="h-3.5 w-3.5 text-emerald-700 shrink-0" />
+                        <span>Pago en efectivo al retirar/recibir</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Columna Derecha: Productos en la Orden & Avisos */}
+                <div className="space-y-2.5">
+                  <div className="p-3 bg-slate-50 rounded-sm border border-slate-200 space-y-1.5">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                      Productos ({pedidoDetalle.items.length})
+                    </span>
+                    <div className="divide-y divide-slate-200 bg-white rounded-sm border border-slate-200 p-2 max-h-36 overflow-y-auto space-y-1">
+                      {pedidoDetalle.items.map((it, idx) => (
+                        <div key={idx} className="py-1 first:pt-0 last:pb-0 flex items-center justify-between text-xs">
+                          <div className="min-w-0 pr-2">
+                            <p className="font-semibold text-slate-900 truncate">{it.nombre}</p>
+                            <p className="text-[10px] text-slate-500 font-mono">
+                              {it.cantidad} {it.cantidad === 1 ? "ud." : "uds."} &times; {formatCurrency(it.precio)}
+                            </p>
+                          </div>
+                          <span className="font-bold text-slate-900 font-mono shrink-0">
+                            {formatCurrency(it.precio * it.cantidad)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Avisos contextuales */}
+                  {pedidoDetalle.estado === "verificado" && (
+                    <div className="flex items-center justify-between gap-2 p-2 bg-emerald-50 rounded-sm border border-emerald-200 text-xs">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <WhatsAppIcon className="w-3.5 h-3.5 text-[#25D366] shrink-0" />
+                        <span className="text-[11px] text-emerald-900 truncate">
+                          {pedidoDetalle.notificadoWhatsApp ? "✓ Ya notificado" : "Pago verificado"}
+                        </span>
+                      </div>
+                      {!pedidoDetalle.notificadoWhatsApp && (
+                        <a
+                          href={getPedidoWhatsAppUrl(pedidoDetalle)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={() => marcarNotificadoWhatsApp(pedidoDetalle.id)}
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-sm text-[11px] font-bold text-white bg-[#25D366] hover:bg-[#20bd5a] transition-all shrink-0"
+                        >
+                          <WhatsAppIcon className="w-3 h-3" />
+                          <span>WhatsApp</span>
+                        </a>
+                      )}
+                    </div>
+                  )}
+
+                  {pedidoDetalle.estado === "cancelado" && (
+                    <div className="p-2 bg-rose-50 rounded-sm border border-rose-200 text-xs flex items-center justify-between gap-1">
+                      <span className="text-[11px] text-rose-800 truncate">
+                        Cancelado &bull; Stock devuelto
+                      </span>
                       <a
                         href={getPedidoPagoErroneoWhatsAppUrl(pedidoDetalle)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 transition-colors shadow-xs"
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-sm text-[10px] font-semibold text-rose-800 bg-rose-100 hover:bg-rose-200 shrink-0"
                       >
-                        <WhatsAppIcon className="w-3.5 h-3.5" />
-                        <span>Enviar WhatsApp de datos erróneos</span>
+                        <WhatsAppIcon className="w-2.5 h-2.5 text-[#25D366]" />
+                        <span>Avisar</span>
                       </a>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setMostrarErrorPago(false)}
-                        className="text-slate-700 hover:text-slate-900 hover:bg-white border-slate-300 rounded-sm text-xs"
-                      >
-                        Cerrar aviso
-                      </Button>
                     </div>
-                  </div>
-                )}
-
-                {/* Botones de Acción Reversibles */}
-                <div className="pt-2 flex flex-wrap items-center justify-end gap-2">
-                  {pedidoDetalle.estado === "pendiente_verificacion" && (
-                    <>
-                      <Button
-                        size="sm"
-                        onClick={() => cambiarEstado(pedidoDetalle.id, "verificado")}
-                        className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-sm text-xs font-semibold shadow-xs"
-                      >
-                        <Check className="h-3.5 w-3.5 mr-1" />
-                        Verificar Pago
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setMostrarErrorPago((prev) => !prev)}
-                        className="text-amber-800 hover:text-amber-950 hover:bg-amber-50 border-amber-300 rounded-sm text-xs font-medium"
-                        title="Enviar WhatsApp indicando inconsistencia bancaria"
-                      >
-                        <AlertTriangle className="h-3.5 w-3.5 mr-1 text-amber-600" />
-                        <span>Datos de pago erróneos</span>
-                      </Button>
-                    </>
                   )}
+                </div>
+              </div>
 
-                  {pedidoDetalle.estado === "verificado" && (
-                    <>
-                      <Button
-                        size="sm"
-                        onClick={() => cambiarEstado(pedidoDetalle.id, "entregado")}
-                        className="bg-blue-600 hover:bg-blue-700 text-white rounded-sm text-xs font-semibold shadow-xs"
-                      >
-                        Marcar como Entregado
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => cambiarEstado(pedidoDetalle.id, "pendiente_verificacion")}
-                        className="text-amber-800 hover:text-amber-950 hover:bg-amber-50 border-amber-300 rounded-sm text-xs font-medium"
-                        title="Deshacer si se verificó por error"
-                      >
-                        <RotateCcw className="h-3.5 w-3.5 mr-1" />
-                        Revertir a Pendiente
-                      </Button>
-                    </>
-                  )}
-
-                  {pedidoDetalle.estado === "entregado" && (
+              {/* Botones de Acción al Pie */}
+              <div className="pt-2 border-t border-slate-200 flex flex-wrap items-center justify-end gap-2">
+                {pedidoDetalle.estado === "pendiente_verificacion" && (
+                  <>
                     <Button
-                      variant="outline"
                       size="sm"
                       onClick={() => cambiarEstado(pedidoDetalle.id, "verificado")}
-                      className="text-slate-700 hover:text-slate-900 hover:bg-slate-100 border-slate-300 rounded-sm text-xs font-medium"
-                      title="Reabrir si se marcó como entregado por error"
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-sm text-xs font-semibold shadow-xs"
                     >
-                      <RotateCcw className="h-3.5 w-3.5 mr-1" />
-                      Revertir a Verificado
+                      <Check className="h-3.5 w-3.5 mr-1" />
+                      Verificar Pago
                     </Button>
-                  )}
-
-                  {pedidoDetalle.estado === "cancelado" && (
                     <Button
+                      type="button"
+                      variant="outline"
                       size="sm"
-                      onClick={() => cambiarEstado(pedidoDetalle.id, "pendiente_verificacion")}
-                      className="bg-amber-600 hover:bg-amber-700 text-white rounded-sm text-xs font-semibold shadow-xs"
+                      onClick={async () => {
+                        await cambiarEstado(pedidoDetalle.id, "cancelado", "Pago no comprobado (comprobante erróneo)");
+                        if (typeof window !== "undefined") {
+                          window.open(getPedidoPagoErroneoWhatsAppUrl(pedidoDetalle), "_blank");
+                        }
+                      }}
+                      className="text-amber-800 hover:text-amber-950 hover:bg-amber-50 border-amber-300 rounded-sm text-xs font-medium"
+                      title="Cancela la compra debido a comprobante erróneo, devuelve el stock y abre WhatsApp"
                     >
-                      <RotateCcw className="h-3.5 w-3.5 mr-1" />
-                      Reactivar Orden
+                      <AlertTriangle className="h-3.5 w-3.5 mr-1 text-amber-600" />
+                      <span>Datos de pago erróneos</span>
                     </Button>
-                  )}
-
-                  {pedidoDetalle.estado !== "cancelado" && (
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => cambiarEstado(pedidoDetalle.id, "cancelado")}
+                      onClick={() => cambiarEstado(pedidoDetalle.id, "cancelado", "Cancelado por el administrador")}
                       className="text-rose-700 hover:text-rose-900 hover:bg-rose-50 border-rose-300 rounded-sm text-xs font-medium"
                     >
                       <X className="h-3.5 w-3.5 mr-1" />
                       Cancelar Orden
                     </Button>
-                  )}
-                </div>
+                  </>
+                )}
+
+                {pedidoDetalle.estado === "verificado" && (
+                  <>
+                    <Button
+                      size="sm"
+                      onClick={() => cambiarEstado(pedidoDetalle.id, "entregado")}
+                      className="bg-blue-600 hover:bg-blue-700 text-white rounded-sm text-xs font-semibold shadow-xs"
+                    >
+                      Marcar como Entregado
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => cambiarEstado(pedidoDetalle.id, "pendiente_verificacion")}
+                      className="text-amber-800 hover:text-amber-950 hover:bg-amber-50 border-amber-300 rounded-sm text-xs font-medium"
+                      title="Deshacer si se verificó por error"
+                    >
+                      <RotateCcw className="h-3.5 w-3.5 mr-1" />
+                      Revertir a Pendiente
+                    </Button>
+                  </>
+                )}
+
+                {pedidoDetalle.estado === "entregado" && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => cambiarEstado(pedidoDetalle.id, "verificado")}
+                    className="text-slate-700 hover:text-slate-900 hover:bg-slate-100 border-slate-300 rounded-sm text-xs font-medium"
+                    title="Reabrir si se marcó como entregado por error"
+                  >
+                    <RotateCcw className="h-3.5 w-3.5 mr-1" />
+                    Revertir a Verificado
+                  </Button>
+                )}
+
+                {pedidoDetalle.estado === "cancelado" && (
+                  <Button
+                    size="sm"
+                    onClick={() => cambiarEstado(pedidoDetalle.id, "pendiente_verificacion")}
+                    className="bg-amber-600 hover:bg-amber-700 text-white rounded-sm text-xs font-semibold shadow-xs"
+                    title="Reactivar orden (descontará nuevamente el stock de inventario)"
+                  >
+                    <RotateCcw className="h-3.5 w-3.5 mr-1" />
+                    Reactivar Orden
+                  </Button>
+                )}
               </div>
-            </div>
+              </div>
           </DialogContent>
         </Dialog>
       )}

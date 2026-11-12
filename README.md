@@ -8,7 +8,7 @@ Plataforma web oficial, tienda en línea, simulador de colorimetría con Intelig
 
 ### 1. Tienda Online & Catálogo Boutique (`/catalogo`, `/checkout`)
 * **Catálogo Reactivo:** Filtros por categoría y marcas especializadas en método curly, buscador instantáneo y vista detallada de productos.
-* **Carrito Deslizante (Cart Drawer):** Gestión interactiva de cantidades, cálculo dinámico de totales e impuestos en formato venezolano `X,XX$`.
+* **Carrito Deslizante (Cart Drawer):** Gestión interactiva de cantidades, cálculo dinámico de totales en formato venezolano `X,XX$`.
 * **Checkout & Pago Móvil:** Pasarela adaptada a Venezuela con soporte para Pago Móvil (bancos nacionales, número de referencia, teléfono emisor) y pago en efectivo.
 * **Integración Cashea:** Indicadores visuales de financiamiento en cuotas sin interés.
 
@@ -25,10 +25,14 @@ Plataforma web oficial, tienda en línea, simulador de colorimetría con Intelig
 * **Paleta Realista de Salón:** 7 tonos profesionales (Rubio Miel, Castaño Caramelo, Chocolate Profundo, Cobrizo Natural, Borgoña Vino, Negro Azabache y Rubio Cenizo), respetando la textura tridimensional y el brillo de los rizos.
 
 ### 4. Panel de Administración Integral (`/admin`)
-* **Dashboard de Métricas:** KPIs en tiempo real de ingresos totales, pedidos completados, citas del día y tasa de ocupación de agenda.
-* **Gestión de Citas (`/admin/citas`):** Visualización de citas en agenda, validación de referencias de Pago Móvil, cambio de estados (*pendiente*, *confirmada*, *completada*, *cancelada*), cancelación justificada y contacto directo por WhatsApp al cliente.
-* **Gestión de Pedidos (`/admin/pedidos`):** Verificación de pagos de transferencias/pago móvil, control de despacho (*por verificar*, *verificado*, *entregado*, *cancelado*) y ficha detallada de entrega.
-* **Gestión de Productos (`/admin/productos`):** Creación, edición, control de inventario/stock, subida de imágenes y precio en divisas.
+* **Dashboard Visual de Inteligencia de Negocio:**
+  * Flujo de facturación bruta y ganancia neta en tienda por día.
+  * Gráfica comparativa del **Balance Global del Negocio** (Servicios en Salón vs Productos en Tienda con desglose de abonos 20% vs cobro 80%).
+  * Gráfica de **Ocupación Semanal del Salón** con detección automática del día pico de mayor demanda.
+  * Gráfica de **Salud y Capacidad de Inventario por Categoría** con valoración en anaquel.
+* **Gestión de Citas (`/admin/citas`):** Visualización paginada (20 por página), modal de detalle adaptativo en 2 columnas sin scroll, verificación de abonos, cancelación justificada con notificación por WhatsApp y gestión de estados (*pendiente*, *confirmada*, *completada*, *cancelada*).
+* **Gestión de Pedidos (`/admin/pedidos`):** Control paginado de compras (20 por página), comprobación de referencias de Pago Móvil, control de despacho (*por verificar*, *verificado*, *entregado*, *cancelado*) y retorno automático de productos al stock si el pago es erróneo.
+* **Gestión de Productos (`/admin/productos`):** Creación, edición, control de inventario/stock, subida de imágenes y costos.
 * **Gestión de Empleados & Horarios (`/admin/empleados`):** Registro de estilistas, asignación de servicios y control de inoperatividad (vacaciones, reposos médicos o ausencias en fechas específicas para bloquear su agenda automáticamente).
 * **Gestión de Usuarios (`/admin/usuarios`):** Control de acceso por roles (*admin*, *empleado*, *cliente*).
 
@@ -39,10 +43,10 @@ Plataforma web oficial, tienda en línea, simulador de colorimetría con Intelig
 | Capa | Tecnologías |
 | :--- | :--- |
 | **Framework** | Next.js 14 (App Router) + React 18 + TypeScript 5 |
+| **Base de Datos** | **PostgreSQL** alojado en la nube en **Supabase** + **Prisma ORM 5.22** (con tolerancia a fallos offline) |
 | **Estilos & UI** | Tailwind CSS + Radix UI / Shadcn UI + Lucide Icons |
 | **Estado Global** | Zustand (carrito, citas, autenticación, simulador) |
-| **Base de Datos** | Base de datos persistente en JSON (`data/database.json`) con transacciones seguras en Node.js |
-| **Inteligencia Artificial** | Google MediaPipe Vision Tasks (`@mediapipe/tasks-vision`) + WebAssembly + TFLite |
+| **Inteligencia Artificial** | Google MediaPipe Vision Tasks (`@mediapipe/tasks-vision`) + WebAssembly (WASM) + TFLite |
 | **Validación de Datos** | Zod + React Hook Form |
 | **Procesamiento de Imágenes** | Sharp para optimización estática y conversión a WebP |
 
@@ -70,40 +74,56 @@ Para demostraciones y pruebas del sistema, se encuentran pre-configuradas las si
 
 ---
 
-## 🚀 Instalación y Puesta en Marcha
+## 🚀 Instalación y Puesta en Marcha en Otra Computadora
 
-### Requisitos Previos
-* **Node.js:** v18.18.0 o superior
-* **npm:** v9.0 o superior
+Si descargas o clonas este proyecto en otra laptop o PC, sigue estos pasos:
 
-### Pasos de Configuración
+### 1. Requisitos Previos
+* **Node.js:** v18.18.0 o superior (recomendado v20+ LTS).
+* **npm:** v9.0 o superior.
 
-1. **Clonar el repositorio:**
-   ```bash
-   git clone https://github.com/Magliogarcia/SISTEMA-WEB-XIORIZOS.git
-   cd SISTEMA-WEB-XIORIZOS
-   ```
+### 2. Clonar el repositorio
+```bash
+git clone https://github.com/Magliogarcia/SISTEMA-WEB-XIORIZOS.git
+cd SISTEMA-WEB-XIORIZOS
+```
 
-2. **Instalar dependencias:**
-   ```bash
-   npm install --legacy-peer-deps
-   ```
+### 3. Instalar dependencias
+```bash
+npm install --legacy-peer-deps
+```
 
-3. **Ejecutar el servidor en modo desarrollo:**
-   ```bash
-   npm run dev
-   ```
+### 4. Configurar las Variables de Entorno (`.env`)
+Crea un archivo llamado `.env` en la raíz del proyecto y coloca las credenciales de conexión a la base de datos PostgreSQL de Supabase (toma como referencia el archivo `.env.example`):
 
-4. **Acceder a la aplicación:**
-   * Tienda y sitio público: [http://localhost:3000](http://localhost:3000)
-   * Panel de Administración: [http://localhost:3000/admin](http://localhost:3000/admin)
-   * Simulador de Colorimetría: [http://localhost:3000/simulador](http://localhost:3000/simulador)
+```env
+DATABASE_URL="postgresql://postgres.uwkjwzzgjxckiutnaoiu:TU_CONTRASEÑA@aws-1-us-east-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
+DIRECT_URL="postgresql://postgres.uwkjwzzgjxckiutnaoiu:TU_CONTRASEÑA@aws-1-us-east-1.pooler.supabase.com:5432/postgres"
+```
+
+> **💡 Nota importante de portabilidad:**  
+> Gracias a que la base de datos está centralizada en la nube en **Supabase**, cualquier cita agendada o producto modificado desde una computadora se sincronizará automáticamente en tiempo real en cualquier otra máquina donde abras el sistema. Además, el sistema cuenta con respaldo local para seguir funcionando incluso sin conexión a internet.
+
+### 5. Iniciar en modo desarrollo
+```bash
+npm run dev
+```
+
+* **Sitio público:** [http://localhost:3000](http://localhost:3000)
+* **Panel Administrativo:** [http://localhost:3000/admin](http://localhost:3000/admin)
+* **Simulador de Colorimetría:** [http://localhost:3000/simulador](http://localhost:3000/simulador)
+
+---
+
+## 🗄️ Comandos Útiles de Base de Datos (Prisma)
+
+* `npm run db:push` — Sincroniza y crea las tablas del esquema en PostgreSQL.
+* `npm run db:seed` — Vuelca todo el catálogo, usuarios y registros históricos hacia PostgreSQL.
+* `npm run db:studio` — Abre una interfaz visual en el navegador para explorar y editar tus tablas directamente.
 
 ---
 
 ## 🏗️ Compilación para Producción
-
-Para validar tipos TypeScript y compilar los bundles de producción optimizados:
 
 ```bash
 npm run build
