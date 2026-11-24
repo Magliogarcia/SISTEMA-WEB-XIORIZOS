@@ -7,3 +7,17 @@ node_modules
 next-env.d.ts
 data/
 .agents/
+
+# Documentos de grado y tesis
+Trabajo de grado/
+Trabajo de grado*
+Trabajo_de_grado/
+DEFENSA_TESIS*
+*.docx
+*.doc
+*.pdf
+
+# Scripts y archivos temporales
+*.py
+*.bak
+*.tmp
