@@ -654,12 +654,9 @@ export default function AdminCitasPage() {
                       size="sm"
                       onClick={async () => {
                         await cambiarEstado(citaDetalle.id, "cancelada", "Pago no comprobado (datos bancarios erróneos)");
-                        if (typeof window !== "undefined") {
-                          window.open(getCitaPagoErroneoWhatsAppUrl(citaDetalle), "_blank");
-                        }
                       }}
                       className="text-amber-800 hover:text-amber-950 hover:bg-amber-50 border-amber-300 rounded-sm text-xs font-medium"
-                      title="Cancela la cita debido a pago no comprobado y abre WhatsApp para notificar"
+                      title="Cancela la cita debido a pago no comprobado y muestra la opción de notificar por WhatsApp"
                     >
                       <AlertTriangle className="h-3.5 w-3.5 mr-1 text-amber-600" />
                       <span>Datos de pago erróneos</span>
@@ -736,16 +733,41 @@ export default function AdminCitasPage() {
                   </Button>
                 )}
 
-                {esAdmin && citaDetalle.estado === "cancelada" && (
-                  <Button
-                    size="sm"
-                    onClick={() => cambiarEstado(citaDetalle.id, "confirmada")}
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-sm text-xs font-semibold shadow-xs"
-                    title="Deshacer cancelación"
-                  >
-                    <RotateCcw className="h-3.5 w-3.5 mr-1" />
-                    Reactivar Cita
-                  </Button>
+                {citaDetalle.estado === "cancelada" && (
+                  <>
+                    <a
+                      href={
+                        citaDetalle.motivoCancelacion?.includes("Pago no comprobado") || citaDetalle.motivoCancelacion?.includes("erróneo")
+                          ? getCitaPagoErroneoWhatsAppUrl(citaDetalle)
+                          : getCitaWhatsAppUrl(citaDetalle)
+                      }
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => marcarNotificadoWhatsApp(citaDetalle.id)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 shadow-xs transition-colors"
+                      title="Enviar mensaje explicativo por WhatsApp al cliente"
+                    >
+                      <WhatsAppIcon className="h-3.5 w-3.5 text-white" />
+                      <span>
+                        {citaDetalle.motivoCancelacion?.includes("Pago no comprobado") || citaDetalle.motivoCancelacion?.includes("erróneo")
+                          ? "Notificar Pago Erróneo por WhatsApp"
+                          : "Enviar WhatsApp al Cliente"}
+                      </span>
+                    </a>
+
+                    {esAdmin && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => cambiarEstado(citaDetalle.id, "confirmada")}
+                        className="text-slate-700 hover:text-slate-900 hover:bg-slate-100 border-slate-300 rounded-sm text-xs font-medium"
+                        title="Deshacer cancelación y volver a confirmar la cita"
+                      >
+                        <RotateCcw className="h-3.5 w-3.5 mr-1" />
+                        Reactivar Cita
+                      </Button>
+                    )}
+                  </>
                 )}
               </div>
             </div>

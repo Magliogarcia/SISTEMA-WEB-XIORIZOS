@@ -14,13 +14,27 @@ async function main() {
   console.log("=================================================");
 
   const dbPath = path.join(__dirname, "..", "data", "database.json");
-  if (!fs.existsSync(dbPath)) {
-    console.error("❌ No se encontró data/database.json");
-    process.exit(1);
+  let db = null;
+  if (fs.existsSync(dbPath)) {
+    const raw = fs.readFileSync(dbPath, "utf8");
+    db = JSON.parse(raw);
+  } else {
+    console.log("ℹ️ Archivo local data/database.json no encontrado (modo PostgreSQL activo).");
+    console.log("Verificando si la base de datos PostgreSQL ya contiene registros...");
+    const count = await prisma.product.count();
+    if (count > 0) {
+      console.log(`✅ La base de datos ya contiene ${count} productos y datos migrados en Supabase.`);
+      return;
+    }
+    console.log("Creando registros base iniciales...");
+    db = {
+      users: [],
+      appointments: [],
+      products: [],
+      orders: [],
+      employees: [],
+    };
   }
-
-  const raw = fs.readFileSync(dbPath, "utf8");
-  const db = JSON.parse(raw);
 
   // 1. Migrar Productos
   console.log(`📦 Migrando ${db.products.length} productos...`);

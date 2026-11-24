@@ -18,6 +18,7 @@ import {
   CreditCard,
   Check,
   RotateCcw,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -28,6 +29,7 @@ const menuItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/citas", label: "Citas Agendadas", icon: CalendarCheck },
   { href: "/admin/pedidos", label: "Pedidos y Pagos", icon: ShoppingCart },
+  { href: "/admin/servicios", label: "Servicios y Tarifas", icon: Sparkles },
   { href: "/admin/productos", label: "Productos / Catálogo", icon: Package },
   { href: "/admin/empleados", label: "Personal y Equipo", icon: UserCheck },
 ];
@@ -118,16 +120,16 @@ export function AdminTopbar() {
       .toUpperCase() ?? "AD";
 
   return (
-    <header className="flex h-16 items-center justify-between border-b border-slate-200 bg-white px-4 md:px-6 sticky top-0 z-30 font-sans">
+    <header className="flex h-16 items-center justify-between border-b border-slate-200 bg-white px-4 md:px-6 sticky top-0 z-30 font-sans shadow-xs">
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger asChild>
-          <Button variant="ghost" size="icon" className="md:hidden">
+          <Button variant="ghost" size="icon" className="md:hidden text-[#5C4536]">
             <Menu className="h-5 w-5" />
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="w-64 p-0">
-          <SheetHeader className="border-b border-border p-4">
-            <SheetTitle className="text-left font-bold text-primary">Xiorizos Admin</SheetTitle>
+        <SheetContent side="left" className="w-64 p-0 bg-[#FDFBF7] border-r border-[#E8DCD1]">
+          <SheetHeader className="border-b border-[#E8DCD1] p-4 bg-gradient-to-r from-[#2D180F] to-[#452719]">
+            <SheetTitle className="text-left font-bold text-[#FFDBC7]">Xiorizos Admin</SheetTitle>
           </SheetHeader>
           <nav className="space-y-1 p-3">
             {visibleMenuItems.map((item) => {
@@ -137,9 +139,9 @@ export function AdminTopbar() {
                   key={item.href}
                   href={item.href}
                   onClick={() => setOpen(false)}
-                  className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100"
+                  className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-[#5C4536] hover:bg-[#F3EBE1] hover:text-[#3B1F0E]"
                 >
-                  <Icon className="h-4 w-4" />
+                  <Icon className="h-4 w-4 text-[#855230]" />
                   <span>{item.label}</span>
                 </Link>
               );
@@ -149,8 +151,9 @@ export function AdminTopbar() {
       </Sheet>
 
       <div className="hidden md:flex items-center gap-2">
-        <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-          Estudio Xiorizos &bull; Administración
+        <span className="text-xs font-semibold uppercase tracking-wider text-[#855230] flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-full bg-[#855230] animate-pulse" />
+          Estudio Xiorizos &bull; Administración Central
         </span>
       </div>
 
@@ -160,13 +163,13 @@ export function AdminTopbar() {
           <button
             type="button"
             onClick={toggleNotifMenu}
-            className="relative flex h-9 w-9 items-center justify-center rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 transition-colors cursor-pointer"
+            className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-[#E8DCD1] bg-white hover:bg-[#F6EEE7] text-[#5C4536] transition-colors cursor-pointer shadow-xs"
             aria-label="Abrir panel de notificaciones"
             title="Notificaciones operativas en tiempo real"
           >
             <Bell className="h-4 w-4" />
             {totalNotificaciones > 0 && (
-              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-600 text-[10px] font-bold text-white shadow-sm animate-in zoom-in-50">
+              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#855230] text-[10px] font-bold text-white shadow-sm animate-in zoom-in-50">
                 {totalNotificaciones}
               </span>
             )}

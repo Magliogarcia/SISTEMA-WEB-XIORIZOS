@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { readDB, writeDB, DBAppointment } from "@/lib/db";
+import { prisma } from "@/lib/prisma";
+import { formatAppointment, DBAppointment } from "@/lib/db";
 import {
   findConflictingAppointment,
   getServiceDurationByName,
@@ -8,8 +9,11 @@ import {
 // GET /api/citas - Listar citas (para panel admin y disponibilidad de agenda)
 export async function GET() {
   try {
-    const db = readDB();
-    return NextResponse.json({ success: true, citas: db.appointments });
+    const rawAppointments = await prisma.appointment.findMany({
+      orderBy: { creadoEn: "desc" },
+    });
+    const citas = rawAppointments.map(formatAppointment);
+    return NextResponse.json({ success: true, citas });
   } catch (error) {
     console.error("Error in GET /api/citas:", error);
     return NextResponse.json({ error: "Error al obtener citas" }, { status: 500 });
@@ -50,7 +54,6 @@ export async function POST(req: Request) {
       }
     }
 
-    const db = readDB();
     const duracionFinal = getServiceDurationByName(servicioNombre, Number(duracionMin));
 
     // Cálculo del 20% de reserva y 80% restante en salón
@@ -58,13 +61,23 @@ export async function POST(req: Request) {
     const montoReserva = Math.round(precioTotal * 0.20 * 100) / 100;
     const montoRestante = Math.round((precioTotal - montoReserva) * 100) / 100;
 
+    // Obtener citas existentes en esa fecha con ese profesional para validar solapamiento
+    const existingRaw = await prisma.appointment.findMany({
+      where: {
+        fecha,
+        profesionalNombre,
+        estado: { not: "cancelada" },
+      },
+    });
+    const existingAppointments = existingRaw.map(formatAppointment);
+
     // Verificación de solapamiento en el servidor
     const conflicto = findConflictingAppointment({
       slot: hora,
       serviceDurationMin: duracionFinal,
       targetDate: fecha,
       professionalName: profesionalNombre,
-      existingAppointments: db.appointments,
+      existingAppointments,
     });
 
     if (conflicto) {
@@ -79,28 +92,31 @@ export async function POST(req: Request) {
       );
     }
 
-    const nuevaCita: DBAppointment = {
-      id: `cita-${Date.now()}`,
-      clienteNombre: clienteNombre.trim(),
-      clienteTelefono: clienteTelefono.trim(),
-      servicioNombre,
-      servicioPrecio: precioTotal,
-      montoReserva,
-      montoRestante,
-      metodoPago: metodoPago === "pagomovil" ? "pagomovil" : "efectivo",
-      pagoMovil: metodoPago === "pagomovil" ? pagoMovil : undefined,
-      duracionMin: duracionFinal,
-      profesionalNombre,
-      fecha,
-      hora,
-      notas: notas ? notas.trim() : "",
-      estado: "pendiente",
-      creadoEn: new Date().toISOString(),
-    };
+    const id = `cita-${Date.now()}`;
+    const created = await prisma.appointment.create({
+      data: {
+        id,
+        clienteNombre: clienteNombre.trim(),
+        clienteTelefono: clienteTelefono.trim(),
+        servicioNombre,
+        servicioPrecio: precioTotal,
+        montoReserva,
+        montoRestante,
+        metodoPago: metodoPago === "pagomovil" ? "pagomovil" : "efectivo",
+        pagoMovilBanco: metodoPago === "pagomovil" ? (pagoMovil?.banco || null) : null,
+        pagoMovilReferencia: metodoPago === "pagomovil" ? (pagoMovil?.referencia || null) : null,
+        pagoMovilTelefonoEmisor: metodoPago === "pagomovil" ? (pagoMovil?.telefonoEmisor || null) : null,
+        notificadoWhatsApp: false,
+        duracionMin: duracionFinal,
+        profesionalNombre,
+        fecha,
+        hora,
+        notas: notas ? notas.trim() : null,
+        estado: "pendiente",
+      },
+    });
 
-    db.appointments.unshift(nuevaCita);
-    writeDB(db);
-
+    const nuevaCita = formatAppointment(created);
     return NextResponse.json({ success: true, cita: nuevaCita });
   } catch (error) {
     console.error("Error in POST /api/citas:", error);
@@ -118,27 +134,19 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ error: "ID requerido" }, { status: 400 });
     }
 
-    const db = readDB();
-    const cita = db.appointments.find((c) => c.id === id);
-    if (!cita) {
-      return NextResponse.json({ error: "Cita no encontrada" }, { status: 404 });
-    }
+    const dataToUpdate: any = {};
+    if (estado !== undefined) dataToUpdate.estado = estado;
+    if (motivoCancelacion !== undefined) dataToUpdate.motivoCancelacion = motivoCancelacion;
+    if (notificadoWhatsApp !== undefined) dataToUpdate.notificadoWhatsApp = notificadoWhatsApp;
 
-    if (estado !== undefined) {
-      cita.estado = estado;
-    }
-    if (motivoCancelacion !== undefined) {
-      cita.motivoCancelacion = motivoCancelacion;
-    }
-    if (notificadoWhatsApp !== undefined) {
-      cita.notificadoWhatsApp = notificadoWhatsApp;
-    }
-    writeDB(db);
+    const updated = await prisma.appointment.update({
+      where: { id },
+      data: dataToUpdate,
+    });
 
-    return NextResponse.json({ success: true, cita });
+    return NextResponse.json({ success: true, cita: formatAppointment(updated) });
   } catch (error) {
     console.error("Error in PATCH /api/citas:", error);
     return NextResponse.json({ error: "Error al actualizar cita" }, { status: 500 });
   }
 }
-

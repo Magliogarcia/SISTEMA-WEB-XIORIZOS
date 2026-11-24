@@ -10,6 +10,7 @@ import {
   ShoppingCart,
   Users,
   UserCheck,
+  Sparkles,
   LogOut,
   ExternalLink,
 } from "lucide-react";
@@ -20,6 +21,7 @@ const menuItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/citas", label: "Citas Agendadas", icon: CalendarCheck },
   { href: "/admin/pedidos", label: "Pedidos y Pagos", icon: ShoppingCart },
+  { href: "/admin/servicios", label: "Servicios y Tarifas", icon: Sparkles },
   { href: "/admin/productos", label: "Productos / Catálogo", icon: Package },
   { href: "/admin/empleados", label: "Personal y Equipo", icon: UserCheck },
 ];
@@ -40,9 +42,9 @@ export function AdminSidebar() {
   }
 
   return (
-    <aside className="hidden w-64 shrink-0 border-r border-slate-200 bg-white md:flex md:flex-col">
-      {/* Logotipo Xiorizos Vertical Prominente */}
-      <div className="flex flex-col items-center justify-center border-b border-slate-200 p-4 bg-slate-50/50">
+    <aside className="hidden w-64 shrink-0 border-r border-[#E8DCD1] bg-[#FDFBF7] md:flex md:flex-col shadow-[2px_0_12px_rgba(44,24,16,0.03)]">
+      {/* Logotipo Xiorizos Vertical - Cabecera Limpia */}
+      <div className="flex flex-col items-center justify-center border-b border-[#E8DCD1] p-4 bg-white">
         <Link href={esAdmin ? "/admin" : "/admin/citas"} className="flex flex-col items-center group">
           <div className="relative w-36 h-20 transition-transform group-hover:scale-105">
             <Image
@@ -54,13 +56,13 @@ export function AdminSidebar() {
               priority
             />
           </div>
-          <span className="text-[11px] font-bold uppercase tracking-wider text-secondary mt-1">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-secondary mt-1 px-3 py-0.5 rounded-full bg-[#FAF6F2] border border-[#E8DCD1]">
             {esAdmin ? "Panel de Control" : "Portal Especialista"}
           </span>
         </Link>
       </div>
 
-      <nav className="flex-1 space-y-1 px-3 py-4">
+      <nav className="flex-1 space-y-1.5 px-3 py-4">
         {visibleMenuItems.map((item) => {
           const isActive =
             item.href === "/admin" ? pathname === "/admin" : pathname.startsWith(item.href);
@@ -71,34 +73,39 @@ export function AdminSidebar() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                "group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
                 isActive
-                  ? "bg-slate-900 text-white font-semibold shadow-sm"
-                  : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                  ? "bg-gradient-to-r from-[#6E3D21] via-[#855230] to-[#9A613A] text-white font-semibold shadow-md shadow-[#6E3D21]/25"
+                  : "text-[#5C4536] hover:bg-[#F3EBE1] hover:text-[#3B1F0E]"
               )}
             >
-              <Icon className="h-4 w-4 shrink-0" />
+              <Icon
+                className={cn(
+                  "h-4 w-4 shrink-0 transition-colors",
+                  isActive ? "text-[#FFDBC7]" : "text-[#855230]/75 group-hover:text-[#855230]"
+                )}
+              />
               <span>{item.label}</span>
             </Link>
           );
         })}
 
-        <div className="pt-4 border-t border-slate-200 mt-4">
+        <div className="pt-4 border-t border-[#E8DCD1] mt-4">
           <Link
             href="/"
             target="_blank"
-            className="flex items-center gap-3 rounded-md px-3 py-2 text-xs font-medium text-slate-500 hover:text-primary hover:bg-slate-50 transition-colors"
+            className="flex items-center gap-3 rounded-lg px-3 py-2 text-xs font-medium text-[#7D5C46] hover:text-[#3B1F0E] hover:bg-[#F3EBE1] transition-colors"
           >
-            <ExternalLink className="h-4 w-4" />
+            <ExternalLink className="h-4 w-4 text-[#855230]" />
             <span>Ver tienda pública</span>
           </Link>
         </div>
       </nav>
 
-      <div className="border-t border-slate-200 p-3">
+      <div className="border-t border-[#E8DCD1] p-3 bg-[#FAF6F2]">
         <button
           onClick={handleLogout}
-          className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-rose-50 hover:text-rose-700 cursor-pointer"
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-[#7D5C46] transition-colors hover:bg-rose-50 hover:text-rose-700 cursor-pointer"
         >
           <LogOut className="h-4 w-4" />
           <span>Cerrar sesión</span>

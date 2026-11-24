@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { ShieldCheck, Lock, User, AlertCircle, ArrowLeft } from "lucide-react";
+import { ShieldCheck, Lock, User, AlertCircle, ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,6 +16,7 @@ export default function AdminLoginPage() {
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [mostrarPassword, setMostrarPassword] = useState(false);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -97,24 +98,41 @@ export default function AdminLoginPage() {
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="adminPass" className="text-xs font-semibold">
+            <Label htmlFor="adminPass" className="text-xs font-semibold text-foreground">
               Contraseña
             </Label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 id="adminPass"
-                type="password"
+                type={mostrarPassword ? "text" : "password"}
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="pl-9"
+                className="pl-9 pr-10"
               />
+              <button
+                type="button"
+                onClick={() => setMostrarPassword(!mostrarPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5 focus:outline-none transition-colors"
+                title={mostrarPassword ? "Ocultar contraseña" : "Ver contraseña"}
+              >
+                {mostrarPassword ? (
+                  <EyeOff className="h-4 w-4 text-secondary" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </button>
             </div>
           </div>
 
-          <Button type="submit" size="lg" className="w-full font-semibold" disabled={cargando}>
+          <Button
+            type="submit"
+            size="lg"
+            className="w-full font-semibold bg-gradient-to-r from-[#6e3d21] to-[#8d542f] hover:from-[#5c3016] hover:to-[#7a4523] text-white shadow-md shadow-[#6e3d21]/25 transition-all"
+            disabled={cargando}
+          >
             {cargando ? "Accediendo al panel..." : "Ingresar al Panel"}
           </Button>
         </form>

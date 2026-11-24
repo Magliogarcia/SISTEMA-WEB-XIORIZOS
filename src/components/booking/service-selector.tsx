@@ -14,13 +14,25 @@ export function ServiceSelector() {
   const searchParams = useSearchParams();
   const serviceParam = searchParams.get("servicio");
   const [empleados, setEmpleados] = useState<any[]>([]);
+  const [serviciosLista, setServiciosLista] = useState<any[]>(mockServices);
 
   useEffect(() => {
+    // Cargar empleados para verificar disponibilidad médica
     fetch("/api/empleados")
       .then((r) => r.json())
       .then((d) => {
         if (d.success && Array.isArray(d.employees)) {
           setEmpleados(d.employees);
+        }
+      })
+      .catch(() => {});
+
+    // Cargar servicios en vivo desde la base de datos (con precios y servicios actualizados por el admin)
+    fetch("/api/servicios")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.success && Array.isArray(d.servicios) && d.servicios.length > 0) {
+          setServiciosLista(d.servicios);
         }
       })
       .catch(() => {});
@@ -66,7 +78,7 @@ export function ServiceSelector() {
 
   useEffect(() => {
     if (serviceParam && !servicio && empleados.length > 0) {
-      const match = mockServices.find((s) => s.id === serviceParam);
+      const match = serviciosLista.find((s) => s.id === serviceParam);
       if (match) {
         const { disponible } = checkDisponibilidad(match.id);
         if (disponible) {
@@ -74,7 +86,7 @@ export function ServiceSelector() {
         }
       }
     }
-  }, [serviceParam, servicio, setServicio, empleados, checkDisponibilidad]);
+  }, [serviceParam, servicio, setServicio, empleados, serviciosLista, checkDisponibilidad]);
 
   return (
     <div className="space-y-6">
@@ -90,7 +102,7 @@ export function ServiceSelector() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {mockServices.map((s) => {
+        {serviciosLista.map((s) => {
           const isSelected = servicio?.id === s.id;
           const { disponible, motivo } = checkDisponibilidad(s.id);
 

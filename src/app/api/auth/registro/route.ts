@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { readDB, writeDB, DBUser } from "@/lib/db";
+import bcrypt from "bcryptjs";
+import { prisma } from "@/lib/prisma";
 import { validatePassword } from "@/lib/validation";
 
 export async function POST(req: Request) {
@@ -24,10 +25,12 @@ export async function POST(req: Request) {
     }
 
     const cleanEmail = email.trim().toLowerCase();
-    const db = readDB();
 
     // Comprobar si ya existe un usuario con ese correo
-    const existing = db.users.find((u) => u.email.toLowerCase() === cleanEmail);
+    const existing = await prisma.user.findFirst({
+      where: { email: { equals: cleanEmail, mode: "insensitive" } },
+    });
+
     if (existing) {
       return NextResponse.json(
         { error: "Ya existe una cuenta registrada con este correo electrónico." },
@@ -35,19 +38,22 @@ export async function POST(req: Request) {
       );
     }
 
-    const newUser: DBUser = {
-      id: `u-${Date.now()}`,
-      username: cleanEmail.split("@")[0],
-      nombre: nombre.trim(),
-      email: cleanEmail,
-      password: password.trim(),
-      rol: "cliente",
-      telefono: telefono ? telefono.trim() : undefined,
-      creadoEn: new Date().toISOString(),
-    };
+    // Hasheo criptográfico unidireccional con bcrypt (salt rounds = 10)
+    const hashedPassword = bcrypt.hashSync(password.trim(), 10);
+    const userId = `u-${Date.now()}`;
+    const username = cleanEmail.split("@")[0];
 
-    db.users.push(newUser);
-    writeDB(db);
+    const newUser = await prisma.user.create({
+      data: {
+        id: userId,
+        username,
+        nombre: nombre.trim(),
+        email: cleanEmail,
+        password: hashedPassword,
+        rol: "cliente",
+        telefono: telefono ? telefono.trim() : null,
+      },
+    });
 
     return NextResponse.json({
       success: true,
@@ -57,12 +63,14 @@ export async function POST(req: Request) {
         nombre: newUser.nombre,
         email: newUser.email,
         rol: newUser.rol,
-        telefono: newUser.telefono,
+        telefono: newUser.telefono || undefined,
       },
     });
   } catch (error) {
-    console.error("Error in registro route:", error);
-    return NextResponse.json({ error: "Error en el servidor al registrar cuenta." }, { status: 500 });
+    console.error("Error in registration route:", error);
+    return NextResponse.json(
+      { error: "Error en el servidor al procesar el registro." },
+      { status: 500 }
+    );
   }
 }
-

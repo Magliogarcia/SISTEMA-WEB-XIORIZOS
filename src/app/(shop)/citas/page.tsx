@@ -18,12 +18,19 @@ const pasos = [
 ];
 
 function CitasWizardContent() {
-  const { step, servicio, profesional, fecha, hora, prevStep, nextStep, setStep } = useBookingStore();
+  const { step, servicio, profesional, fecha, hora, prevStep, nextStep, setStep, reset } = useBookingStore();
 
   // Scroll suave automático a la parte superior cada vez que se avanza o cambia de paso
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [step]);
+
+  // Si entra a citas sin servicio o con borrador incompleto, regresar al paso 1
+  useEffect(() => {
+    if (!servicio && step > 1) {
+      setStep(1);
+    }
+  }, [servicio, step, setStep]);
 
   // Comprueba qué pasos están desbloqueados según la información seleccionada
   function isStepClickable(numero: number): boolean {
@@ -48,16 +55,30 @@ function CitasWizardContent() {
       <link rel="preload" as="image" href="/images/especialista_en_color_y_curvaturas_Axel_Alvarado.webp" />
       <link rel="preload" as="image" href="/images/especialista_unas_yakeline_daboin.webp" />
 
-      <div className="mb-8">
-        <span className="text-xs uppercase tracking-wider font-semibold text-secondary bg-secondary/10 px-3 py-1 rounded-full">
-          Estudio Xiorizos Naguanagua
-        </span>
-        <h1 className="mt-2 font-headline-lg text-3xl sm:text-4xl font-bold text-primary">
-          Agenda tu Experiencia
-        </h1>
-        <p className="mt-1 text-sm text-on-surface-variant">
-          Horario de atención: Martes a Sábado de 8:30 a.m. a 5:30 p.m. Domingos y lunes cerrado.
-        </p>
+      <div className="mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div>
+          <span className="text-xs uppercase tracking-wider font-semibold text-secondary bg-secondary/10 px-3 py-1 rounded-full">
+            Estudio Xiorizos Naguanagua
+          </span>
+          <h1 className="mt-2 font-headline-lg text-3xl sm:text-4xl font-bold text-primary">
+            Agenda tu Experiencia
+          </h1>
+          <p className="mt-1 text-sm text-on-surface-variant">
+            Horario de atención: Martes a Sábado de 8:30 a.m. a 5:30 p.m. Domingos y lunes cerrado.
+          </p>
+        </div>
+
+        {(servicio || profesional || fecha) && (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => reset()}
+            className="text-xs border-slate-200 text-slate-600 hover:text-slate-900 self-start sm:self-auto rounded-full"
+          >
+            Reiniciar reserva
+          </Button>
+        )}
       </div>
 
       {/* Stepper interactivo: permite hacer clic en pasos anteriores o desbloqueados */}

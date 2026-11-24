@@ -92,7 +92,7 @@ export function ProductCard({ product }: { product: Product }) {
             className={`h-9 px-3.5 rounded-full flex items-center gap-1.5 transition-all text-xs font-bold ${
               limiteAlcanzado
                 ? "bg-slate-200 text-slate-500 cursor-not-allowed border border-slate-300"
-                : "bg-primary hover:bg-secondary text-white shadow-md active:scale-95 cursor-pointer"
+                : "bg-secondary hover:bg-[#6E3D21] text-white shadow-md shadow-[#6E3D21]/20 active:scale-95 cursor-pointer"
             }`}
             aria-label={`Añadir ${product.nombre} al carrito`}
             title={

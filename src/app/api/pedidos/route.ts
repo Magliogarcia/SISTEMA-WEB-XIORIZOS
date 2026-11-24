@@ -1,11 +1,16 @@
 import { NextResponse } from "next/server";
-import { readDB, writeDB, DBOrder } from "@/lib/db";
+import { prisma } from "@/lib/prisma";
+import { formatOrder, DBOrder } from "@/lib/db";
 
 // GET /api/pedidos - Listar pedidos (para admin)
 export async function GET() {
   try {
-    const db = readDB();
-    return NextResponse.json({ success: true, pedidos: db.orders });
+    const rawOrders = await prisma.order.findMany({
+      include: { items: true },
+      orderBy: { creadoEn: "desc" },
+    });
+    const pedidos = rawOrders.map(formatOrder);
+    return NextResponse.json({ success: true, pedidos });
   } catch (error) {
     console.error("Error in GET /api/pedidos:", error);
     return NextResponse.json({ error: "Error al obtener pedidos" }, { status: 500 });
@@ -34,36 +39,48 @@ export async function POST(req: Request) {
       }
     }
 
-    const db = readDB();
-
-    // Descontar stock real de cada producto comprado
+    // Descontar stock real en PostgreSQL de cada producto comprado
     if (Array.isArray(items)) {
-      items.forEach((item: any) => {
+      for (const item of items) {
         const prodId = item.productId || item.product?.id || item.id;
-        const prod = db.products.find((p) => p.id === prodId);
-        if (prod) {
-          prod.stock = Math.max(0, prod.stock - (item.cantidad || 1));
+        if (prodId) {
+          await prisma.product.update({
+            where: { id: prodId },
+            data: { stock: { decrement: Number(item.cantidad || 1) } },
+          }).catch(() => {});
         }
-      });
+      }
     }
 
-    const nuevoPedido: DBOrder = {
-      id: `ORD-2026-${Math.floor(1000 + Math.random() * 9000)}`,
-      clienteNombre: clienteNombre.trim(),
-      clienteTelefono: clienteTelefono.trim(),
-      clienteEmail: clienteEmail.trim(),
-      direccion: direccion.trim(),
-      items,
-      total: Number(total) || 0,
-      metodoPago: metodoPago === "pagomovil" ? "pagomovil" : "efectivo",
-      pagoMovil: metodoPago === "pagomovil" ? pagoMovil : undefined,
-      estado: "pendiente_verificacion",
-      creadoEn: new Date().toISOString(),
-    };
+    const orderId = `ORD-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const created = await prisma.order.create({
+      data: {
+        id: orderId,
+        clienteNombre: clienteNombre.trim(),
+        clienteTelefono: clienteTelefono.trim(),
+        clienteEmail: clienteEmail.trim(),
+        direccion: direccion.trim(),
+        total: Number(total) || 0,
+        metodoPago: metodoPago === "pagomovil" ? "pagomovil" : "efectivo",
+        pagoMovilBanco: metodoPago === "pagomovil" ? (pagoMovil?.banco || null) : null,
+        pagoMovilReferencia: metodoPago === "pagomovil" ? (pagoMovil?.referencia || null) : null,
+        pagoMovilTelefonoEmisor: metodoPago === "pagomovil" ? (pagoMovil?.telefonoEmisor || null) : null,
+        estado: "pendiente_verificacion",
+        notificadoWhatsApp: false,
+        items: {
+          create: (items || []).map((it: any) => ({
+            productId: it.productId || it.product?.id || it.id,
+            nombre: it.nombre,
+            precio: Number(it.precio || 0),
+            cantidad: Number(it.cantidad || 1),
+            imagenUrl: it.imagenUrl || null,
+          })),
+        },
+      },
+      include: { items: true },
+    });
 
-    db.orders.unshift(nuevoPedido);
-    writeDB(db);
-
+    const nuevoPedido = formatOrder(created);
     return NextResponse.json({ success: true, pedido: nuevoPedido });
   } catch (error) {
     console.error("Error in POST /api/pedidos:", error);
@@ -81,50 +98,48 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ error: "ID requerido" }, { status: 400 });
     }
 
-    const db = readDB();
-    const pedido = db.orders.find((p) => p.id === id);
-    if (!pedido) {
+    const current = await prisma.order.findUnique({
+      where: { id },
+      include: { items: true },
+    });
+
+    if (!current) {
       return NextResponse.json({ error: "Pedido no encontrado" }, { status: 404 });
     }
 
+    // Si se cancela el pedido, restablecer el stock a los productos
     if (estado !== undefined) {
-      // Si se cancela el pedido, restablecer el stock a los productos
-      if (estado === "cancelado" && pedido.estado !== "cancelado") {
-        if (Array.isArray(pedido.items)) {
-          pedido.items.forEach((item: any) => {
-            const prodId = item.productId || item.product?.id || item.id;
-            const prod = db.products.find((p) => p.id === prodId);
-            if (prod) {
-              prod.stock += (item.cantidad || 1);
-            }
-          });
+      if (estado === "cancelado" && current.estado !== "cancelado") {
+        for (const item of current.items) {
+          await prisma.product.update({
+            where: { id: item.productId },
+            data: { stock: { increment: item.cantidad } },
+          }).catch(() => {});
         }
-      } else if (pedido.estado === "cancelado" && estado !== "cancelado") {
-        // Si se reactiva un pedido cancelado, volver a reservar el stock
-        if (Array.isArray(pedido.items)) {
-          pedido.items.forEach((item: any) => {
-            const prodId = item.productId || item.product?.id || item.id;
-            const prod = db.products.find((p) => p.id === prodId);
-            if (prod) {
-              prod.stock = Math.max(0, prod.stock - (item.cantidad || 1));
-            }
-          });
+      } else if (current.estado === "cancelado" && estado !== "cancelado") {
+        for (const item of current.items) {
+          await prisma.product.update({
+            where: { id: item.productId },
+            data: { stock: { decrement: item.cantidad } },
+          }).catch(() => {});
         }
       }
-      pedido.estado = estado;
     }
-    if (motivoCancelacion !== undefined) {
-      pedido.motivoCancelacion = motivoCancelacion;
-    }
-    if (notificadoWhatsApp !== undefined) {
-      pedido.notificadoWhatsApp = notificadoWhatsApp;
-    }
-    writeDB(db);
 
-    return NextResponse.json({ success: true, pedido });
+    const dataToUpdate: any = {};
+    if (estado !== undefined) dataToUpdate.estado = estado;
+    if (motivoCancelacion !== undefined) dataToUpdate.motivoCancelacion = motivoCancelacion;
+    if (notificadoWhatsApp !== undefined) dataToUpdate.notificadoWhatsApp = notificadoWhatsApp;
+
+    const updated = await prisma.order.update({
+      where: { id },
+      data: dataToUpdate,
+      include: { items: true },
+    });
+
+    return NextResponse.json({ success: true, pedido: formatOrder(updated) });
   } catch (error) {
     console.error("Error in PATCH /api/pedidos:", error);
     return NextResponse.json({ error: "Error al actualizar estado del pedido" }, { status: 500 });
   }
 }
-

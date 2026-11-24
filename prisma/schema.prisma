@@ -57,6 +57,21 @@ model Product {
   @@map("products")
 }
 
+model Service {
+  id          String   @id
+  nombre      String
+  descripcion String
+  duracionMin Int      @default(60)
+  precio      Float
+  categoria   String   @default("General")
+  imagenUrl   String?
+  items       String[] @default([])
+  activo      Boolean  @default(true)
+  creadoEn    DateTime @default(now())
+
+  @@map("services")
+}
+
 model Appointment {
   id                      String   @id
   clienteNombre           String

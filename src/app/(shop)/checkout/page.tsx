@@ -607,31 +607,29 @@ export default function CheckoutPage() {
                 </div>
               </div>
             ) : (
-              <div className="rounded-xl bg-muted/60 p-4 border border-border text-xs text-muted-foreground space-y-1">
-                <p className="font-semibold text-foreground">Instrucciones de Efectivo:</p>
-                <p>
-                  Podrás pagar en dólares en efectivo ($) o bolívares en efectivo (Bs.) calculados a la tasa BCV oficial al momento de la entrega o al retirar personalmente en el estudio en Naguanagua.
-                </p>
+              <div className="rounded-xl bg-[#FAF6F2] p-3.5 border border-[#E8DCD1] text-xs text-muted-foreground">
+                <p className="font-semibold text-foreground">Pago en Efectivo:</p>
+                <p className="mt-0.5">Podrás cancelar en efectivo ($ o Bs.) al momento de recibir o retirar tu pedido en el salón.</p>
               </div>
             )}
           </section>
 
-          <div className="space-y-2">
+          <div className="space-y-2.5">
             <Button
               type="submit"
               size="lg"
-              className="w-full text-base font-semibold py-6 rounded-xl shadow-md cursor-pointer"
+              className="w-full text-sm font-bold py-5 rounded-xl shadow-md cursor-pointer bg-gradient-to-r from-[#6E3D21] to-[#855230] hover:from-[#5C3016] hover:to-[#734323] text-white transition-all shadow-[#6E3D21]/20"
               disabled={enviando}
             >
               {enviando
                 ? "Registrando orden..."
                 : !isAuthenticated
                 ? "Iniciar sesión para pagar"
-                : `Confirmar pedido por ${formatCurrency(total)}`}
+                : `Confirmar Pedido (${formatCurrency(total)})`}
             </Button>
             {metodoPago === "pagomovil" && (
-              <p className="text-[11.5px] text-muted-foreground text-center leading-relaxed">
-                🔔 Tu compra no se confirma automáticamente. Una vez que nuestro personal compruebe tu Pago Móvil, se te confirmará oficialmente el pedido y se te notificará por <strong>WhatsApp</strong>.
+              <p className="text-xs text-muted-foreground text-center">
+                🔔 Te notificaremos directamente por <strong>WhatsApp</strong> al comprobar tu pago.
               </p>
             )}
           </div>

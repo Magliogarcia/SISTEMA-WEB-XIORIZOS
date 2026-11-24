@@ -1,11 +1,16 @@
 import { NextResponse } from "next/server";
-import { readDB, writeDB, DBEmployee } from "@/lib/db";
+import bcrypt from "bcryptjs";
+import { prisma } from "@/lib/prisma";
+import { formatEmployee, DBEmployee } from "@/lib/db";
 import { validatePassword } from "@/lib/validation";
 
 export async function GET() {
   try {
-    const db = readDB();
-    return NextResponse.json({ success: true, employees: db.employees || [] });
+    const rawEmployees = await prisma.employee.findMany({
+      orderBy: { creadoEn: "asc" },
+    });
+    const employees = rawEmployees.map(formatEmployee);
+    return NextResponse.json({ success: true, employees });
   } catch (error) {
     console.error("Error in GET /api/empleados:", error);
     return NextResponse.json({ error: "Error al obtener empleados" }, { status: 500 });
@@ -42,45 +47,63 @@ export async function POST(req: Request) {
       );
     }
 
-    const db = readDB();
     const cleanUsername = username.toLowerCase().trim();
 
     // Validar nombre de usuario duplicado
-    if (db.users.some((u) => u.username.toLowerCase() === cleanUsername)) {
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { username: cleanUsername },
+          { email: `${cleanUsername}@xiorizos.com` },
+        ],
+      },
+    });
+
+    if (existingUser) {
       return NextResponse.json(
         { error: `El nombre de usuario "${cleanUsername}" ya existe en el sistema. Elige otro.` },
         { status: 400 }
       );
     }
 
-    const newEmployee: DBEmployee = {
-      id: `emp-${Date.now()}`,
-      nombre: nombre.trim(),
-      telefono: telefono || "",
-      cargo: cargo.trim(),
-      especialidad: especialidad || "",
-      avatarUrl: avatarUrl || "/images/fundadora_xioilin_guzman.webp",
-      serviciosIds: serviciosIds || ["s1", "s2"],
-      activo: activo !== false,
-      creadoEn: new Date().toISOString(),
-    };
+    const empId = `emp-${Date.now()}`;
+    const newEmployee = await prisma.employee.create({
+      data: {
+        id: empId,
+        nombre: nombre.trim(),
+        telefono: telefono || "",
+        cargo: cargo.trim(),
+        especialidad: especialidad || "",
+        avatarUrl: avatarUrl || "/images/fundadora_xioilin_guzman.webp",
+        serviciosIds: serviciosIds || ["s1", "s2"],
+        activo: activo !== false,
+      },
+    });
 
-    const newUser = {
-      id: `u-${newEmployee.id}`,
-      username: cleanUsername,
-      nombre: nombre.trim(),
-      email: `${cleanUsername}@xiorizos.com`,
-      password: password,
-      rol: "empleado" as const,
-      telefono: telefono || "",
-      creadoEn: new Date().toISOString(),
-    };
+    const hashedPassword = bcrypt.hashSync(password.trim(), 10);
+    const newUser = await prisma.user.create({
+      data: {
+        id: `u-${empId}`,
+        username: cleanUsername,
+        nombre: nombre.trim(),
+        email: `${cleanUsername}@xiorizos.com`,
+        password: hashedPassword,
+        rol: "empleado",
+        telefono: telefono || null,
+      },
+    });
 
-    db.employees = [newEmployee, ...(db.employees || [])];
-    db.users = [newUser, ...(db.users || [])];
-    writeDB(db);
-
-    return NextResponse.json({ success: true, employee: newEmployee, user: newUser });
+    return NextResponse.json({
+      success: true,
+      employee: formatEmployee(newEmployee),
+      user: {
+        id: newUser.id,
+        username: newUser.username,
+        nombre: newUser.nombre,
+        email: newUser.email,
+        rol: newUser.rol,
+      },
+    });
   } catch (error) {
     console.error("Error in POST /api/empleados:", error);
     return NextResponse.json({ error: "Error al crear empleado" }, { status: 500 });
@@ -110,34 +133,26 @@ export async function PUT(req: Request) {
       return NextResponse.json({ error: "ID de empleado requerido" }, { status: 400 });
     }
 
-    const db = readDB();
-    const index = db.employees.findIndex((e) => e.id === id);
+    const dataToUpdate: any = {};
+    if (nombre !== undefined) dataToUpdate.nombre = nombre;
+    if (telefono !== undefined) dataToUpdate.telefono = telefono;
+    if (cargo !== undefined) dataToUpdate.cargo = cargo;
+    if (especialidad !== undefined) dataToUpdate.especialidad = especialidad;
+    if (avatarUrl !== undefined) dataToUpdate.avatarUrl = avatarUrl;
+    if (serviciosIds !== undefined) dataToUpdate.serviciosIds = serviciosIds;
+    if (activo !== undefined) dataToUpdate.activo = activo;
+    if (tipoInoperatividad !== undefined) dataToUpdate.tipoInoperatividad = tipoInoperatividad;
+    if (fechaInicioInoperatividad !== undefined) dataToUpdate.fechaInicioInoperatividad = fechaInicioInoperatividad;
+    if (fechaFinInoperatividad !== undefined) dataToUpdate.fechaFinInoperatividad = fechaFinInoperatividad;
+    if (fechasAusente !== undefined) dataToUpdate.fechasAusente = fechasAusente;
+    if (motivoInoperativo !== undefined) dataToUpdate.motivoInoperativo = motivoInoperativo;
 
-    if (index === -1) {
-      return NextResponse.json({ error: "Empleado no encontrado" }, { status: 404 });
-    }
+    const updated = await prisma.employee.update({
+      where: { id },
+      data: dataToUpdate,
+    });
 
-    const current = db.employees[index];
-    const updated: DBEmployee = {
-      ...current,
-      nombre: nombre !== undefined ? nombre : current.nombre,
-      telefono: telefono !== undefined ? telefono : current.telefono,
-      cargo: cargo !== undefined ? cargo : current.cargo,
-      especialidad: especialidad !== undefined ? especialidad : current.especialidad,
-      avatarUrl: avatarUrl !== undefined ? avatarUrl : current.avatarUrl,
-      serviciosIds: serviciosIds !== undefined ? serviciosIds : current.serviciosIds,
-      activo: activo !== undefined ? activo : current.activo,
-      tipoInoperatividad: tipoInoperatividad !== undefined ? tipoInoperatividad : current.tipoInoperatividad,
-      fechaInicioInoperatividad: fechaInicioInoperatividad !== undefined ? fechaInicioInoperatividad : current.fechaInicioInoperatividad,
-      fechaFinInoperatividad: fechaFinInoperatividad !== undefined ? fechaFinInoperatividad : current.fechaFinInoperatividad,
-      fechasAusente: fechasAusente !== undefined ? fechasAusente : current.fechasAusente,
-      motivoInoperativo: motivoInoperativo !== undefined ? motivoInoperativo : current.motivoInoperativo,
-    };
-
-    db.employees[index] = updated;
-    writeDB(db);
-
-    return NextResponse.json({ success: true, employee: updated });
+    return NextResponse.json({ success: true, employee: formatEmployee(updated) });
   } catch (error) {
     console.error("Error in PUT /api/empleados:", error);
     return NextResponse.json({ error: "Error al actualizar empleado" }, { status: 500 });
@@ -153,9 +168,9 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ error: "ID de empleado requerido" }, { status: 400 });
     }
 
-    const db = readDB();
-    db.employees = db.employees.filter((e) => e.id !== id);
-    writeDB(db);
+    await prisma.employee.delete({
+      where: { id },
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {
@@ -163,4 +178,3 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ error: "Error al eliminar empleado" }, { status: 500 });
   }
 }
-

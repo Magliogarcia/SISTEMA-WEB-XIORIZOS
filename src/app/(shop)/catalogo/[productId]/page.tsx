@@ -228,7 +228,7 @@ export default function ProductDetailPage({ params }: { params: { productId: str
               className={`flex-1 gap-2 font-bold text-xs uppercase tracking-wider rounded-sm shadow-md transition-all ${
                 estaAgotado || disponibleParaAgregar <= 0
                   ? "bg-slate-200 text-slate-500 cursor-not-allowed hover:bg-slate-200"
-                  : "bg-primary hover:bg-secondary text-white cursor-pointer active:scale-95"
+                  : "bg-secondary hover:bg-[#6E3D21] text-white shadow-md shadow-[#6E3D21]/20 cursor-pointer active:scale-95"
               }`}
             >
               <ShoppingBag className="h-4 w-4" />

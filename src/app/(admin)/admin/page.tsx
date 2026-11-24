@@ -29,11 +29,12 @@ import { MetricCard } from "@/components/admin/metric-card";
 import { Button } from "@/components/ui/button";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { readDB } from "@/lib/db";
+import { prisma } from "@/lib/prisma";
 import { mockServices } from "@/lib/mock-data";
 
 export const dynamic = "force-dynamic";
 
-export default function AdminDashboardPage() {
+export default async function AdminDashboardPage() {
   // Protección estricta en el servidor contra accesos no autenticados
   const cookieStore = cookies();
   const role = cookieStore.get("xiorizos_role")?.value;
@@ -41,7 +42,7 @@ export default function AdminDashboardPage() {
     redirect("/admin/login");
   }
 
-  const db = readDB();
+  const db = await readDB();
 
   // Mapa de costos por producto para cálculo exacto de ganancia
   const mapaCostos = new Map<string, number>();
@@ -208,8 +209,10 @@ export default function AdminDashboardPage() {
 
   // Detección automática de personal inoperativo y servicios deshabilitados
   const hoyStr = new Date().toISOString().split("T")[0];
+  const dbServices = await prisma.service.findMany({ where: { activo: true } }).catch(() => []);
+  const listaServicios = dbServices.length > 0 ? dbServices : mockServices;
 
-  const serviciosCriticos = mockServices
+  const serviciosCriticos = listaServicios
     .map((servicio) => {
       const especialistasAsignados = (db.employees || []).filter((e) =>
         Array.isArray(e.serviciosIds) && e.serviciosIds.includes(servicio.id)

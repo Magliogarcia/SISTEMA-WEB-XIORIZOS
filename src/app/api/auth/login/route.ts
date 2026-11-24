@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { readDB } from "@/lib/db";
+import bcrypt from "bcryptjs";
+import { prisma } from "@/lib/prisma";
 
 export async function POST(req: Request) {
   try {
@@ -16,16 +17,32 @@ export async function POST(req: Request) {
       );
     }
 
-    const db = readDB();
-
-    // Comprobación de usuario (por username o por email)
-    const user = db.users.find(
-      (u) =>
-        (u.username.toLowerCase() === identifier || u.email.toLowerCase() === identifier) &&
-        u.password === pass
-    );
+    // Comprobación de usuario directamente en PostgreSQL
+    const user = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { username: { equals: identifier, mode: "insensitive" } },
+          { email: { equals: identifier, mode: "insensitive" } },
+        ],
+      },
+    });
 
     if (!user) {
+      return NextResponse.json(
+        { error: "Credenciales incorrectas. Verifica tu usuario o contraseña." },
+        { status: 401 }
+      );
+    }
+
+    // Verificación criptográfica con bcrypt (con retrocompatibilidad)
+    let isMatch = false;
+    try {
+      isMatch = bcrypt.compareSync(pass, user.password) || user.password === pass;
+    } catch {
+      isMatch = user.password === pass;
+    }
+
+    if (!isMatch) {
       return NextResponse.json(
         { error: "Credenciales incorrectas. Verifica tu usuario o contraseña." },
         { status: 401 }
@@ -40,7 +57,7 @@ export async function POST(req: Request) {
         nombre: user.nombre,
         email: user.email,
         rol: user.rol,
-        telefono: user.telefono,
+        telefono: user.telefono || undefined,
       },
     });
 

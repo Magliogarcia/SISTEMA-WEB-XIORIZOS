@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   CalendarCheck,
@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/select";
 import { cn, formatCurrency, formatDate } from "@/lib/utils";
 import { useBookingStore } from "@/store/booking-store";
+import { useAuthStore } from "@/store/auth-store";
 import {
   validateFullName,
   validatePhone,
@@ -52,12 +53,20 @@ const BANCOS_VENEZUELA = [
 export function BookingSummaryForm() {
   const router = useRouter();
   const { servicio, profesional, fecha, hora, reset, setStep } = useBookingStore();
+  const { user } = useAuthStore();
 
-  const [nombre, setNombre] = useState("");
+  const [nombre, setNombre] = useState(user?.nombre || "");
   const [nombreError, setNombreError] = useState<string | null>(null);
 
-  const [telefono, setTelefono] = useState("");
+  const [telefono, setTelefono] = useState(user?.telefono || "");
   const [telefonoError, setTelefonoError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (user) {
+      if (!nombre && user.nombre) setNombre(user.nombre);
+      if (!telefono && user.telefono) setTelefono(user.telefono);
+    }
+  }, [user]);
 
   const [notas, setNotas] = useState("");
   const [enviando, setEnviando] = useState(false);
@@ -247,10 +256,10 @@ export function BookingSummaryForm() {
           pagoMovil:
             metodoPago === "pagomovil"
               ? {
-                  banco,
-                  referencia: referencia.replace(/\D/g, "").slice(0, 8),
-                  telefonoEmisor: telefonoEmisor.trim(),
-                }
+                banco,
+                referencia: referencia.replace(/\D/g, "").slice(0, 8),
+                telefonoEmisor: telefonoEmisor.trim(),
+              }
               : undefined,
         }),
       });
@@ -388,34 +397,28 @@ export function BookingSummaryForm() {
           />
         </div>
 
-        {/* SECCIÓN DEL 20% DE RESERVA */}
-        <div className="pt-4 border-t border-border space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3.5 rounded-sm bg-secondary/10 border border-secondary/20">
+        {/* SECCIÓN DEL 20% DE RESERVA - CONCISA Y CLARA */}
+        <div className="pt-4 border-t border-border space-y-3.5">
+          <div className="flex items-center justify-between p-3.5 rounded-xl bg-[#FAF6F2] border border-[#E8DCD1]">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-secondary">
-                Reserva requerida (20%)
+              <p className="text-xs font-bold uppercase tracking-wider text-secondary">
+                Abono de Reserva (20%)
               </p>
-              <p className="text-sm font-bold text-foreground mt-0.5">
-                Para asegurar tu cita se abona el 20% del servicio
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Resta en salón: <strong className="text-foreground">{formatCurrency(montoRestante)}</strong>
               </p>
             </div>
-            <div className="text-left sm:text-right">
-              <span className="text-lg font-bold text-primary">
+            <div className="text-right">
+              <span className="text-xl font-black text-secondary">
                 {formatCurrency(montoReserva)}
               </span>
-              <p className="text-[11px] text-muted-foreground">
-                Resta en salón: {formatCurrency(montoRestante)}
-              </p>
             </div>
           </div>
 
           <div>
-            <Label className="text-sm font-semibold text-primary">
-              ¿Cómo deseas abonar el 20% de tu reserva? <span className="text-destructive">*</span>
+            <Label className="text-xs font-bold text-slate-800">
+              Método para abonar el 20% <span className="text-destructive">*</span>
             </Label>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Selecciona tu método de pago para completar la reserva del turno.
-            </p>
           </div>
 
           {/* Opciones de pago: Pago Móvil o Efectivo */}
@@ -424,16 +427,16 @@ export function BookingSummaryForm() {
               type="button"
               onClick={() => setMetodoPago("pagomovil")}
               className={cn(
-                "flex items-center gap-3 rounded-sm border p-3.5 text-left transition-all cursor-pointer",
+                "flex items-center gap-3 rounded-xl border p-3.5 text-left transition-all cursor-pointer",
                 metodoPago === "pagomovil"
-                  ? "border-primary bg-primary/5 ring-2 ring-primary/20 shadow-sm"
-                  : "border-border hover:bg-secondary/10"
+                  ? "border-secondary bg-secondary/5 ring-1 ring-secondary shadow-xs"
+                  : "border-slate-200 hover:bg-slate-50"
               )}
             >
-              <Landmark className="h-5 w-5 text-primary shrink-0" />
+              <Landmark className="h-5 w-5 text-secondary shrink-0" />
               <div>
-                <p className="text-sm font-semibold text-foreground">Pago Móvil</p>
-                <p className="text-xs text-muted-foreground">Abona {formatCurrency(montoReserva)} al instante</p>
+                <p className="text-xs font-bold text-foreground">Pago Móvil</p>
+                <p className="text-[11px] text-muted-foreground">Transferir {formatCurrency(montoReserva)}</p>
               </div>
             </button>
 
@@ -441,16 +444,16 @@ export function BookingSummaryForm() {
               type="button"
               onClick={() => setMetodoPago("efectivo")}
               className={cn(
-                "flex items-center gap-3 rounded-sm border p-3.5 text-left transition-all cursor-pointer",
+                "flex items-center gap-3 rounded-xl border p-3.5 text-left transition-all cursor-pointer",
                 metodoPago === "efectivo"
-                  ? "border-primary bg-primary/5 ring-2 ring-primary/20 shadow-sm"
-                  : "border-border hover:bg-secondary/10"
+                  ? "border-secondary bg-secondary/5 ring-1 ring-secondary shadow-xs"
+                  : "border-slate-200 hover:bg-slate-50"
               )}
             >
-              <Banknote className="h-5 w-5 text-primary shrink-0" />
+              <Banknote className="h-5 w-5 text-secondary shrink-0" />
               <div>
-                <p className="text-sm font-semibold text-foreground">Efectivo en Salón</p>
-                <p className="text-xs text-muted-foreground">Abono previo en recepción</p>
+                <p className="text-xs font-bold text-foreground">Efectivo en Salón</p>
+                <p className="text-[11px] text-muted-foreground">Abonar en recepción</p>
               </div>
             </button>
           </div>
@@ -589,122 +592,102 @@ export function BookingSummaryForm() {
           )}
         </div>
 
-        <div className="space-y-2 pt-2">
+        <div className="space-y-2.5 pt-2">
           <Button
             type="submit"
             size="lg"
-            className="w-full text-base font-semibold py-6 rounded-xl shadow-md cursor-pointer bg-primary hover:bg-secondary text-white"
+            className="w-full text-sm font-bold py-5 rounded-xl shadow-md cursor-pointer bg-gradient-to-r from-[#6E3D21] to-[#855230] hover:from-[#5C3016] hover:to-[#734323] text-white transition-all shadow-[#6E3D21]/20"
             disabled={enviando}
           >
-            {enviando ? "Registrando solicitud..." : `Solicitar reserva de cita (${formatCurrency(montoReserva)})`}
+            {enviando ? "Registrando solicitud..." : `Confirmar Cita (${formatCurrency(montoReserva)})`}
           </Button>
 
-          <p className="text-[11.5px] text-muted-foreground text-center leading-relaxed px-2">
-            🔔 Tu cita no se confirma automáticamente. Una vez que el personal compruebe tu pago, se te confirmará el registro oficial y se te notificará por <strong>WhatsApp</strong>.
+          <p className="text-xs text-muted-foreground text-center">
+            🔔 Te notificaremos directamente por <strong>WhatsApp</strong> al comprobar tu abono.
           </p>
         </div>
       </form>
 
-      {/* Resumen lateral con desglose del 20% y 80% */}
-      <aside className="h-fit space-y-4 rounded-2xl border border-border bg-card p-6 shadow-sm">
-        <div className="flex items-center justify-between">
-          <h3 className="font-heading text-lg font-bold text-primary">Resumen de la cita</h3>
-          <span className="text-[11px] text-muted-foreground font-medium">Editable</span>
+      {/* Resumen lateral simplificado y conciso */}
+      <aside className="h-fit space-y-4 rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-sm">
+        <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+          <h3 className="font-heading text-base font-bold text-slate-900">Resumen de la Cita</h3>
+          <span className="text-[11px] text-secondary font-semibold">Paso 4 de 4</span>
         </div>
 
-        <div className="space-y-3 pt-1">
+        <div className="space-y-2.5">
           {/* Servicio */}
-          <div className="flex items-start justify-between gap-3 p-2.5 rounded-xl bg-secondary/5 border border-secondary/10">
-            <div className="flex items-start gap-2.5 text-sm">
-              <Scissors className="h-4 w-4 text-secondary mt-0.5 shrink-0" />
-              <div>
-                <p className="font-semibold text-foreground text-xs sm:text-sm">{servicio.nombre}</p>
-                <p className="text-xs text-muted-foreground">
-                  Duración aprox: {servicio.duracionMin} min
-                </p>
-              </div>
+          <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+            <div className="min-w-0 pr-2">
+              <p className="text-xs font-bold text-slate-900 truncate">{servicio.nombre}</p>
+              <p className="text-[11px] text-slate-500">{servicio.duracionMin} min aprox.</p>
             </div>
             <button
               type="button"
               onClick={() => setStep(1)}
-              className="inline-flex items-center gap-1 text-[11px] font-medium text-secondary hover:text-primary transition-colors shrink-0 cursor-pointer"
-              title="Cambiar servicio"
+              className="text-[11px] font-semibold text-secondary hover:underline shrink-0"
             >
-              <Pencil className="h-3 w-3" />
-              <span>Cambiar</span>
+              Cambiar
             </button>
           </div>
 
           {/* Profesional */}
-          <div className="flex items-center justify-between gap-3 p-2.5 rounded-xl bg-secondary/5 border border-secondary/10">
-            <div className="flex items-center gap-2.5 text-sm">
-              <User className="h-4 w-4 text-secondary shrink-0" />
-              <div>
-                <p className="text-[11px] text-muted-foreground">Especialista</p>
-                <p className="font-medium text-foreground text-xs sm:text-sm">{profesional.nombre}</p>
-              </div>
+          <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+            <div>
+              <p className="text-[10px] uppercase font-bold text-slate-400">Especialista</p>
+              <p className="text-xs font-bold text-slate-800">{profesional.nombre}</p>
             </div>
             <button
               type="button"
               onClick={() => setStep(2)}
-              className="inline-flex items-center gap-1 text-[11px] font-medium text-secondary hover:text-primary transition-colors shrink-0 cursor-pointer"
-              title="Cambiar especialista"
+              className="text-[11px] font-semibold text-secondary hover:underline shrink-0"
             >
-              <Pencil className="h-3 w-3" />
-              <span>Cambiar</span>
+              Cambiar
             </button>
           </div>
 
           {/* Fecha y Hora */}
-          <div className="flex items-start justify-between gap-3 p-2.5 rounded-xl bg-secondary/5 border border-secondary/10">
-            <div className="flex items-start gap-2.5 text-sm">
-              <CalendarCheck className="h-4 w-4 text-secondary mt-0.5 shrink-0" />
-              <div>
-                <p className="font-medium text-foreground text-xs sm:text-sm">{formatDate(new Date(fecha))}</p>
-                <div className="flex items-center gap-1 text-xs text-primary font-semibold mt-0.5">
-                  <Clock className="h-3 w-3 text-secondary" />
-                  <span>{hora}</span>
-                </div>
-              </div>
+          <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+            <div>
+              <p className="text-xs font-bold text-slate-800">{formatDate(new Date(fecha))}</p>
+              <p className="text-xs font-semibold text-secondary">{hora}</p>
             </div>
             <button
               type="button"
               onClick={() => setStep(3)}
-              className="inline-flex items-center gap-1 text-[11px] font-medium text-secondary hover:text-primary transition-colors shrink-0 cursor-pointer"
-              title="Cambiar fecha u hora"
+              className="text-[11px] font-semibold text-secondary hover:underline shrink-0"
             >
-              <Pencil className="h-3 w-3" />
-              <span>Cambiar</span>
+              Cambiar
             </button>
           </div>
         </div>
 
         <Separator />
 
-        {/* Desglose Financiero con 20% de reserva */}
-        <div className="space-y-2 text-xs">
-          <div className="flex justify-between items-center text-muted-foreground">
+        {/* Desglose de Pago Claro y Simplificado */}
+        <div className="space-y-2 text-xs pt-1">
+          <div className="flex justify-between items-center text-slate-600">
             <span>Costo total del servicio:</span>
-            <span className="font-semibold text-foreground">{formatCurrency(precioTotal)}</span>
+            <span className="font-bold text-slate-900 text-sm">{formatCurrency(precioTotal)}</span>
           </div>
 
-          <div className="flex justify-between items-center p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-800 font-bold">
-            <span className="flex items-center gap-1">
-              <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
-              <span>Reserva a pagar hoy (20%):</span>
+          <div className="flex justify-between items-center p-2.5 rounded-xl bg-[#FAF6F2] border border-[#E8DCD1] text-secondary font-bold">
+            <span className="flex items-center gap-1.5">
+              <ShieldCheck className="h-4 w-4" />
+              <span>Abono requerido hoy (20%):</span>
             </span>
-            <span className="text-sm">{formatCurrency(montoReserva)}</span>
+            <span className="text-sm font-black">{formatCurrency(montoReserva)}</span>
           </div>
 
-          <div className="flex justify-between items-center text-muted-foreground pt-1">
-            <span>Resta a cancelar en el salón (80%):</span>
-            <span className="font-bold text-foreground">{formatCurrency(montoRestante)}</span>
+          <div className="flex justify-between items-center text-slate-600 pt-1">
+            <span>Resta en salón al atenderte (80%):</span>
+            <span className="font-bold text-slate-900">{formatCurrency(montoRestante)}</span>
           </div>
         </div>
 
-        <div className="rounded-lg bg-muted/60 p-3 text-[11px] text-muted-foreground leading-relaxed">
-          ℹ️ Para agendar y reservar tu cita se requiere el <strong>20% del costo total</strong>. El 80% restante lo pagarás en el salón el día de tu atención por transferencia, tarjeta o efectivo.
-        </div>
+        <p className="text-[11px] text-slate-500 text-center pt-1 border-t border-slate-100">
+          El 80% restante lo pagarás en el salón el día de tu cita (efectivo, punto o transferencia).
+        </p>
       </aside>
     </div>
   );

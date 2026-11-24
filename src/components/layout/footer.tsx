@@ -3,7 +3,7 @@ import Image from "next/image";
 
 export function Footer() {
   return (
-    <footer className="w-full bg-[#121212] text-white pt-16 pb-12 mt-12 border-t border-white/5">
+    <footer className="w-full bg-gradient-to-b from-[#26150E] via-[#1B0E09] to-[#120804] text-white pt-16 pb-12 mt-12 border-t border-[#4A2612]/40 shadow-inner">
       <div className="max-w-[1320px] mx-auto px-margin-mobile md:px-margin">
         {/* 4 Main Columns Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 lg:gap-8 pb-14 border-b border-white/10">

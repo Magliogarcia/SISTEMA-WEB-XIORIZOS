@@ -63,6 +63,20 @@ const config: Config = {
         "on-secondary-fixed": "#311300",
         "on-secondary-fixed-variant": "#693b1b",
 
+        brown: {
+          50: "#FAF6F2",
+          100: "#F5ECE4",
+          200: "#EBD7C7",
+          300: "#DDBFA7",
+          400: "#C79E7E",
+          500: "#AD7B56",
+          600: "#94613C",
+          700: "#855230",
+          800: "#6E3D21",
+          900: "#4A2612",
+          950: "#2D180F",
+        },
+
         tertiary: {
           DEFAULT: "#000000",
           foreground: "#ffffff",

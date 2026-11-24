@@ -1,5 +1,5 @@
-import fs from "fs";
-import path from "path";
+import { prisma } from "@/lib/prisma";
+import bcrypt from "bcryptjs";
 import { mockProducts } from "@/lib/mock-data";
 
 export interface DBUser {
@@ -19,15 +19,15 @@ export interface DBAppointment {
   clienteTelefono: string;
   servicioNombre: string;
   servicioPrecio: number;
-  montoReserva?: number; // 20% abono para agendar
-  montoRestante?: number; // 80% restante a pagar en salón
+  montoReserva?: number;
+  montoRestante?: number;
   metodoPago?: "pagomovil" | "efectivo";
   pagoMovil?: {
     banco: string;
     referencia: string;
     telefonoEmisor?: string;
   };
-  notificadoWhatsApp?: boolean; // true si ya se le envió notificación por WS
+  notificadoWhatsApp?: boolean;
   duracionMin?: number;
   profesionalNombre: string;
   fecha: string;
@@ -87,12 +87,26 @@ export interface DBEmployee {
   especialidad: string;
   avatarUrl?: string;
   serviciosIds: string[];
-  activo: boolean; // true = Operativo (en agenda), false = Inoperativo
+  activo: boolean;
   tipoInoperatividad?: "activo" | "reposo" | "vacaciones" | "permiso" | "fechas_especificas" | "indefinido";
-  fechaInicioInoperatividad?: string; // YYYY-MM-DD
-  fechaFinInoperatividad?: string; // YYYY-MM-DD
-  fechasAusente?: string[]; // Fechas específicas de inasistencia (YYYY-MM-DD)
+  fechaInicioInoperatividad?: string;
+  fechaFinInoperatividad?: string;
+  fechasAusente?: string[];
   motivoInoperativo?: string;
+  creadoEn: string;
+}
+
+export interface DBService {
+  id: string;
+  nombre: string;
+  descripcion: string;
+  duracionMin: number;
+  precio: number;
+  categoria: string;
+  imagenUrl?: string;
+  items: string[];
+  activo: boolean;
+  especialistasIds?: string[];
   creadoEn: string;
 }
 
@@ -104,10 +118,119 @@ export interface DatabaseSchema {
   employees: DBEmployee[];
 }
 
-const DATA_DIR = path.join(process.cwd(), "data");
-const DB_FILE = path.join(DATA_DIR, "database.json");
+export function formatAppointment(a: any): DBAppointment {
+  return {
+    id: a.id,
+    clienteNombre: a.clienteNombre,
+    clienteTelefono: a.clienteTelefono,
+    servicioNombre: a.servicioNombre,
+    servicioPrecio: Number(a.servicioPrecio || 0),
+    montoReserva: Number(a.montoReserva || 0),
+    montoRestante: Number(a.montoRestante || 0),
+    metodoPago: a.metodoPago as DBAppointment["metodoPago"],
+    pagoMovil:
+      a.pagoMovilBanco || a.pagoMovilReferencia
+        ? {
+            banco: a.pagoMovilBanco || "",
+            referencia: a.pagoMovilReferencia || "",
+            telefonoEmisor: a.pagoMovilTelefonoEmisor || undefined,
+          }
+        : undefined,
+    notificadoWhatsApp: Boolean(a.notificadoWhatsApp),
+    duracionMin: a.duracionMin ? Number(a.duracionMin) : undefined,
+    profesionalNombre: a.profesionalNombre,
+    fecha: a.fecha,
+    hora: a.hora,
+    notas: a.notas || undefined,
+    motivoCancelacion: a.motivoCancelacion || undefined,
+    estado: a.estado as DBAppointment["estado"],
+    creadoEn: a.creadoEn instanceof Date ? a.creadoEn.toISOString() : String(a.creadoEn),
+  };
+}
 
-function getInitialData(): DatabaseSchema {
+export function formatOrder(o: any): DBOrder {
+  return {
+    id: o.id,
+    usuarioId: o.usuarioId || undefined,
+    clienteNombre: o.clienteNombre,
+    clienteTelefono: o.clienteTelefono,
+    clienteEmail: o.clienteEmail || "",
+    direccion: o.direccion || "",
+    items: (o.items || []).map((it: any) => ({
+      productId: it.productId,
+      nombre: it.nombre,
+      precio: Number(it.precio || 0),
+      cantidad: Number(it.cantidad || 1),
+      imagenUrl: it.imagenUrl || "",
+    })),
+    total: Number(o.total || 0),
+    metodoPago: o.metodoPago as DBOrder["metodoPago"],
+    pagoMovil:
+      o.pagoMovilBanco || o.pagoMovilReferencia
+        ? {
+            banco: o.pagoMovilBanco || "",
+            referencia: o.pagoMovilReferencia || "",
+            telefonoEmisor: o.pagoMovilTelefonoEmisor || undefined,
+          }
+        : undefined,
+    estado: o.estado as DBOrder["estado"],
+    motivoCancelacion: o.motivoCancelacion || undefined,
+    notificadoWhatsApp: Boolean(o.notificadoWhatsApp),
+    creadoEn: o.creadoEn instanceof Date ? o.creadoEn.toISOString() : String(o.creadoEn),
+  };
+}
+
+export function formatProduct(p: any): DBProduct {
+  return {
+    id: p.id,
+    nombre: p.nombre,
+    descripcion: p.descripcion || "",
+    precio: Number(p.precio || 0),
+    costo: p.costo !== null && p.costo !== undefined ? Number(p.costo) : undefined,
+    imagenUrl: p.imagenUrl || "",
+    categoria: p.categoria || "General",
+    marca: p.marca || "Xiorizos Care",
+    stock: Number(p.stock || 0),
+    rating: Number(p.rating || 5.0),
+    reseñasCount: p.resenasCount !== undefined ? Number(p.resenasCount) : Number(p.reseñasCount || 0),
+  };
+}
+
+export function formatEmployee(e: any): DBEmployee {
+  return {
+    id: e.id,
+    nombre: e.nombre,
+    telefono: e.telefono,
+    cargo: e.cargo,
+    especialidad: e.especialidad,
+    avatarUrl: e.avatarUrl || undefined,
+    serviciosIds: e.serviciosIds || [],
+    activo: Boolean(e.activo),
+    tipoInoperatividad: e.tipoInoperatividad as DBEmployee["tipoInoperatividad"],
+    fechaInicioInoperatividad: e.fechaInicioInoperatividad || undefined,
+    fechaFinInoperatividad: e.fechaFinInoperatividad || undefined,
+    fechasAusente: e.fechasAusente || [],
+    motivoInoperativo: e.motivoInoperativo || undefined,
+    creadoEn: e.creadoEn instanceof Date ? e.creadoEn.toISOString() : String(e.creadoEn),
+  };
+}
+
+export function formatService(s: any): DBService {
+  return {
+    id: s.id,
+    nombre: s.nombre,
+    descripcion: s.descripcion || "",
+    duracionMin: Number(s.duracionMin || 60),
+    precio: Number(s.precio || 0),
+    categoria: s.categoria || "General",
+    imagenUrl: s.imagenUrl || "/images/Full_curl.webp",
+    items: Array.isArray(s.items) ? s.items : [],
+    activo: s.activo !== false,
+    creadoEn: s.creadoEn instanceof Date ? s.creadoEn.toISOString() : String(s.creadoEn),
+  };
+}
+
+export function getInitialData(): DatabaseSchema {
   return {
     users: [
       {
@@ -115,7 +238,7 @@ function getInitialData(): DatabaseSchema {
         username: "admin",
         nombre: "Administrador Xiorizos",
         email: "admin@xiorizos.com",
-        password: "Maglio28$",
+        password: bcrypt.hashSync("Maglio28$", 10),
         rol: "admin",
         creadoEn: new Date().toISOString(),
       },
@@ -124,7 +247,7 @@ function getInitialData(): DatabaseSchema {
         username: "xioilin",
         nombre: "Xioilin Guzmán",
         email: "xioilin@xiorizos.com",
-        password: "Xioilin28$",
+        password: bcrypt.hashSync("Xioilin28$", 10),
         rol: "empleado",
         telefono: "0412 8493021",
         creadoEn: new Date().toISOString(),
@@ -134,7 +257,7 @@ function getInitialData(): DatabaseSchema {
         username: "axel",
         nombre: "Axel Alvarado",
         email: "axel@xiorizos.com",
-        password: "Axel28$",
+        password: bcrypt.hashSync("Axel28$", 10),
         rol: "empleado",
         telefono: "0414 4321980",
         creadoEn: new Date().toISOString(),
@@ -144,7 +267,7 @@ function getInitialData(): DatabaseSchema {
         username: "yolennis",
         nombre: "Yolennis Yélamo",
         email: "yolennis@xiorizos.com",
-        password: "Yolennis28$",
+        password: bcrypt.hashSync("Yolennis28$", 10),
         rol: "empleado",
         telefono: "0424 5543210",
         creadoEn: new Date().toISOString(),
@@ -154,7 +277,7 @@ function getInitialData(): DatabaseSchema {
         username: "yakeline",
         nombre: "Yakeline Daboin",
         email: "yakeline@xiorizos.com",
-        password: "Yakeline28$",
+        password: bcrypt.hashSync("Yakeline28$", 10),
         rol: "empleado",
         telefono: "0416 9988776",
         creadoEn: new Date().toISOString(),
@@ -164,7 +287,7 @@ function getInitialData(): DatabaseSchema {
         username: "german",
         nombre: "Germán Jácome",
         email: "german@xiorizos.com",
-        password: "German28$",
+        password: bcrypt.hashSync("German28$", 10),
         rol: "empleado",
         telefono: "0412 1122334",
         creadoEn: new Date().toISOString(),
@@ -174,40 +297,13 @@ function getInitialData(): DatabaseSchema {
         username: "maria",
         nombre: "María González",
         email: "maria@ejemplo.com",
-        password: "123",
+        password: bcrypt.hashSync("123", 10),
         rol: "cliente",
         telefono: "0412 1234567",
         creadoEn: new Date().toISOString(),
       },
     ],
-    appointments: [
-      {
-        id: "cita-101",
-        clienteNombre: "María González",
-        clienteTelefono: "0412 1234567",
-        servicioNombre: "Xiorizos Full Curl",
-        servicioPrecio: 35,
-        profesionalNombre: "Xioilin Guzmán",
-        fecha: new Date(Date.now() + 86400000).toISOString(),
-        hora: "10:00",
-        notas: "Primera vez en el salón, cabello ondulado 2C.",
-        estado: "confirmada",
-        creadoEn: new Date().toISOString(),
-      },
-      {
-        id: "cita-102",
-        clienteNombre: "Valeria Mendoza",
-        clienteTelefono: "0414 7654321",
-        servicioNombre: "Color & Iluminación Curly",
-        servicioPrecio: 50,
-        profesionalNombre: "Axel Alvarado",
-        fecha: new Date(Date.now() + 172800000).toISOString(),
-        hora: "14:30",
-        notas: "Interesada en tonos cobrizos.",
-        estado: "pendiente",
-        creadoEn: new Date().toISOString(),
-      },
-    ],
+    appointments: [],
     products: mockProducts.map((p) => ({
       id: p.id,
       nombre: p.nombre,
@@ -220,60 +316,7 @@ function getInitialData(): DatabaseSchema {
       rating: p.rating,
       reseñasCount: p.reseñasCount,
     })),
-    orders: [
-      {
-        id: "#ORD-9102",
-        clienteNombre: "Valeria Mendoza",
-        clienteTelefono: "0414 7654321",
-        clienteEmail: "valeria@correo.com",
-        direccion: "Urb. La Viña, Calle Los Mangos, Valencia",
-        items: [
-          {
-            productId: "p1",
-            nombre: "Crema de Peinar Etniker",
-            precio: 25,
-            cantidad: 1,
-            imagenUrl: "/images/crema_de_peinar_etniker.webp",
-          },
-          {
-            productId: "p2",
-            nombre: "Gel Definidor",
-            precio: 18,
-            cantidad: 1,
-            imagenUrl: "/images/gel_definidor.webp",
-          },
-        ],
-        total: 43,
-        metodoPago: "pagomovil",
-        pagoMovil: {
-          banco: "Banesco",
-          referencia: "0948271",
-          telefonoEmisor: "0414 7654321",
-        },
-        estado: "pendiente_verificacion",
-        creadoEn: new Date().toISOString(),
-      },
-      {
-        id: "#ORD-9101",
-        clienteNombre: "Carlos Rojas",
-        clienteTelefono: "0412 8887766",
-        clienteEmail: "carlos@correo.com",
-        direccion: "Av. Bolívar Norte, Valencia",
-        items: [
-          {
-            productId: "p3",
-            nombre: "Shampoo Hidratante",
-            precio: 15,
-            cantidad: 2,
-            imagenUrl: "/images/shampoo_hidratante.webp",
-          },
-        ],
-        total: 30,
-        metodoPago: "efectivo",
-        estado: "verificado",
-        creadoEn: new Date(Date.now() - 86400000).toISOString(),
-      },
-    ],
+    orders: [],
     employees: [
       {
         id: "emp-1",
@@ -334,145 +377,336 @@ function getInitialData(): DatabaseSchema {
   };
 }
 
-const globalForDB = globalThis as unknown as {
-  __xiorizosDbCache?: { mtimeMs: number; data: DatabaseSchema };
-};
+let dbCache: { data: DatabaseSchema; timestamp: number } | null = null;
+const CACHE_TTL_MS = 2500; // 2.5s TTL para lecturas rápidas manteniendo sincronización
 
-// Lectura de la base de datos con caché en memoria invalidado por fecha de modificación
-export function readDB(): DatabaseSchema {
+/**
+ * Lectura unificada desde PostgreSQL (Supabase) a través de Prisma
+ */
+export async function readDB(forceFresh = false): Promise<DatabaseSchema> {
+  const now = Date.now();
+  if (!forceFresh && dbCache && now - dbCache.timestamp < CACHE_TTL_MS) {
+    return structuredClone(dbCache.data);
+  }
+
   try {
-    let mtimeMs: number | null = null;
-    try {
-      mtimeMs = fs.statSync(DB_FILE).mtimeMs;
-    } catch {
-      mtimeMs = null;
-    }
+    const [users, appointments, products, orders, employees] = await Promise.all([
+      prisma.user.findMany({ orderBy: { creadoEn: "desc" } }),
+      prisma.appointment.findMany({ orderBy: { creadoEn: "desc" } }),
+      prisma.product.findMany({ orderBy: { id: "asc" } }),
+      prisma.order.findMany({
+        include: { items: true },
+        orderBy: { creadoEn: "desc" },
+      }),
+      prisma.employee.findMany({ orderBy: { creadoEn: "asc" } }),
+    ]);
 
-    if (mtimeMs !== null && globalForDB.__xiorizosDbCache?.mtimeMs === mtimeMs) {
-      return structuredClone(globalForDB.__xiorizosDbCache.data);
-    }
+    const data: DatabaseSchema = {
+      users: users.map((u) => ({
+        id: u.id,
+        username: u.username,
+        nombre: u.nombre,
+        email: u.email,
+        password: u.password,
+        rol: u.rol as DBUser["rol"],
+        telefono: u.telefono || undefined,
+        creadoEn: u.creadoEn.toISOString(),
+      })),
+      appointments: appointments.map((a) => ({
+        id: a.id,
+        clienteNombre: a.clienteNombre,
+        clienteTelefono: a.clienteTelefono,
+        servicioNombre: a.servicioNombre,
+        servicioPrecio: a.servicioPrecio,
+        montoReserva: a.montoReserva,
+        montoRestante: a.montoRestante,
+        metodoPago: a.metodoPago as DBAppointment["metodoPago"],
+        pagoMovil:
+          a.pagoMovilBanco || a.pagoMovilReferencia
+            ? {
+                banco: a.pagoMovilBanco || "",
+                referencia: a.pagoMovilReferencia || "",
+                telefonoEmisor: a.pagoMovilTelefonoEmisor || undefined,
+              }
+            : undefined,
+        notificadoWhatsApp: a.notificadoWhatsApp,
+        duracionMin: a.duracionMin || undefined,
+        profesionalNombre: a.profesionalNombre,
+        fecha: a.fecha,
+        hora: a.hora,
+        notas: a.notas || undefined,
+        motivoCancelacion: a.motivoCancelacion || undefined,
+        estado: a.estado as DBAppointment["estado"],
+        creadoEn: a.creadoEn.toISOString(),
+      })),
+      products: products.map((p) => ({
+        id: p.id,
+        nombre: p.nombre,
+        descripcion: p.descripcion || "",
+        precio: p.precio,
+        costo: p.costo !== null && p.costo !== undefined ? p.costo : undefined,
+        imagenUrl: p.imagenUrl || "",
+        categoria: p.categoria,
+        marca: p.marca || "Xiorizos Care",
+        stock: p.stock,
+        rating: p.rating,
+        reseñasCount: p.resenasCount,
+      })),
+      orders: orders.map((o) => ({
+        id: o.id,
+        usuarioId: o.usuarioId || undefined,
+        clienteNombre: o.clienteNombre,
+        clienteTelefono: o.clienteTelefono,
+        clienteEmail: o.clienteEmail || "",
+        direccion: o.direccion || "",
+        items: o.items.map((it) => ({
+          productId: it.productId,
+          nombre: it.nombre,
+          precio: it.precio,
+          cantidad: it.cantidad,
+          imagenUrl: it.imagenUrl || "",
+        })),
+        total: o.total,
+        metodoPago: o.metodoPago as DBOrder["metodoPago"],
+        pagoMovil:
+          o.pagoMovilBanco || o.pagoMovilReferencia
+            ? {
+                banco: o.pagoMovilBanco || "",
+                referencia: o.pagoMovilReferencia || "",
+                telefonoEmisor: o.pagoMovilTelefonoEmisor || undefined,
+              }
+            : undefined,
+        estado: o.estado as DBOrder["estado"],
+        motivoCancelacion: o.motivoCancelacion || undefined,
+        notificadoWhatsApp: o.notificadoWhatsApp,
+        creadoEn: o.creadoEn.toISOString(),
+      })),
+      employees: employees.map((e) => ({
+        id: e.id,
+        nombre: e.nombre,
+        telefono: e.telefono,
+        cargo: e.cargo,
+        especialidad: e.especialidad,
+        avatarUrl: e.avatarUrl || undefined,
+        serviciosIds: e.serviciosIds,
+        activo: e.activo,
+        tipoInoperatividad: e.tipoInoperatividad as DBEmployee["tipoInoperatividad"],
+        fechaInicioInoperatividad: e.fechaInicioInoperatividad || undefined,
+        fechaFinInoperatividad: e.fechaFinInoperatividad || undefined,
+        fechasAusente: e.fechasAusente,
+        motivoInoperativo: e.motivoInoperativo || undefined,
+        creadoEn: e.creadoEn.toISOString(),
+      })),
+    };
 
-    if (!fs.existsSync(DATA_DIR)) {
-      fs.mkdirSync(DATA_DIR, { recursive: true });
-    }
-
-    if (mtimeMs === null) {
-      const initial = getInitialData();
-      fs.writeFileSync(DB_FILE, JSON.stringify(initial, null, 2), "utf-8");
-      const newStat = fs.statSync(DB_FILE);
-      globalForDB.__xiorizosDbCache = { mtimeMs: newStat.mtimeMs, data: structuredClone(initial) };
-      return initial;
-    }
-
-    const content = fs.readFileSync(DB_FILE, "utf-8");
-    const parsed = JSON.parse(content) as DatabaseSchema;
-
-    // Asegurar que existan todos los arreglos por si el archivo JSON previo no los tenía
-    if (!parsed.employees || parsed.employees.length === 0) {
-      parsed.employees = getInitialData().employees;
-      writeDB(parsed);
-      return parsed;
-    }
-
-    globalForDB.__xiorizosDbCache = { mtimeMs, data: structuredClone(parsed) };
-    return parsed;
+    dbCache = { data: structuredClone(data), timestamp: now };
+    return data;
   } catch (error) {
-    console.error("Error reading database file:", error);
+    console.error("Error al leer desde PostgreSQL:", error);
+    if (dbCache) return structuredClone(dbCache.data);
     return getInitialData();
   }
 }
 
-// Escritura atómica en la base de datos con respaldo sincronizado a PostgreSQL
-export function writeDB(data: DatabaseSchema): boolean {
+/**
+ * Escritura y sincronización completa con PostgreSQL (Supabase) vía Prisma
+ */
+export async function writeDB(data: DatabaseSchema): Promise<boolean> {
+  dbCache = { data: structuredClone(data), timestamp: Date.now() };
+
   try {
-    if (!fs.existsSync(DATA_DIR)) {
-      fs.mkdirSync(DATA_DIR, { recursive: true });
+    // 1. Usuarios
+    for (const u of data.users) {
+      await prisma.user.upsert({
+        where: { id: u.id },
+        update: {
+          username: u.username,
+          nombre: u.nombre,
+          email: u.email,
+          password: u.password,
+          rol: u.rol,
+          telefono: u.telefono || null,
+        },
+        create: {
+          id: u.id,
+          username: u.username,
+          nombre: u.nombre,
+          email: u.email,
+          password: u.password,
+          rol: u.rol,
+          telefono: u.telefono || null,
+          creadoEn: u.creadoEn ? new Date(u.creadoEn) : new Date(),
+        },
+      });
     }
 
-    const tempFile = `${DB_FILE}.tmp.${Date.now()}`;
-    fs.writeFileSync(tempFile, JSON.stringify(data, null, 2), "utf-8");
-    fs.renameSync(tempFile, DB_FILE);
-    const stat = fs.statSync(DB_FILE);
-    globalForDB.__xiorizosDbCache = { mtimeMs: stat.mtimeMs, data: structuredClone(data) };
+    // 2. Citas
+    for (const c of data.appointments) {
+      await prisma.appointment.upsert({
+        where: { id: c.id },
+        update: {
+          clienteNombre: c.clienteNombre,
+          clienteTelefono: c.clienteTelefono,
+          servicioNombre: c.servicioNombre,
+          servicioPrecio: Number(c.servicioPrecio || 0),
+          montoReserva: Number(c.montoReserva || c.servicioPrecio * 0.2 || 0),
+          montoRestante: Number(c.montoRestante || c.servicioPrecio * 0.8 || 0),
+          metodoPago: c.metodoPago || "pagomovil",
+          pagoMovilBanco: c.pagoMovil?.banco || null,
+          pagoMovilReferencia: c.pagoMovil?.referencia || null,
+          pagoMovilTelefonoEmisor: c.pagoMovil?.telefonoEmisor || null,
+          notificadoWhatsApp: Boolean(c.notificadoWhatsApp),
+          duracionMin: c.duracionMin ? Number(c.duracionMin) : null,
+          profesionalNombre: c.profesionalNombre,
+          fecha: c.fecha,
+          hora: c.hora,
+          notas: c.notas || null,
+          motivoCancelacion: c.motivoCancelacion || null,
+          estado: c.estado || "pendiente",
+        },
+        create: {
+          id: c.id,
+          clienteNombre: c.clienteNombre,
+          clienteTelefono: c.clienteTelefono,
+          servicioNombre: c.servicioNombre,
+          servicioPrecio: Number(c.servicioPrecio || 0),
+          montoReserva: Number(c.montoReserva || c.servicioPrecio * 0.2 || 0),
+          montoRestante: Number(c.montoRestante || c.servicioPrecio * 0.8 || 0),
+          metodoPago: c.metodoPago || "pagomovil",
+          pagoMovilBanco: c.pagoMovil?.banco || null,
+          pagoMovilReferencia: c.pagoMovil?.referencia || null,
+          pagoMovilTelefonoEmisor: c.pagoMovil?.telefonoEmisor || null,
+          notificadoWhatsApp: Boolean(c.notificadoWhatsApp),
+          duracionMin: c.duracionMin ? Number(c.duracionMin) : null,
+          profesionalNombre: c.profesionalNombre,
+          fecha: c.fecha,
+          hora: c.hora,
+          notas: c.notas || null,
+          motivoCancelacion: c.motivoCancelacion || null,
+          estado: c.estado || "pendiente",
+          creadoEn: c.creadoEn ? new Date(c.creadoEn) : new Date(),
+        },
+      });
+    }
 
-    // Sincronización en segundo plano hacia PostgreSQL (Supabase) sin bloquear la respuesta
-    if (process.env.DATABASE_URL) {
-      import("@/lib/prisma").then(({ prisma }) => {
-        // Sincronizar citas
-        Promise.all([
-          ...data.appointments.map((c) =>
-            prisma.appointment.upsert({
-              where: { id: c.id },
-              update: {
-                estado: c.estado,
-                motivoCancelacion: c.motivoCancelacion || null,
-                notificadoWhatsApp: Boolean(c.notificadoWhatsApp),
-              },
-              create: {
-                id: c.id,
-                clienteNombre: c.clienteNombre,
-                clienteTelefono: c.clienteTelefono,
-                servicioNombre: c.servicioNombre,
-                servicioPrecio: Number(c.servicioPrecio || 0),
-                montoReserva: Number(c.montoReserva || c.servicioPrecio * 0.2 || 0),
-                montoRestante: Number(c.montoRestante || c.servicioPrecio * 0.8 || 0),
-                metodoPago: c.metodoPago || "pagomovil",
-                pagoMovilBanco: c.pagoMovil?.banco || null,
-                pagoMovilReferencia: c.pagoMovil?.referencia || null,
-                pagoMovilTelefonoEmisor: c.pagoMovil?.telefonoEmisor || null,
-                notificadoWhatsApp: Boolean(c.notificadoWhatsApp),
-                duracionMin: c.duracionMin ? Number(c.duracionMin) : null,
-                profesionalNombre: c.profesionalNombre,
-                fecha: c.fecha,
-                hora: c.hora,
-                notas: c.notas || null,
-                motivoCancelacion: c.motivoCancelacion || null,
-                estado: c.estado || "pendiente",
-                creadoEn: c.creadoEn ? new Date(c.creadoEn) : new Date(),
-              },
-            })
-          ),
-          ...data.orders.map((o) =>
-            prisma.order.upsert({
-              where: { id: o.id },
-              update: {
-                estado: o.estado,
-                motivoCancelacion: o.motivoCancelacion || null,
-                notificadoWhatsApp: Boolean(o.notificadoWhatsApp),
-              },
-              create: {
-                id: o.id,
-                usuarioId: o.usuarioId || null,
-                clienteNombre: o.clienteNombre,
-                clienteTelefono: o.clienteTelefono,
-                clienteEmail: o.clienteEmail || null,
-                direccion: o.direccion || null,
-                total: Number(o.total || 0),
-                metodoPago: o.metodoPago || "pagomovil",
-                pagoMovilBanco: o.pagoMovil?.banco || null,
-                pagoMovilReferencia: o.pagoMovil?.referencia || null,
-                pagoMovilTelefonoEmisor: o.pagoMovil?.telefonoEmisor || null,
-                estado: o.estado || "pendiente_verificacion",
-                motivoCancelacion: o.motivoCancelacion || null,
-                notificadoWhatsApp: Boolean(o.notificadoWhatsApp),
-                creadoEn: o.creadoEn ? new Date(o.creadoEn) : new Date(),
-              },
-            })
-          ),
-          ...data.products.map((p) =>
-            prisma.product.update({
-              where: { id: p.id },
-              data: { stock: Number(p.stock || 0) },
-            })
-          ),
-        ]).catch(() => {});
-      }).catch(() => {});
+    // 3. Pedidos
+    for (const o of data.orders) {
+      await prisma.order.upsert({
+        where: { id: o.id },
+        update: {
+          estado: o.estado,
+          motivoCancelacion: o.motivoCancelacion || null,
+          notificadoWhatsApp: Boolean(o.notificadoWhatsApp),
+        },
+        create: {
+          id: o.id,
+          usuarioId: o.usuarioId || null,
+          clienteNombre: o.clienteNombre,
+          clienteTelefono: o.clienteTelefono,
+          clienteEmail: o.clienteEmail || null,
+          direccion: o.direccion || null,
+          total: Number(o.total || 0),
+          metodoPago: o.metodoPago || "pagomovil",
+          pagoMovilBanco: o.pagoMovil?.banco || null,
+          pagoMovilReferencia: o.pagoMovil?.referencia || null,
+          pagoMovilTelefonoEmisor: o.pagoMovil?.telefonoEmisor || null,
+          estado: o.estado || "pendiente_verificacion",
+          motivoCancelacion: o.motivoCancelacion || null,
+          notificadoWhatsApp: Boolean(o.notificadoWhatsApp),
+          creadoEn: o.creadoEn ? new Date(o.creadoEn) : new Date(),
+          items: {
+            create: (o.items || []).map((it) => ({
+              productId: it.productId,
+              nombre: it.nombre,
+              precio: Number(it.precio || 0),
+              cantidad: Number(it.cantidad || 1),
+              imagenUrl: it.imagenUrl || null,
+            })),
+          },
+        },
+      });
+    }
+
+    // 4. Productos
+    const currentProdIds = data.products.map((p) => p.id);
+    await prisma.product.deleteMany({
+      where: { id: { notIn: currentProdIds } },
+    });
+    for (const p of data.products) {
+      await prisma.product.upsert({
+        where: { id: p.id },
+        update: {
+          nombre: p.nombre,
+          descripcion: p.descripcion,
+          precio: Number(p.precio),
+          costo: p.costo !== undefined ? Number(p.costo) : null,
+          imagenUrl: p.imagenUrl,
+          categoria: p.categoria,
+          marca: p.marca || "Xiorizos Care",
+          stock: Number(p.stock || 0),
+          rating: Number(p.rating || 5.0),
+          resenasCount: Number(p.reseñasCount || 0),
+        },
+        create: {
+          id: p.id,
+          nombre: p.nombre,
+          descripcion: p.descripcion,
+          precio: Number(p.precio),
+          costo: p.costo !== undefined ? Number(p.costo) : null,
+          imagenUrl: p.imagenUrl,
+          categoria: p.categoria,
+          marca: p.marca || "Xiorizos Care",
+          stock: Number(p.stock || 0),
+          rating: Number(p.rating || 5.0),
+          resenasCount: Number(p.reseñasCount || 0),
+        },
+      });
+    }
+
+    // 5. Empleados
+    const currentEmpIds = data.employees.map((e) => e.id);
+    await prisma.employee.deleteMany({
+      where: { id: { notIn: currentEmpIds } },
+    });
+    for (const e of data.employees) {
+      await prisma.employee.upsert({
+        where: { id: e.id },
+        update: {
+          nombre: e.nombre,
+          telefono: e.telefono,
+          cargo: e.cargo,
+          especialidad: e.especialidad,
+          avatarUrl: e.avatarUrl || null,
+          serviciosIds: e.serviciosIds || [],
+          activo: Boolean(e.activo),
+          tipoInoperatividad: e.tipoInoperatividad || null,
+          fechaInicioInoperatividad: e.fechaInicioInoperatividad || null,
+          fechaFinInoperatividad: e.fechaFinInoperatividad || null,
+          fechasAusente: e.fechasAusente || [],
+          motivoInoperativo: e.motivoInoperativo || null,
+        },
+        create: {
+          id: e.id,
+          nombre: e.nombre,
+          telefono: e.telefono,
+          cargo: e.cargo,
+          especialidad: e.especialidad,
+          avatarUrl: e.avatarUrl || null,
+          serviciosIds: e.serviciosIds || [],
+          activo: Boolean(e.activo),
+          tipoInoperatividad: e.tipoInoperatividad || null,
+          fechaInicioInoperatividad: e.fechaInicioInoperatividad || null,
+          fechaFinInoperatividad: e.fechaFinInoperatividad || null,
+          fechasAusente: e.fechasAusente || [],
+          motivoInoperativo: e.motivoInoperativo || null,
+          creadoEn: e.creadoEn ? new Date(e.creadoEn) : new Date(),
+        },
+      });
     }
 
     return true;
   } catch (error) {
-    console.error("Error writing database file:", error);
+    console.error("Error al persistir en PostgreSQL:", error);
     return false;
   }
 }
-

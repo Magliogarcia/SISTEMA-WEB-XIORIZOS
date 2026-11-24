@@ -1,6 +1,8 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { User } from "@/types/user";
+import { useBookingStore } from "./booking-store";
+import { useCartStore } from "./cart-store";
 
 interface AuthState {
   user: User | null;
@@ -18,6 +20,10 @@ export const useAuthStore = create<AuthState>()(
         if (typeof document !== "undefined") {
           document.cookie = `xiorizos_role=${user.rol}; path=/; max-age=604800; SameSite=Lax`;
         }
+        // Limpiar cualquier borrador de reserva previo al iniciar sesión
+        try {
+          useBookingStore.getState().reset();
+        } catch {}
         set({ user, isAuthenticated: true });
       },
       logout: () => {
@@ -25,6 +31,11 @@ export const useAuthStore = create<AuthState>()(
           document.cookie = "xiorizos_role=; path=/; max-age=0; SameSite=Lax";
           fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
         }
+        // Limpiar borrador de cita y carrito para no transferirlos a otra cuenta
+        try {
+          useBookingStore.getState().reset();
+          useCartStore.getState().clearCart();
+        } catch {}
         set({ user: null, isAuthenticated: false });
       },
     }),

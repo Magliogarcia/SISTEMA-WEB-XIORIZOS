@@ -593,13 +593,10 @@ export default function AdminPedidosPage() {
                       variant="outline"
                       size="sm"
                       onClick={async () => {
-                        await cambiarEstado(pedidoDetalle.id, "cancelado", "Pago no comprobado (comprobante erróneo)");
-                        if (typeof window !== "undefined") {
-                          window.open(getPedidoPagoErroneoWhatsAppUrl(pedidoDetalle), "_blank");
-                        }
+                        await cambiarEstado(pedidoDetalle.id, "cancelado", "Pago no comprobado (comprobante bancario erróneo)");
                       }}
                       className="text-amber-800 hover:text-amber-950 hover:bg-amber-50 border-amber-300 rounded-sm text-xs font-medium"
-                      title="Cancela la compra debido a comprobante erróneo, devuelve el stock y abre WhatsApp"
+                      title="Cancela la compra debido a comprobante erróneo, devuelve el stock y muestra la opción de notificar por WhatsApp"
                     >
                       <AlertTriangle className="h-3.5 w-3.5 mr-1 text-amber-600" />
                       <span>Datos de pago erróneos</span>
@@ -652,15 +649,38 @@ export default function AdminPedidosPage() {
                 )}
 
                 {pedidoDetalle.estado === "cancelado" && (
-                  <Button
-                    size="sm"
-                    onClick={() => cambiarEstado(pedidoDetalle.id, "pendiente_verificacion")}
-                    className="bg-amber-600 hover:bg-amber-700 text-white rounded-sm text-xs font-semibold shadow-xs"
-                    title="Reactivar orden (descontará nuevamente el stock de inventario)"
-                  >
-                    <RotateCcw className="h-3.5 w-3.5 mr-1" />
-                    Reactivar Orden
-                  </Button>
+                  <>
+                    <a
+                      href={
+                        pedidoDetalle.motivoCancelacion?.includes("Pago no comprobado") || pedidoDetalle.motivoCancelacion?.includes("erróneo")
+                          ? getPedidoPagoErroneoWhatsAppUrl(pedidoDetalle)
+                          : getPedidoWhatsAppUrl(pedidoDetalle)
+                      }
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => marcarNotificadoWhatsApp(pedidoDetalle.id)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 shadow-xs transition-colors"
+                      title="Enviar mensaje explicativo por WhatsApp al cliente"
+                    >
+                      <WhatsAppIcon className="h-3.5 w-3.5 text-white" />
+                      <span>
+                        {pedidoDetalle.motivoCancelacion?.includes("Pago no comprobado") || pedidoDetalle.motivoCancelacion?.includes("erróneo")
+                          ? "Notificar Pago Erróneo por WhatsApp"
+                          : "Enviar WhatsApp al Cliente"}
+                      </span>
+                    </a>
+
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => cambiarEstado(pedidoDetalle.id, "pendiente_verificacion")}
+                      className="text-slate-700 hover:text-slate-900 hover:bg-slate-100 border-slate-300 rounded-sm text-xs font-medium"
+                      title="Reactivar orden (descontará nuevamente el stock de inventario)"
+                    >
+                      <RotateCcw className="h-3.5 w-3.5 mr-1" />
+                      Reactivar Orden
+                    </Button>
+                  </>
                 )}
               </div>
               </div>

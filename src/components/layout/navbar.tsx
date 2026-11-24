@@ -45,7 +45,7 @@ export function Navbar() {
           </Link>
 
           {/* Desktop Navigation Center Pill */}
-          <nav className="pointer-events-auto hidden xl:flex items-center gap-1 bg-surface-container-lowest/90 backdrop-blur-md rounded-full p-1.5 shadow-[0_12px_32px_-4px_rgba(61,34,20,0.08)]">
+          <nav className="pointer-events-auto hidden xl:flex items-center gap-1 bg-surface-container-lowest/90 backdrop-blur-md rounded-full p-1.5 shadow-[0_12px_32px_-4px_rgba(61,34,20,0.08)] border border-[#E8DCD1]/50">
             {navItems.map((item) => {
               const isActive =
                 item.href === "/"
@@ -58,8 +58,8 @@ export function Navbar() {
                   href={item.href}
                   className={`px-4 py-2 rounded-full font-label-md text-label-md transition-all ${
                     isActive
-                      ? "bg-primary text-on-primary shadow-sm"
-                      : "text-on-surface-variant hover:text-on-surface"
+                      ? "bg-gradient-to-r from-[#6E3D21] to-[#855230] text-white font-semibold shadow-sm"
+                      : "text-on-surface-variant hover:text-[#855230] hover:bg-[#FAF6F2]"
                   }`}
                 >
                   {item.label}
@@ -69,11 +69,11 @@ export function Navbar() {
           </nav>
 
           {/* Right Action Controls Pill */}
-          <div className="pointer-events-auto flex items-center gap-1.5 sm:gap-2 bg-surface-container-lowest/90 backdrop-blur-md rounded-full p-1.5 sm:p-2 shadow-[0_12px_32px_-4px_rgba(61,34,20,0.08)] shrink-0">
+          <div className="pointer-events-auto flex items-center gap-1.5 sm:gap-2 bg-surface-container-lowest/90 backdrop-blur-md rounded-full p-1.5 sm:p-2 shadow-[0_12px_32px_-4px_rgba(61,34,20,0.08)] border border-[#E8DCD1]/50 shrink-0">
             {/* Bolsa de compras */}
             <button
               onClick={openCart}
-              className="relative flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-surface-container-low hover:bg-surface-container-high transition-colors text-on-surface"
+              className="relative flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#FAF6F2] hover:bg-[#F3EBE1] transition-colors text-[#5C4536]"
               type="button"
               aria-label="Abrir bolsa de compras"
             >
@@ -88,7 +88,7 @@ export function Navbar() {
             {/* Cita Online button (desktop) */}
             <Link
               href="/citas"
-              className="hidden sm:inline-flex items-center justify-center bg-primary text-on-primary font-label-md text-label-md px-4 sm:px-5 py-2 sm:py-2.5 rounded-full shadow-[0_4px_14px_rgba(18,18,18,0.18)] hover:scale-105 active:scale-95 transition-all text-xs sm:text-sm"
+              className="hidden sm:inline-flex items-center justify-center bg-gradient-to-r from-[#6E3D21] to-[#855230] hover:from-[#5C3016] hover:to-[#734323] text-white font-label-md text-label-md px-4 sm:px-5 py-2 sm:py-2.5 rounded-full shadow-md shadow-[#6E3D21]/20 hover:scale-105 active:scale-95 transition-all text-xs sm:text-sm font-semibold"
             >
               Cita Online
             </Link>
@@ -97,7 +97,7 @@ export function Navbar() {
             {(user?.rol === "admin" || user?.rol === "empleado" || user?.rol === "estilista") && (
               <Link
                 href={user.rol === "admin" ? "/admin" : "/admin/citas"}
-                className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 sm:py-2 rounded-full bg-secondary text-white text-xs font-bold shadow-md hover:scale-105 transition-all"
+                className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 sm:py-2 rounded-full bg-slate-950 hover:bg-black text-white text-xs font-bold shadow-md hover:scale-105 transition-all"
                 title={user.rol === "admin" ? "Ir al Panel de Administración" : "Ir al Panel de Mi Agenda"}
               >
                 <span>Ir al panel</span>
@@ -107,7 +107,7 @@ export function Navbar() {
             {/* Botón de Perfil / Iniciar Sesión: abre siempre /login al darle clic */}
             <Link
               href="/login"
-              className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary flex items-center justify-center text-on-primary hover:scale-105 active:scale-95 transition-transform shadow-sm"
+              className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#3B1F0E] hover:bg-[#6E3D21] flex items-center justify-center text-white hover:scale-105 active:scale-95 transition-all shadow-sm"
               aria-label="Perfil y Login"
               title={isAuthenticated ? `Mi Perfil (${user?.nombre}) - Iniciar sesión / Gestionar cuenta` : "Iniciar sesión"}
             >
